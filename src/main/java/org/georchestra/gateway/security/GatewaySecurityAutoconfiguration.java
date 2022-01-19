@@ -51,15 +51,20 @@ public class GatewaySecurityAutoconfiguration {
 //				.pathMatchers("/**").authenticated();
 
         // http.anonymous().authorities("ROLE_ANONYMOUS");
+
+    	//disable csrf and cors or the websocket connection gets a 403 Forbidden. Revisit.
+    	http.csrf().disable().cors().disable();
+    	
         // enable oauth2 and http basic auth
         http.oauth2Login();
-
+        
         if (ldapEnabled) {
             http.httpBasic().and().formLogin();
         }
         // configure path matchers
         http.authorizeExchange()//
                 .pathMatchers("/", "/header/**").permitAll()//
+                .pathMatchers("/ws/**").permitAll()//
                 .pathMatchers("/**").authenticated();
 
         return http.build();
