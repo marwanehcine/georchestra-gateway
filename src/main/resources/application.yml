@@ -39,8 +39,18 @@ spring:
             clientId: 539019376623-98bfblg8t9efd507ia4qv0v7r79afits.apps.googleusercontent.com
             clientSecret: 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
             scope:
-            - email
+            #The openid scope is required for OpenID Connect Authentication Requests.
             - openid
+            # The email scope requests access to the email email_verified claims.
+            - email
+            # The profile scope requests access to the default profile claims, which are:
+            # name, family_name, given_name, middle_name, nickname, preferred_username,
+            # profile, picture, website, gender, birthdate, zoneinfo, locale, updated_at.
+            - profile
+            # The address scope requests access to the {@code address} claim.
+            - address
+            # The phone scope requests access to the phone_number and  phone_number_verified claims.
+            - phone
           github:
             clientId: Iv1.412513e628b94312
             clientSecret: 423a3c62e00b6eecd6edb69737f536e37feda57e
@@ -179,5 +189,6 @@ logging:
     root: INFO
     '[org.springframework]': info
     '[org.springframework.cloud.gateway]': debug
+    '[org.springframework.security.oauth2]': debug
     '[org.georchestra.gateway]': debug
 
