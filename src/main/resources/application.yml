@@ -169,14 +169,14 @@ spring:
         - Path=/import/**
 
       - id: http2demo
-        uri: https://localhost:8443
+        uri: ${demo.http2.target:https://localhost:8443}
         predicates:
         - Path=/demo/http2
         filters:
         - RewritePath=/demo/http2, /
 
       - id: websockets-demo
-        uri: http://localhost:8111
+        uri: ${demo.ws.targt:http://localhost:8111}
         predicates:
         - Path=/ws/**
 

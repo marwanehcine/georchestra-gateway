@@ -25,33 +25,14 @@ import org.springframework.security.config.annotation.web.reactive.EnableWebFlux
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 @Configuration
 @EnableWebFluxSecurity
 public class GatewaySecurityAutoconfiguration {
 
     private @Value("${ldap.enabled:false}") boolean ldapEnabled;
 
-//
-//    private @Autowired RouteLocator routeLocator;
-//
     @Bean
     SecurityWebFilterChain configure(ServerHttpSecurity http) throws Exception {
-        // http.oauth2Client(null/*withDefaults()*/)
-//		http//
-//				.anonymous().authorities("ROLE_ANONYMOUS")//
-//				// enable oauth2 and http basic auth
-//				.and().oauth2Login().and().httpBasic().and().formLogin()//
-//				// configure path matchers
-//				.and()//
-//				.authorizeExchange()//
-//				.pathMatchers("/", "/header/**").permitAll()//
-//				.pathMatchers("/**").authenticated();
-
-        // http.anonymous().authorities("ROLE_ANONYMOUS");
-
     	//disable csrf and cors or the websocket connection gets a 403 Forbidden. Revisit.
     	http.csrf().disable().cors().disable();
     	
