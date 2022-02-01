@@ -33,12 +33,13 @@ public class GatewaySecurityAutoconfiguration {
 
     @Bean
     SecurityWebFilterChain configure(ServerHttpSecurity http) throws Exception {
-    	//disable csrf and cors or the websocket connection gets a 403 Forbidden. Revisit.
-    	http.csrf().disable().cors().disable();
-    	
+        // disable csrf and cors or the websocket connection gets a 403 Forbidden.
+        // Revisit.
+        http.csrf().disable().cors().disable();
+
         // enable oauth2 and http basic auth
         http.oauth2Login();
-        
+
         if (ldapEnabled) {
             http.httpBasic().and().formLogin();
         }
