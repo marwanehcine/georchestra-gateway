@@ -19,14 +19,13 @@
 package org.georchestra.gateway.config;
 
 import java.util.List;
-import java.util.regex.Pattern;
 
 import lombok.Data;
 
 @Data
 public class RoleBasedAccessRule {
 
-    private List<Pattern> interceptUrl;
+    private List<String> interceptUrl;
     private boolean anonymous;
-    private List<String> allowedRoles;
+    private List<String> allowedRoles = List.of();
 }

@@ -18,6 +18,10 @@
  */
 package org.georchestra.gateway.security;
 
+import java.util.List;
+
+import org.georchestra.gateway.config.GatewayConfigProperties;
+import org.georchestra.gateway.config.RoleBasedAccessRule;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -27,6 +31,8 @@ import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.config.web.server.ServerHttpSecurity.AuthorizeExchangeSpec;
+import org.springframework.security.config.web.server.ServerHttpSecurity.AuthorizeExchangeSpec.Access;
 import org.springframework.security.config.web.server.ServerHttpSecurity.OAuth2LoginSpec;
 import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest;
 import org.springframework.security.oauth2.client.endpoint.ReactiveOAuth2AccessTokenResponseClient;
@@ -41,12 +47,13 @@ import reactor.netty.transport.ProxyProvider;
 @Configuration(proxyBeanMethods = false)
 @EnableWebFluxSecurity
 @EnableConfigurationProperties(OAuth2ProxyConfigProperties.class)
-@Slf4j
+@Slf4j(topic = "org.georchestra.gateway.security")
 public class GatewaySecurityAutoconfiguration {
 
     @Bean
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http,
-            @Value("${georchestra.gateway.security.ldap.enabled:false}") boolean ldapEnabled) throws Exception {
+            @Value("${georchestra.gateway.security.ldap.enabled:false}") boolean ldapEnabled,
+            GatewayConfigProperties config) throws Exception {
 
         // disable csrf and cors or the websocket connection gets a 403 Forbidden.
         // Revisit.
@@ -59,10 +66,12 @@ public class GatewaySecurityAutoconfiguration {
             http.httpBasic().and().formLogin();
         }
         // configure path matchers
-        http.authorizeExchange()//
-                .pathMatchers("/", "/header/**").permitAll()//
-                .pathMatchers("/ws/**").permitAll()//
-                .pathMatchers("/**").authenticated();
+        applyAccessRules(http, config);
+
+//		http.authorizeExchange()//
+//				.pathMatchers("/", "/header/**").permitAll()//
+//				.pathMatchers("/ws/**").permitAll()//
+//				.pathMatchers("/**").authenticated();
 
         return http.build();
     }
@@ -129,4 +138,23 @@ public class GatewaySecurityAutoconfiguration {
         return webClient;
     }
 
+    private ServerHttpSecurity applyAccessRules(ServerHttpSecurity http, GatewayConfigProperties config) {
+        AuthorizeExchangeSpec authorizeExchange = http.authorizeExchange();
+
+        for (RoleBasedAccessRule rule : config.getGlobalAccessRules()) {
+            List<String> antPatterns = rule.getInterceptUrl();
+            boolean anonymous = rule.isAnonymous();
+            List<String> allowedRoles = rule.getAllowedRoles();
+            Access access = authorizeExchange.pathMatchers(antPatterns.toArray(String[]::new));
+            if (anonymous) {
+                log.info("Access rule: {} anonymous");
+                access.permitAll();
+            } else {
+                log.info("Access rule: {} has any role: {}", antPatterns, allowedRoles);
+                access.hasAnyAuthority(allowedRoles.toArray(String[]::new));
+            }
+        }
+
+        return http;
+    }
 }
