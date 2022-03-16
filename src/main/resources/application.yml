@@ -7,6 +7,10 @@ info:
   component: Gateway Server
   instance-id: ${spring.application.name}:${spring.application.instance_id:${spring.cloud.client.ip-address}}:${server.port}
 
+proxy:
+   host: localhost
+   port: 8099
+   
 server:
   port: 8080
   http2.enabled: true
