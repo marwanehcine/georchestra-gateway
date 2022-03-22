@@ -17,7 +17,7 @@ LDAP Authentication is enabled and set up through the following
 configuration properties in `application.yml`:
 
 ```yaml
-ldap:
+georchestra.security.ldap:
   enabled: true
   url: ${ldapScheme}://${ldapHost}:${ldapPort}
   baseDn: ${ldapBaseDn:dc=georchestra,dc=org}
@@ -27,7 +27,7 @@ ldap:
   rolesSearchFilter: ${ldapRolesSearchFilter:(member={0})}
 ```
 
-If `ldap.enabled` is `false`,the log-in page won't show the username/password form inputs.
+If `georchestra.security.ldap.enabled` is `false`,the log-in page won't show the username/password form inputs.
 
 ## Data directory property sources
 

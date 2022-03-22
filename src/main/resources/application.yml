@@ -6,23 +6,30 @@
 info:
   component: Gateway Server
   instance-id: ${spring.application.name}:${spring.application.instance_id:${spring.cloud.client.ip-address}}:${server.port}
-
-proxy:
-   host: localhost
-   port: 8099
-   
 server:
   port: 8080
   http2.enabled: true
   compression.enabled: true
-ldap:
-  enabled: true
-  url: ${ldapScheme}://${ldapHost}:${ldapPort}
-  baseDn: ${ldapBaseDn:dc=georchestra,dc=org}
-  usersRdn: ${ldapUsersRdn:ou=users}
-  userSearchFilter: ${ldapUserSearchFilter:(uid={0})}
-  rolesRdn: ${ldapRolesRdn:ou=roles}
-  rolesSearchFilter: ${ldapRolesSearchFilter:(member={0})}
+
+# Custom security subsystem configuration
+georchestra:
+  gateway:
+    security:
+      oauth2:
+        proxy:
+          enabled: false
+          host: localhost
+          port: 8000
+          username: jack
+          password: insecure
+      ldap:
+        enabled: true
+        url: ${ldapScheme}://${ldapHost}:${ldapPort}
+        baseDn: ${ldapBaseDn:dc=georchestra,dc=org}
+        usersRdn: ${ldapUsersRdn:ou=users}
+        userSearchFilter: ${ldapUserSearchFilter:(uid={0})}
+        rolesRdn: ${ldapRolesRdn:ou=roles}
+        rolesSearchFilter: ${ldapRolesSearchFilter:(member={0})}
 
 spring:
   config.import: classpath:gateway.yml,optional:${georchestra.datadir}/default.properties,optional:${georchestra.datadir}/gateway/gateway.yaml
@@ -47,19 +54,21 @@ spring:
             # The email scope requests access to the email email_verified claims.
             - email
             # The profile scope requests access to the default profile claims, which are:
-            # name, family_name, given_name, middle_name, nickname, preferred_username,
-            # profile, picture, website, gender, birthdate, zoneinfo, locale, updated_at.
             - profile
             # The address scope requests access to the {@code address} claim.
             - address
+            # profile, picture, website, gender, birthdate, zoneinfo, locale, updated_at.
             # The phone scope requests access to the phone_number and  phone_number_verified claims.
+            # name, family_name, given_name, middle_name, nickname, preferred_username,
             - phone
           github:
             clientId: Iv1.412513e628b94312
             clientSecret: 423a3c62e00b6eecd6edb69737f536e37feda57e
-           
 #          login-client:
-#            provider: uaa
+  cloud:
+    gateway:
+      enabled: true
+      global-filter.websocket-routing.enabled: true
 #            client-id: login-client
 #            client-secret: secret
 #            authorization-grant-type: authorization_code
@@ -72,17 +81,13 @@ spring:
 #            user-info-uri: http://localhost:8090/uaa/userinfo
 #            user-name-attribute: sub
 #            jwk-set-uri: http://localhost:8090/uaa/token_keys
-  cloud:
-    gateway:
-      enabled: true 
-      global-filter.websocket-routing.enabled: true
+#            provider: uaa
       metrics.enabled: true
       default-filters:
       - SecureHeaders
       - TokenRelay
       - RemoveSecurityHeaders
       # AddSecHeaders appends sec-* headers to proxied requests based on the
-      # georchestra.gateway.default-headers and georchestra.gateway.servies.<service>.headers config properties 
       - AddSecHeaders
       global-filter:
         websocket-routing:
@@ -103,7 +108,6 @@ spring:
         - Path=/
         filters:
         - RewritePath=/, /header
-
       - id: loginredirect
         uri: no://op
         predicates:
@@ -111,80 +115,67 @@ spring:
         - QueryParam=login
         filters:
         - RedirectTo=308, /login
-
       - id: header
         uri: ${georchestra.gateway.services.header.target}
         predicates:
         - Path=/header,/header/**
-    
       - id: analytics
         uri: ${georchestra.gateway.services.analytics.target}
         predicates:
         - Path=/analytics/**
-    
       - id: atlas
         uri: ${georchestra.gateway.services.atlas.target}
         predicates:
         - Path=/atlas/**
-    
       - id: console
         uri: ${georchestra.gateway.services.console.target}
         predicates:
         - Path=/console/**
-    
       - id: extractorapp
         uri: ${georchestra.gateway.services.extractorapp.target}
         predicates:
         - Path=/extractorapp/**
-    
       - id: geonetwork
         uri: ${georchestra.gateway.services.geonetwork.target}
         predicates:
         - Path=/geonetwork/**
-    
       - id: geoserver
         uri: ${georchestra.gateway.services.geoserver.target}
         predicates:
         - Path=/geoserver/**
-
       - id: mapfishapp
         uri: ${georchestra.gateway.services.mapfishapp.target}
         predicates:
         - Path=/mapfishapp/**
-
       - id: geowebcache
         uri: ${georchestra.gateway.services.geowebcache.target}
         predicates:
         - Path=/geowebcache/**
-
       - id: mapstore
         uri: ${georchestra.gateway.services.mapstore.target}
         predicates:
         - Path=/mapstore/**
-
       - id: datafeeder
         uri: ${georchestra.gateway.services.datafeeder.target}
         predicates:
         - Path=/datafeeder/**
-
       - id: import
         uri: ${georchestra.gateway.services.import.target}
         predicates:
         - Path=/import/**
-
       - id: http2demo
         uri: ${demo.http2.target:https://localhost:8443}
         predicates:
         - Path=/demo/http2
         filters:
         - RewritePath=/demo/http2, /
-
       - id: websockets-demo
         uri: ${demo.ws.targt:http://localhost:8111}
         predicates:
         - Path=/ws/**
-
 management:
+  server:
+    port: 8090
   info:
     build.enabled: true
     java.enabled: true
@@ -200,13 +191,14 @@ management:
     prometheus.enabled: true
   endpoints:
     enabled-by-default: true
-    web.exposure.include: "*"
-
+    web.exposure.include: '*'
 logging:
   level:
-    root: INFO
+    root: warn
     '[org.springframework]': info
-    '[org.springframework.cloud.gateway]': debug
+    '[org.springframework.cloud.gateway]': info
+    '[org.springframework.security]': debug
     '[org.springframework.security.oauth2]': debug
+    '[reactor.netty.http ]': debug
     '[org.georchestra.gateway]': debug
-
+    
