@@ -18,6 +18,8 @@
  */
 package org.georchestra.gateway.security.ldap;
 
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
 import lombok.Data;
 
 /**
@@ -38,6 +40,7 @@ import lombok.Data;
  * </pre>
  */
 @Data
+@ConfigurationProperties(prefix = "georchestra.gateway.security.ldap")
 public class LdapConfigProperties {
 
     private String url;

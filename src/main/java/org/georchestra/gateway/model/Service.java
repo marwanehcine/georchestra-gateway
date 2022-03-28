@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 by the geOrchestra PSC
+ * Copyright (C) 2021 by the geOrchestra PSC
  *
  * This file is part of geOrchestra.
  *
@@ -16,17 +16,24 @@
  * You should have received a copy of the GNU General Public License along with
  * geOrchestra.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.georchestra.gateway.security;
+package org.georchestra.gateway.model;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import java.net.URL;
+import java.util.List;
 
 import lombok.Data;
 
-@ConfigurationProperties(prefix = "georchestra.gateway.security.oauth2.proxy")
-public @Data class OAuth2ProxyConfigProperties {
-    private boolean enabled;
-    private String host;
-    private Integer port;
-    private String username;
-    private String password;
+@Data
+public class Service {
+    /**
+     * Back end service URL
+     */
+    private URL target;
+
+    /**
+     * Service-specific security headers configuration
+     */
+    private HeaderMappings headers;
+
+    private List<RoleBasedAccessRule> accessRules;
 }

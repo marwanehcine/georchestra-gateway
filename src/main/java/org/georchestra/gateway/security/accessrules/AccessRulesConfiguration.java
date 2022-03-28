@@ -16,28 +16,19 @@
  * You should have received a copy of the GNU General Public License along with
  * geOrchestra.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.georchestra.gateway.filter.headers;
-
-import java.net.URI;
-import java.util.function.Consumer;
+package org.georchestra.gateway.security.accessrules;
 
 import org.georchestra.gateway.model.GatewayConfigProperties;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
-import org.springframework.web.server.ServerWebExchange;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-public class StandardSecurityHeadersProvider implements HeaderProvider {
+@Configuration
+@EnableConfigurationProperties(GatewayConfigProperties.class)
+public class AccessRulesConfiguration {
 
-    private @Autowired GatewayConfigProperties config;
-
-    @Override
-    public Consumer<HttpHeaders> prepare(ServerWebExchange exchange) {
-        return headers -> {
-            URI uri = exchange.getRequest().getURI();
-            String path = uri.getPath();
-            GatewayConfigProperties c = config;
-            System.err.println(uri);
-        };
+    @Bean
+    AccessRulesCustomizer georchestraAccessRulesCustomizer(GatewayConfigProperties config) {
+        return new AccessRulesCustomizer(config);
     }
-
 }

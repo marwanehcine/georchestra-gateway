@@ -16,12 +16,13 @@
  * You should have received a copy of the GNU General Public License along with
  * geOrchestra.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.georchestra.gateway.config;
+package org.georchestra.gateway.autoconfigure.app;
 
 import org.georchestra.gateway.filter.headers.AddSecHeadersGatewayFilterFactory;
 import org.georchestra.gateway.filter.headers.RemoveHeadersGatewayFilterFactory;
 import org.georchestra.gateway.filter.headers.RemoveSecurityHeadersGatewayFilterFactory;
 import org.georchestra.gateway.filter.headers.StandardSecurityHeadersProvider;
+import org.georchestra.gateway.model.GatewayConfigProperties;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.gateway.config.GatewayAutoConfiguration;
@@ -30,8 +31,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@EnableConfigurationProperties(GatewayConfigProperties.class)
 @AutoConfigureBefore(GatewayAutoConfiguration.class)
+@EnableConfigurationProperties(GatewayConfigProperties.class)
 public class HeaderFiltersAutoConfiguration {
 
     /**
