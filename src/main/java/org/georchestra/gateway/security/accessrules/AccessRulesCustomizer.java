@@ -19,6 +19,8 @@
 package org.georchestra.gateway.security.accessrules;
 
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.georchestra.gateway.model.GatewayConfigProperties;
 import org.georchestra.gateway.model.RoleBasedAccessRule;
@@ -27,6 +29,7 @@ import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity.AuthorizeExchangeSpec;
 import org.springframework.security.config.web.server.ServerHttpSecurity.AuthorizeExchangeSpec.Access;
 
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -64,14 +67,25 @@ public class AccessRulesCustomizer implements ServerHttpSecurityCustomizer {
     private void apply(AuthorizeExchangeSpec authorizeExchange, RoleBasedAccessRule rule) {
         List<String> antPatterns = rule.getInterceptUrl();
         boolean anonymous = rule.isAnonymous();
-        List<String> allowedRoles = rule.getAllowedRoles();
+        List<String> allowedRoles = rule.getAllowedRoles() == null ? List.of() : rule.getAllowedRoles();
         Access access = authorizeExchange.pathMatchers(antPatterns.toArray(String[]::new));
         if (anonymous) {
             log.info("Access rule: {} anonymous", antPatterns);
             access.permitAll();
-        } else if (null != allowedRoles) {
-            log.info("Access rule: {} has any role: {}", antPatterns, allowedRoles);
-            access.hasAnyAuthority(allowedRoles.toArray(String[]::new));
+        } else if (!allowedRoles.isEmpty()) {
+            String[] roles = allowedRoles.stream().map(this::ensureRolePrefix).toArray(String[]::new);
+            log.info("Access rule: {} has any role: {}", antPatterns,
+                    Stream.of(roles).collect(Collectors.joining(",")));
+            access.hasAnyAuthority(roles);
+        } else {
+            log.warn(
+                    "The following intercepted URL's don't have any access rule defined. Defaulting to 'authenticated': {}",
+                    antPatterns);
+            access.authenticated();
         }
+    }
+
+    private String ensureRolePrefix(@NonNull String roleName) {
+        return roleName.startsWith("ROLE_") ? roleName : ("ROLE_" + roleName);
     }
 }

@@ -89,12 +89,11 @@ georchestra:
         access-rules:
         - intercept-url: /geoserver/**
           anonymous: true
-          allowed-roles: ADMINISTRATOR
       geofence:
         target: http://geofence:8080/geofence/
         access-rules:
         - intercept-url: /geofence/**
-          allowed-roles: ROLE_ADMINISTRATOR
+          allowed-roles: ADMINISTRATOR
       header: 
         target: http://header:8080/header/
         access-rules:
