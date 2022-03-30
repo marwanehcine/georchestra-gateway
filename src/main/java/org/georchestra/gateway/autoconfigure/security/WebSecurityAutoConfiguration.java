@@ -16,24 +16,16 @@
  * You should have received a copy of the GNU General Public License along with
  * geOrchestra.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.georchestra.gateway.config;
+package org.georchestra.gateway.autoconfigure.security;
 
-import java.net.URL;
-import java.util.List;
+import org.georchestra.gateway.security.GatewaySecurityConfiguration;
+import org.georchestra.gateway.security.accessrules.AccessRulesConfiguration;
+import org.springframework.boot.autoconfigure.security.ConditionalOnDefaultWebSecurity;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 
-import lombok.Data;
-
-@Data
-public class Service {
-    /**
-     * Back end service URL
-     */
-    private URL target;
-
-    /**
-     * Service-specific security headers configuration
-     */
-    private HeaderMappings headers;
-
-    private List<RoleBasedAccessRule> accessRules;
+@Configuration(proxyBeanMethods = false)
+@ConditionalOnDefaultWebSecurity
+@Import({ GatewaySecurityConfiguration.class, AccessRulesConfiguration.class })
+public class WebSecurityAutoConfiguration {
 }

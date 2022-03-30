@@ -19,6 +19,7 @@ georchestra:
     - intercept-url: .*(\?|&amp;)login.*
       allowed-roles: USER,GN_EDITOR,GN_REVIEWER,GN_ADMIN,ADMINISTRATOR,SUPERUSER,ORGADMIN
     - intercept-url:
+      - /
       - .*
       - /proxy/\?url=.*
       anonymous: true
@@ -85,13 +86,19 @@ georchestra:
           json-user: true
       geoserver: 
         target: http://geoserver:8080/geoserver/
+        access-rules:
+        - intercept-url: /geoserver/**
+          anonymous: true
       geofence:
         target: http://geofence:8080/geofence/
         access-rules:
-        - intercept-url: /geofence/.*
+        - intercept-url: /geofence/**
           allowed-roles: ADMINISTRATOR
       header: 
         target: http://header:8080/header/
+        access-rules:
+        - intercept-url: /header/**
+          anonymous: true
       mapfishapp: 
         target: http://mapfishapp:8080/mapfishapp/
       geowebcache: 
@@ -122,9 +129,10 @@ georchestra:
 # to debug this app directly from the IDE
 spring.config.activate.on-profile: dev
 georchestra.gateway:
-  security.ldap:
-    enabled: true
-    url: ldap://localhost:3891
+  security:
+    ldap:
+      enabled: true
+      url: ldap://localhost:3891
   services:
     header.target: http://localhost:10003/header/
     mapfishapp.target: http://localhost:10004/mapfishapp/

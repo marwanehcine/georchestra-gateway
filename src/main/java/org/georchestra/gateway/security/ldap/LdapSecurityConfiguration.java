@@ -20,8 +20,7 @@ package org.georchestra.gateway.security.ldap;
 
 import java.util.Arrays;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.georchestra.gateway.security.ServerHttpSecurityCustomizer;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,6 +30,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.ReactiveAuthenticationManagerAdapter;
+import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
 import org.springframework.security.core.authority.mapping.SimpleAuthorityMapper;
 import org.springframework.security.ldap.authentication.BindAuthenticator;
@@ -40,21 +40,28 @@ import org.springframework.security.ldap.userdetails.DefaultLdapAuthoritiesPopul
 import org.springframework.security.web.server.authentication.AuthenticationWebFilter;
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers;
 
-@Configuration(proxyBeanMethods = true)
-@ConditionalOnProperty(prefix = "georchestra.gateway.security.ldap", name = "enabled", havingValue = "true", matchIfMissing = false)
-@EnableConfigurationProperties
-public class LdapSecurityAutoConfiguration {
+import lombok.extern.slf4j.Slf4j;
 
-    @Bean
-    @ConfigurationProperties(prefix = "georchestra.gateway.security.ldap")
-    LdapConfigProperties ldapConfigProperties() {
-        return new LdapConfigProperties();
+@Configuration(proxyBeanMethods = true)
+@EnableConfigurationProperties(LdapConfigProperties.class)
+@Slf4j(topic = "org.georchestra.gateway.security.ldap")
+public class LdapSecurityConfiguration {
+
+    private final class LDAPAuthenticationCustomizer implements ServerHttpSecurityCustomizer {
+        public @Override void customize(ServerHttpSecurity http) {
+            log.info("Enabling HTTP Basic authentication support for LDAP");
+            http.httpBasic().and().formLogin();
+        }
     }
 
     @Bean
-    BaseLdapPathContextSource contextSource() {
+    ServerHttpSecurityCustomizer ldapHttpBasicLoginFormEnabler() {
+        return new LDAPAuthenticationCustomizer();
+    }
+
+    @Bean
+    BaseLdapPathContextSource contextSource(LdapConfigProperties config) {
         LdapContextSource context = new LdapContextSource();
-        LdapConfigProperties config = ldapConfigProperties();
         context.setUrl(config.getUrl());
         context.setBase(config.getBaseDn());
         context.afterPropertiesSet();
@@ -70,12 +77,10 @@ public class LdapSecurityAutoConfiguration {
     }
 
     @Bean
-    ReactiveAuthenticationManager ldapAuthenticationManager() {
-        BaseLdapPathContextSource contextSource = contextSource();
-        DefaultLdapAuthoritiesPopulator authoritiesPopulator = ldapAuthoritiesPopulator();
+    ReactiveAuthenticationManager ldapAuthenticationManager(BaseLdapPathContextSource contextSource,
+            LdapConfigProperties config, DefaultLdapAuthoritiesPopulator authoritiesPopulator) {
         GrantedAuthoritiesMapper authoritiesMapper = ldapAuthoritiesMapper();
 
-        LdapConfigProperties config = ldapConfigProperties();
         String ldapUserSearchBase = config.getUsersRdn();
         String ldapUserSearchFilter = config.getUserSearchFilter();
 
@@ -94,9 +99,8 @@ public class LdapSecurityAutoConfiguration {
     }
 
     @Bean
-    DefaultLdapAuthoritiesPopulator ldapAuthoritiesPopulator() {
-        BaseLdapPathContextSource contextSource = contextSource();
-        LdapConfigProperties config = ldapConfigProperties();
+    DefaultLdapAuthoritiesPopulator ldapAuthoritiesPopulator(BaseLdapPathContextSource contextSource,
+            LdapConfigProperties config) {
         String ldapGroupSearchBase = config.getRolesRdn();
         String ldapGroupSearchFilter = config.getRolesSearchFilter();
 

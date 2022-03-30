@@ -16,14 +16,10 @@
  * You should have received a copy of the GNU General Public License along with
  * geOrchestra.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.georchestra.gateway.security;
+package org.georchestra.gateway.security.oauth2;
 
-import java.util.List;
-
-import org.georchestra.gateway.config.GatewayConfigProperties;
-import org.georchestra.gateway.config.RoleBasedAccessRule;
+import org.georchestra.gateway.security.ServerHttpSecurityCustomizer;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,13 +27,10 @@ import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
-import org.springframework.security.config.web.server.ServerHttpSecurity.AuthorizeExchangeSpec;
-import org.springframework.security.config.web.server.ServerHttpSecurity.AuthorizeExchangeSpec.Access;
 import org.springframework.security.config.web.server.ServerHttpSecurity.OAuth2LoginSpec;
 import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest;
 import org.springframework.security.oauth2.client.endpoint.ReactiveOAuth2AccessTokenResponseClient;
 import org.springframework.security.oauth2.client.endpoint.WebClientReactiveAuthorizationCodeTokenResponseClient;
-import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import lombok.extern.slf4j.Slf4j;
@@ -47,33 +40,20 @@ import reactor.netty.transport.ProxyProvider;
 @Configuration(proxyBeanMethods = false)
 @EnableWebFluxSecurity
 @EnableConfigurationProperties(OAuth2ProxyConfigProperties.class)
-@Slf4j(topic = "org.georchestra.gateway.security")
-public class GatewaySecurityAutoconfiguration {
+@Slf4j(topic = "org.georchestra.gateway.security.oauth2")
+public class OAuth2Configuration {
+
+    private final class OAuth2AuthenticationCustomizer implements ServerHttpSecurityCustomizer {
+
+        public @Override void customize(ServerHttpSecurity http) {
+            log.info("Enabling authentication support using an OAuth 2.0 and/or OpenID Connect 1.0 Provider");
+            http.oauth2Login();
+        }
+    }
 
     @Bean
-    public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http,
-            @Value("${georchestra.gateway.security.ldap.enabled:false}") boolean ldapEnabled,
-            GatewayConfigProperties config) throws Exception {
-
-        // disable csrf and cors or the websocket connection gets a 403 Forbidden.
-        // Revisit.
-        http.csrf().disable().cors().disable();
-
-        // enable oauth2 and http basic auth
-        http.oauth2Login();
-
-        if (ldapEnabled) {
-            http.httpBasic().and().formLogin();
-        }
-        // configure path matchers
-        applyAccessRules(http, config);
-
-//		http.authorizeExchange()//
-//				.pathMatchers("/", "/header/**").permitAll()//
-//				.pathMatchers("/ws/**").permitAll()//
-//				.pathMatchers("/**").authenticated();
-
-        return http.build();
+    ServerHttpSecurityCustomizer oau2EnablingCustomizer() {
+        return new OAuth2AuthenticationCustomizer();
     }
 
     /**
@@ -138,23 +118,4 @@ public class GatewaySecurityAutoconfiguration {
         return webClient;
     }
 
-    private ServerHttpSecurity applyAccessRules(ServerHttpSecurity http, GatewayConfigProperties config) {
-        AuthorizeExchangeSpec authorizeExchange = http.authorizeExchange();
-
-        for (RoleBasedAccessRule rule : config.getGlobalAccessRules()) {
-            List<String> antPatterns = rule.getInterceptUrl();
-            boolean anonymous = rule.isAnonymous();
-            List<String> allowedRoles = rule.getAllowedRoles();
-            Access access = authorizeExchange.pathMatchers(antPatterns.toArray(String[]::new));
-            if (anonymous) {
-                log.info("Access rule: {} anonymous");
-                access.permitAll();
-            } else {
-                log.info("Access rule: {} has any role: {}", antPatterns, allowedRoles);
-                access.hasAnyAuthority(allowedRoles.toArray(String[]::new));
-            }
-        }
-
-        return http;
-    }
 }

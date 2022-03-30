@@ -16,15 +16,16 @@
  * You should have received a copy of the GNU General Public License along with
  * geOrchestra.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.georchestra.gateway.handler.predicate;
+package org.georchestra.gateway.model;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import java.util.List;
 
-@Configuration
-public class RoutePredicateFactoriesAutoConfiguration {
+import lombok.Data;
 
-    public @Bean QueryParamRoutePredicateFactory queryParamRoutePredicateFactory() {
-        return new QueryParamRoutePredicateFactory();
-    }
+@Data
+public class RoleBasedAccessRule {
+
+    private List<String> interceptUrl;
+    private boolean anonymous;
+    private List<String> allowedRoles = List.of();
 }

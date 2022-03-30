@@ -16,6 +16,7 @@ georchestra:
   gateway:
     security:
       oauth2:
+        enabled: true
         proxy:
           enabled: false
           host: localhost
@@ -23,7 +24,7 @@ georchestra:
           username: jack
           password: insecure
       ldap:
-        enabled: true
+        enabled: false
         url: ${ldapScheme}://${ldapHost}:${ldapPort}
         baseDn: ${ldapBaseDn:dc=georchestra,dc=org}
         usersRdn: ${ldapUsersRdn:ou=users}
