@@ -31,6 +31,11 @@ import org.springframework.security.config.web.server.ServerHttpSecurity.OAuth2L
 import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest;
 import org.springframework.security.oauth2.client.endpoint.ReactiveOAuth2AccessTokenResponseClient;
 import org.springframework.security.oauth2.client.endpoint.WebClientReactiveAuthorizationCodeTokenResponseClient;
+import org.springframework.security.oauth2.client.userinfo.DefaultReactiveOAuth2UserService;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
+import org.springframework.security.oauth2.client.userinfo.ReactiveOAuth2UserService;
+import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import lombok.extern.slf4j.Slf4j;
@@ -79,11 +84,20 @@ public class OAuth2Configuration {
         return client;
     }
 
+    @Bean
+    public ReactiveOAuth2UserService<OAuth2UserRequest, OAuth2User> reactiveOAuth2UserService(
+            @Qualifier("oauth2WebClient") WebClient oauth2WebClient) {
+
+        DefaultReactiveOAuth2UserService service = new DefaultReactiveOAuth2UserService();
+        service.setWebClient(oauth2WebClient);
+        return service;
+    };
+
     /**
      * {@link WebClient} to use when performing HTTP POST requests to the OAuth2
      * service providers, that can be configured to use an HTTP proxy through the
      * {@link OAuth2ProxyConfigProperties} configuration properties.
-     * 
+     *
      * @param proxyConfig defines the HTTP proxy settings specific for the OAuth2
      *                    client. If not
      *                    {@link OAuth2ProxyConfigProperties#isEnabled() enabled},
