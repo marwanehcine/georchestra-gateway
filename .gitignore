@@ -9,3 +9,4 @@
 *.iml
 *~
 .attach_pid*
+.flattened-pom.xml
