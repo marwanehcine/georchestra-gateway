@@ -2,6 +2,8 @@ name: "docker"
 on:
   workflow_dispatch:
   push:
+    branches:
+      - main
   pull_request:
 
 jobs:
@@ -10,17 +12,17 @@ jobs:
     timeout-minutes: 15
     steps:
     - name: "Checking out"
-      uses: actions/checkout@v1
+      uses: actions/checkout@v3
 
     - name: "Setting up Java"
       uses: actions/setup-java@v2
       with:
         distribution: 'adopt'
-        java-version: '11'
+        java-version: '17'
         cache: 'maven'
 
     - name: mvn clean test verify
-      run: mvn clean test verify
+      run: mvn clean test verify -ntp -T1C
 
     - name: Calculating docker image tag
       id: version
@@ -28,7 +30,7 @@ jobs:
 
     - name: "Building a docker image"
       if: github.repository == 'georchestra/georchestra-gateway'
-      run: mvn -DimageTag=${{ steps.version.outputs.VERSION }} spring-boot:build-image
+      run: mvn -DimageTag=${{ steps.version.outputs.VERSION }} spring-boot:build-image -ntp
 
     - name: "Logging in to docker.io"
       if: github.repository == 'georchestra/georchestra-gateway'
