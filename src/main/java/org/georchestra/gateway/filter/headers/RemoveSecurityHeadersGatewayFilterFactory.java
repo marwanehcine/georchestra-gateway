@@ -24,7 +24,9 @@ import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
 
 /**
  * Georchestra-specific {@link GatewayFilterFactory} to remove all incoming
- * {@code sec-*} and {@code Authorization} (basic auth) request headers.
+ * {@code sec-*} and {@code Authorization} (basic auth) request headers, hence
+ * preventing impersonating geOrchestra authenticated users from incoming
+ * requests.
  * <p>
  * Sample usage:
  * 

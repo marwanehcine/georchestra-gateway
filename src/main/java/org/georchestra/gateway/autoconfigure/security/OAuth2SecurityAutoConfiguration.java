@@ -28,7 +28,7 @@ import org.springframework.context.annotation.Import;
 import lombok.extern.slf4j.Slf4j;
 
 @Configuration(proxyBeanMethods = false)
-@Slf4j(topic = "org.georchestra.gateway.autoconfigure.security.ldap")
+@Slf4j(topic = "org.georchestra.gateway.autoconfigure.security")
 @Import({ OAuth2SecurityAutoConfiguration.Enabled.class, OAuth2SecurityAutoConfiguration.Disabled.class })
 public class OAuth2SecurityAutoConfiguration {
     private static final String ENABLED_PROP = "georchestra.gateway.security.oauth2.enabled";

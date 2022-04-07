@@ -47,7 +47,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j(topic = "org.georchestra.gateway.security.ldap")
 public class LdapSecurityConfiguration {
 
-    private final class LDAPAuthenticationCustomizer implements ServerHttpSecurityCustomizer {
+    public static final class LDAPAuthenticationCustomizer implements ServerHttpSecurityCustomizer {
         public @Override void customize(ServerHttpSecurity http) {
             log.info("Enabling HTTP Basic authentication support for LDAP");
             http.httpBasic().and().formLogin();
@@ -55,8 +55,13 @@ public class LdapSecurityConfiguration {
     }
 
     @Bean
-    ServerHttpSecurityCustomizer ldapHttpBasicLoginFormEnabler() {
+    ServerHttpSecurityCustomizer ldapHttpBasicLoginFormEnablerExtension() {
         return new LDAPAuthenticationCustomizer();
+    }
+
+    @Bean
+    LdapAuthenticatedUserMapper ldapAuthenticatedUserMapperExtension() {
+        return new LdapAuthenticatedUserMapper();
     }
 
     @Bean

@@ -18,22 +18,34 @@
  */
 package org.georchestra.gateway.model;
 
-import java.net.URL;
+import java.net.URI;
 import java.util.List;
+import java.util.Optional;
 
 import lombok.Data;
 
+/**
+ * Model object used to configure which authenticated user's roles can reach a
+ * given backend service URIs, and which HTTP request headers to append to the
+ * proxied requests.
+ *
+ */
 @Data
 public class Service {
     /**
-     * Back end service URL
+     * Back end service URL the Gateway will use to proxy incoming requests to,
+     * based on the {@link #getAccessRules() access rules}
+     * {@link RoleBasedAccessRule#getInterceptUrl() intercept-URLs}
      */
-    private URL target;
+    private URI target;
 
     /**
      * Service-specific security headers configuration
      */
-    private HeaderMappings headers;
+    private Optional<HeaderMappings> headers = Optional.empty();
 
-    private List<RoleBasedAccessRule> accessRules;
+    /**
+     * List of Ant-pattern based access rules for the given back-end service
+     */
+    private List<RoleBasedAccessRule> accessRules = List.of();
 }

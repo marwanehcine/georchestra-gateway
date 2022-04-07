@@ -26,7 +26,6 @@ import static org.mockito.Mockito.verify;
 
 import java.util.stream.IntStream;
 
-import org.georchestra.gateway.filter.headers.RemoveSecurityHeadersGatewayFilterFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -37,6 +36,11 @@ import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 
+/**
+ * Test suite for {@link RemoveSecurityHeadersGatewayFilterFactory}, which
+ * removes all incoming {@code sec-*} headers to prevent impersonation of
+ * authorized users.
+ */
 class RemoveSecurityHeadersGatewayFilterFactoryTest {
 
     private RemoveSecurityHeadersGatewayFilterFactory filter;

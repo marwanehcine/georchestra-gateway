@@ -18,134 +18,60 @@
  */
 package org.georchestra.gateway.filter.headers;
 
-import java.security.Principal;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
-import org.georchestra.gateway.model.GatewayConfigProperties;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.georchestra.gateway.filter.global.ResolveTargetGlobalFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
+import org.springframework.core.Ordered;
 import org.springframework.http.server.reactive.ServerHttpRequest;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.server.ServerWebExchange;
 
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
 public class AddSecHeadersGatewayFilterFactory
         extends AbstractGatewayFilterFactory<AbstractGatewayFilterFactory.NameConfig> {
 
-    private @Autowired(required = false) List<HeaderProvider> providers = new ArrayList<>();
-    private @Autowired GatewayConfigProperties gatewayConfig;
+    private final List<HeaderContributor> providers;
 
-    public AddSecHeadersGatewayFilterFactory() {
+    public AddSecHeadersGatewayFilterFactory(List<HeaderContributor> providers) {
         super(NameConfig.class);
+        this.providers = providers;
     }
 
-    @Override
-    public List<String> shortcutFieldOrder() {
+    public @Override List<String> shortcutFieldOrder() {
         return Arrays.asList(NAME_KEY);
     }
 
-    @Override
-    public GatewayFilter apply(NameConfig config) {
-        return new AddSecHeadersGatewayFilter();
-//        return (exchange, chain) -> {
-//            Mono<Authentication> auth = ReactiveSecurityContextHolder.getContext()
-//                    .switchIfEmpty(Mono.error(new IllegalStateException("ReactiveSecurityContext is empty")))
-//                    .map(SecurityContext::getAuthentication);
-//
-//            Mono<Principal> principal = exchange.getPrincipal();
-//
-//            Mono<String> name = auth.doOnNext(principal -> {
-//                System.err.println(principal);
-//            }).map(Principal::getName);
-//
-//            Mono<Principal> p = exchange.getPrincipal();
-//            Mono<String> name = p.doOnNext(principal -> {
-//                System.err.println(principal);
-//            }).map(Principal::getName);
-//
-//            ServerHttpRequest.Builder requestBuilder = exchange.getRequest().mutate();
-//            providers.forEach(provider -> requestBuilder.headers(provider.prepare(exchange)));
-//
-//            ServerHttpRequest request = requestBuilder//
-//                    .header("sec-proxy", "true")//
-//                    .header("sec-username", "testuser")//
-//                    .header("sec-org", "PSC")//
-//                    .header("sec-roles", "ROLE_USER")//
-//                    .build();
-//
-//            return chain.filter(exchange.mutate().request(request).build());
-//        };
+    public @Override GatewayFilter apply(NameConfig config) {
+        return new AddSecHeadersGatewayFilter(providers);
     }
 
-    private static class AddSecHeadersGatewayFilter implements GatewayFilter {
+    @RequiredArgsConstructor
+    private static class AddSecHeadersGatewayFilter implements GatewayFilter, Ordered {
+
+        private final @NonNull List<HeaderContributor> providers;
+
+        public @Override Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+            ServerHttpRequest.Builder requestBuilder = exchange.getRequest().mutate();
+
+            providers.stream()//
+                    .map(provider -> provider.prepare(exchange))//
+                    .forEach(requestBuilder::headers);
+
+            ServerHttpRequest request = requestBuilder.build();
+            ServerWebExchange updatedExchange = exchange.mutate().request(request).build();
+            return chain.filter(updatedExchange);
+        }
 
         @Override
-        public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-            Mono<String> name = exchange.getPrincipal().map(this::resolveName);
-            Mono<ServerWebExchange> e = name.map(n -> this.addHeaders(n, exchange)).defaultIfEmpty(exchange);
-            Mono<Void> flatMap = e.flatMap(chain::filter);
-            return flatMap;
+        public int getOrder() {
+            return ResolveTargetGlobalFilter.ORDER + 1;
         }
-
-        private ServerWebExchange addHeaders(String name, ServerWebExchange exchange) {
-            ServerHttpRequest.Builder requestBuilder = exchange.getRequest().mutate();
-            // providers.forEach(provider ->
-            // requestBuilder.headers(provider.prepare(exchange)));
-
-            ServerHttpRequest request = requestBuilder//
-                    .header("sec-proxy", "true")//
-                    .header("sec-username", name)//
-                    .header("sec-org", "PSC")//
-                    .header("sec-roles", "ROLE_ADMINISTRATOR;ROLE_GNADMIN,ROLE_SUPERUSER")//
-                    .build();
-
-            return exchange.mutate().request(request).build();
-        }
-
-        private String resolveName(Principal p) {
-            System.err.println("Resolving " + p.getClass().getName());
-            String name;
-            if (p instanceof OAuth2AuthenticationToken) {
-                OAuth2AuthenticationToken u = ((OAuth2AuthenticationToken) p);
-                Collection<GrantedAuthority> authorities = u.getAuthorities();
-                String authorizedClientRegistrationId = u.getAuthorizedClientRegistrationId();
-                Object credentials = u.getCredentials();
-                Object details = u.getDetails();
-                String n = u.getName();
-                OAuth2User principal = u.getPrincipal();
-                Map<String, Object> attributes = principal.getAttributes();
-                String name2 = principal.getName();
-                Map<String, Object> attributes2 = principal.getAttributes();
-                name = (String) attributes2.get("email");
-            } else {
-                name = p.getName();
-            }
-            return name;
-        }
-    }
-
-//    return (exchange, chain) -> exchange.getPrincipal()
-//            // .log("token-relay-filter")
-//            .filter(principal -> principal instanceof OAuth2AuthenticationToken)
-//            .cast(OAuth2AuthenticationToken.class)
-//            .flatMap(authentication -> authorizedClient(exchange, authentication))
-//            .map(OAuth2AuthorizedClient::getAccessToken).map(token -> withBearerAuth(exchange, token))
-//            // TODO: adjustable behavior if empty
-//            .defaultIfEmpty(exchange).flatMap(chain::filter);
-
-    private Optional<String> extractService(ServerWebExchange exchange) {
-        // TODO Auto-generated method stub
-        return null;
     }
 
 }

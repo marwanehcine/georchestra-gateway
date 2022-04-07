@@ -16,28 +16,27 @@
  * You should have received a copy of the GNU General Public License along with
  * geOrchestra.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.georchestra.gateway.filter.headers;
+package org.georchestra.gateway.filter.headers.providers;
 
-import java.net.URI;
+import java.util.Optional;
 import java.util.function.Consumer;
 
-import org.georchestra.gateway.model.GatewayConfigProperties;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.georchestra.gateway.filter.headers.HeaderContributor;
+import org.georchestra.gateway.model.GeorchestraOrganization;
+import org.georchestra.gateway.model.GeorchestraTargetConfig;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.server.ServerWebExchange;
 
-public class StandardSecurityHeadersProvider implements HeaderProvider {
+public class GeorchestraOrganizationHeadersContributor extends HeaderContributor {
 
-    private @Autowired GatewayConfigProperties config;
-
-    @Override
-    public Consumer<HttpHeaders> prepare(ServerWebExchange exchange) {
+    public @Override Consumer<HttpHeaders> prepare(ServerWebExchange exchange) {
         return headers -> {
-            URI uri = exchange.getRequest().getURI();
-            String path = uri.getPath();
-            GatewayConfigProperties c = config;
-            System.err.println(uri);
+            GeorchestraTargetConfig.getTarget(exchange)//
+                    .map(GeorchestraTargetConfig::headers)//
+                    .ifPresent(mappings -> {
+                        Optional<GeorchestraOrganization> org = GeorchestraOrganization.resolve(exchange);
+                        add(headers, "sec-orgname", mappings.getOrgname(), org.map(GeorchestraOrganization::getName));
+                    });
         };
     }
-
 }

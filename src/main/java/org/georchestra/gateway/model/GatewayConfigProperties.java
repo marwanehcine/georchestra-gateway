@@ -26,6 +26,12 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import lombok.Data;
 
+/**
+ * Model object representing the externalized configuration properties used to
+ * set up URI based access rules and HTTP request headers appended to proxied
+ * requests to back-end services.
+ *
+ */
 @Data
 @ConfigurationProperties("georchestra.gateway")
 public class GatewayConfigProperties {
@@ -33,18 +39,17 @@ public class GatewayConfigProperties {
     /**
      * Configures the global security headers to append to all proxied http requests
      */
-    private HeaderMappings defaultHeaders = new HeaderMappings();
+    private HeaderMappings defaultHeaders;
 
     /**
      * Incoming request URI pattern matching for requests that don't match any of
      * the service-specific rules under
-     * georchestra.gateway.services.[service].access-rules
+     * {@literal georchestra.gateway.services.[service].access-rules}
      */
     private List<RoleBasedAccessRule> globalAccessRules;
 
     /**
-     * Maps a logical service name, to its back-end service URL and security
-     * settings
+     * Maps a logical service name to its back-end service URL and security settings
      */
     private Map<String, Service> services = Collections.emptyMap();
 

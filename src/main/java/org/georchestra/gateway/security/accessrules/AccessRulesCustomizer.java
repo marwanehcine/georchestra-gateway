@@ -24,6 +24,7 @@ import java.util.stream.Stream;
 
 import org.georchestra.gateway.model.GatewayConfigProperties;
 import org.georchestra.gateway.model.RoleBasedAccessRule;
+import org.georchestra.gateway.model.Service;
 import org.georchestra.gateway.security.ServerHttpSecurityCustomizer;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity.AuthorizeExchangeSpec;
@@ -33,6 +34,19 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * {@link ServerHttpSecurityCustomizer} to apply {@link RoleBasedAccessRule ROLE
+ * based access rules} at startup.
+ * <p>
+ * The access rules are configured as
+ * {@link GatewayConfigProperties#getGlobalAccessRules() global rules}, and
+ * overridden if needed on a per-service basis from
+ * {@link GatewayConfigProperties#getServices()}.
+ *
+ * @see RoleBasedAccessRule
+ * @see GatewayConfigProperties#getGlobalAccessRules()
+ * @see Service#getAccessRules()
+ */
 @RequiredArgsConstructor
 @Slf4j(topic = "org.georchestra.gateway.config.security.accessrules")
 public class AccessRulesCustomizer implements ServerHttpSecurityCustomizer {

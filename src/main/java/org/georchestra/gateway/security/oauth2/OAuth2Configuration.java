@@ -25,7 +25,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
-import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity.OAuth2LoginSpec;
 import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest;
@@ -35,7 +34,6 @@ import org.springframework.security.oauth2.client.userinfo.DefaultReactiveOAuth2
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.client.userinfo.ReactiveOAuth2UserService;
 import org.springframework.security.oauth2.core.user.OAuth2User;
-import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import lombok.extern.slf4j.Slf4j;
@@ -43,12 +41,11 @@ import reactor.netty.http.client.HttpClient;
 import reactor.netty.transport.ProxyProvider;
 
 @Configuration(proxyBeanMethods = false)
-@EnableWebFluxSecurity
 @EnableConfigurationProperties(OAuth2ProxyConfigProperties.class)
 @Slf4j(topic = "org.georchestra.gateway.security.oauth2")
 public class OAuth2Configuration {
 
-    private final class OAuth2AuthenticationCustomizer implements ServerHttpSecurityCustomizer {
+    public static final class OAuth2AuthenticationCustomizer implements ServerHttpSecurityCustomizer {
 
         public @Override void customize(ServerHttpSecurity http) {
             log.info("Enabling authentication support using an OAuth 2.0 and/or OpenID Connect 1.0 Provider");
@@ -57,8 +54,18 @@ public class OAuth2Configuration {
     }
 
     @Bean
-    ServerHttpSecurityCustomizer oau2EnablingCustomizer() {
+    ServerHttpSecurityCustomizer oauth2LoginEnablingCustomizer() {
         return new OAuth2AuthenticationCustomizer();
+    }
+
+    @Bean
+    OAuth2AuthenticationTokenUserMapper oAuth2AuthenticationTokenUserMapper() {
+        return new OAuth2AuthenticationTokenUserMapper();
+    }
+
+    @Bean
+    OAuth2AuthenticationTokenOpenIDUserMapper oAuth2AuthenticationTokenOpenIDUserMapper() {
+        return new OAuth2AuthenticationTokenOpenIDUserMapper();
     }
 
     /**

@@ -22,6 +22,10 @@ import java.util.Optional;
 
 import lombok.Data;
 
+/**
+ * Models which geOrchestra-specific HTTP request headers to append to proxied
+ * requests.
+ */
 @Data
 public class HeaderMappings {
     /** Append the standard {@literal sec-proxy=true} header to proxied requests */
@@ -45,7 +49,7 @@ public class HeaderMappings {
     /** Append the standard {@literal sec-firstname} header to proxied requests */
     private Optional<Boolean> firstname = Optional.empty();
 
-    /** Append the standard {@literal sec-firstname} header to proxied requests */
+    /** Append the standard {@literal sec-lastname} header to proxied requests */
     private Optional<Boolean> lastname = Optional.empty();
 
     /** Append the standard {@literal sec-tel} header to proxied requests */

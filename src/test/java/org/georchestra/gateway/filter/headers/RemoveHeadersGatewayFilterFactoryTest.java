@@ -27,7 +27,6 @@ import static org.mockito.Mockito.verify;
 
 import java.util.stream.IntStream;
 
-import org.georchestra.gateway.filter.headers.RemoveHeadersGatewayFilterFactory;
 import org.georchestra.gateway.filter.headers.RemoveHeadersGatewayFilterFactory.RegExConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -39,6 +38,11 @@ import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 
+/**
+ * Test suite for {@link RemoveHeadersGatewayFilterFactory}, which can remove
+ * any incoming request header using java regular expressions
+ *
+ */
 class RemoveHeadersGatewayFilterFactoryTest {
 
     private RemoveHeadersGatewayFilterFactory filter;

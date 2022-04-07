@@ -18,7 +18,8 @@
  */
 package org.georchestra.gateway.app;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.net.URI;
@@ -35,7 +36,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest(properties = "georchestra.datadir=classpath:/test-datadir")
-@ActiveProfiles({ "default", "test" })
+@ActiveProfiles({ "test" })
 class GeorchestraGatewayApplicationTests {
 
     private @Autowired Environment env;

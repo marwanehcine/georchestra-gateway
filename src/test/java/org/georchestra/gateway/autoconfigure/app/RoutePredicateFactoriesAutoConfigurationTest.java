@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 by the geOrchestra PSC
+ * Copyright (C) 2022 by the geOrchestra PSC
  *
  * This file is part of geOrchestra.
  *
@@ -16,16 +16,30 @@
  * You should have received a copy of the GNU General Public License along with
  * geOrchestra.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.georchestra.gateway.autoconfigure.app;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.georchestra.gateway.handler.predicate.QueryParamRoutePredicateFactory;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
-@Configuration(proxyBeanMethods = false)
-public class RoutePredicateFactoriesAutoConfiguration {
+/**
+ * Verify context contributions for
+ * {@link RoutePredicateFactoriesAutoConfiguration}
+ */
+class RoutePredicateFactoriesAutoConfigurationTest {
 
-    public @Bean QueryParamRoutePredicateFactory queryParamRoutePredicateFactory() {
-        return new QueryParamRoutePredicateFactory();
+    private ApplicationContextRunner runner = new ApplicationContextRunner()
+            .withConfiguration(AutoConfigurations.of(RoutePredicateFactoriesAutoConfiguration.class));
+
+    @Test
+    void testContext() {
+        runner.run(context -> {
+            assertThat(context).hasSingleBean(QueryParamRoutePredicateFactory.class);
+        });
     }
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 by the geOrchestra PSC
+ * Copyright (C) 2022 by the geOrchestra PSC
  *
  * This file is part of geOrchestra.
  *
@@ -16,19 +16,18 @@
  * You should have received a copy of the GNU General Public License along with
  * geOrchestra.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.georchestra.gateway.filter.headers;
 
-import java.util.function.Consumer;
+package org.georchestra.gateway.security;
 
-import org.springframework.http.HttpHeaders;
-import org.springframework.web.server.ServerWebExchange;
+import java.util.Optional;
+
+import org.georchestra.gateway.model.GeorchestraUser;
+import org.springframework.security.core.Authentication;
 
 /**
- * Extension point for contributors to HTTP request headers sent to back-end
- * services.
+ *
  */
-public interface HeaderProvider {
+public interface GeorchestraUserMapperExtension {
 
-    Consumer<HttpHeaders> prepare(ServerWebExchange exchange);
-
+    Optional<GeorchestraUser> resolve(Authentication authToken);
 }

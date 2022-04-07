@@ -20,12 +20,37 @@ package org.georchestra.gateway.model;
 
 import java.util.List;
 
+import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+
 import lombok.Data;
 
+/**
+ * Models access rules to intercepted Ant-pattern URIs based on roles.
+ * <p>
+ * Role names are defined by the authenticated user's
+ * {@link AbstractAuthenticationToken#getAuthorities() authority names} (i.e.
+ * {@link GrantedAuthority#getAuthority()}) .
+ */
 @Data
 public class RoleBasedAccessRule {
 
-    private List<String> interceptUrl;
-    private boolean anonymous;
+    /**
+     * List of Ant pattern URI's, excluding the application context, the Gateway
+     * shall intercept and apply the access rules defined here. E.g.
+     */
+    private List<String> interceptUrl = List.of();
+
+    /**
+     * Whether anonymous (unauthenticated) access is to be granted to the
+     * intercepted URIs.
+     */
+    private boolean anonymous = false;
+
+    /**
+     * Role names that the authenticated user must be part of to be granted access
+     * to the intercepted URIs. The ROLE_ prefix is optional. For example, the role
+     * set [ROLE_USER, ROLE_AUDITOR] is equivalent to [USER, AUDITOR]
+     */
     private List<String> allowedRoles = List.of();
 }

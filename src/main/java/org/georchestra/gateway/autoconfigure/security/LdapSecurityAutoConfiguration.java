@@ -31,7 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnClass(LdapTemplate.class)
 @Import({ LdapSecurityAutoConfiguration.Enabled.class, LdapSecurityAutoConfiguration.Disabled.class })
-@Slf4j(topic = "org.georchestra.gateway.autoconfigure.security.ldap")
+@Slf4j(topic = "org.georchestra.gateway.autoconfigure.security")
 public class LdapSecurityAutoConfiguration {
 
     private static final String ENABLED_PROP = "georchestra.gateway.security.ldap.enabled";
