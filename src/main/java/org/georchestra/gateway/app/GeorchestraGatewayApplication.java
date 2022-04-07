@@ -18,7 +18,7 @@
  */
 package org.georchestra.gateway.app;
 
-import java.util.Map;
+import java.security.Principal;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
@@ -27,16 +27,13 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
-import org.springframework.security.oauth2.client.annotation.RegisteredOAuth2AuthorizedClient;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.util.unit.DataSize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Mono;
 
 @Controller
 @Slf4j
@@ -49,17 +46,10 @@ public class GeorchestraGatewayApplication {
         SpringApplication.run(GeorchestraGatewayApplication.class, args);
     }
 
-    @GetMapping("/testme")
-    public String index(Model model, @RegisteredOAuth2AuthorizedClient OAuth2AuthorizedClient authorizedClient,
-            @AuthenticationPrincipal OAuth2User oauth2User) {
-        String name = oauth2User.getName();
-        String clientName = authorizedClient.getClientRegistration().getClientName();
-        Map<String, Object> attributes = oauth2User.getAttributes();
-
-        model.addAttribute("userName", name);
-        model.addAttribute("clientName", clientName);
-        model.addAttribute("userAttributes", attributes);
-        return "index";
+    @GetMapping(path = "/whoami", produces = "application/json")
+    @ResponseBody
+    public Mono<Principal> whoami(Principal principal) {
+        return principal == null ? Mono.empty() : Mono.just(principal);
     }
 
     @EventListener(ApplicationReadyEvent.class)

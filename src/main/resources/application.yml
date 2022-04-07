@@ -8,9 +8,14 @@ info:
   instance-id: ${spring.application.name}:${spring.application.instance_id:${spring.cloud.client.ip-address}}:${server.port}
 server:
   port: 8080
-  http2.enabled: true
   compression.enabled: true
-
+  # HTTP/2 is only supported over TLS (HTTPS)
+  # So we need to configure SSL if we want to support HTTP/2 
+  http2.enabled: ${server.ssl.enabled}
+  ssl:
+    enabled: false
+    #TODO: configure SSL with a self-signed certificate
+    
 # Custom security subsystem configuration
 georchestra:
   gateway:

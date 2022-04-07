@@ -20,7 +20,7 @@ georchestra:
       allowed-roles: USER,GN_EDITOR,GN_REVIEWER,GN_ADMIN,ADMINISTRATOR,SUPERUSER,ORGADMIN
     - intercept-url:
       - /
-      - .*
+      - /**
       - /proxy/\?url=.*
       anonymous: true
       # wonder what's the purpose of having several roles defined in security-proxy's security-mappings.xml
