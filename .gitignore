@@ -10,3 +10,4 @@
 *~
 .attach_pid*
 .flattened-pom.xml
+.mvn/wrapper/maven-wrapper.jar
