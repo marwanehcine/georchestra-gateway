@@ -46,8 +46,8 @@ TL;DR:
 
 Any of the following commands will build the image:
 
-- `mvn [-DimageTag=<tag>] spring-boot:build-image` (e.g. `mvn -DimageTag=latest spring-boot:build-image`)
-- `mvn [-DimageTag=<tag>] install` will also build it.
+- `./mvnw [-DimageTag=<tag>] spring-boot:build-image` (e.g. `./mvnw -DimageTag=latest spring-boot:build-image`)
+- `./mvnw [-DimageTag=<tag>] install` will also build it.
 - `[BTAG=<tag>] make docker-build-gateway` at the georchestra project root directory (e.g. `BTAG=test make docker-build-gateway`)
 
 > Not explicitly specifying the image tag produces `georchestra/gateway:latest` in the case of
