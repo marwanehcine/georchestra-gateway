@@ -35,13 +35,13 @@ import lombok.experimental.Accessors;
 @Accessors(fluent = true, chain = true)
 public class GeorchestraTargetConfig {
 
-    static final String TARGET_CONFIG_KEY = GeorchestraTargetConfig.class.getCanonicalName() + ".target";
+    private static final String TARGET_CONFIG_KEY = GeorchestraTargetConfig.class.getCanonicalName() + ".target";
 
     private HeaderMappings headers;
     private List<RoleBasedAccessRule> accessRules;
 
     public static Optional<GeorchestraTargetConfig> getTarget(ServerWebExchange exchange) {
-        return Optional.ofNullable(exchange.getAttribute(TARGET_CONFIG_KEY)).map(GeorchestraTargetConfig.class::cast);
+        return Optional.ofNullable(exchange.getAttributes().get(TARGET_CONFIG_KEY)).map(GeorchestraTargetConfig.class::cast);
     }
 
     public static void setTarget(ServerWebExchange exchange, GeorchestraTargetConfig config) {

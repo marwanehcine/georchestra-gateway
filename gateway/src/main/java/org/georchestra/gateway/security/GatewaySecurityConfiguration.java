@@ -71,11 +71,6 @@ public class GatewaySecurityConfiguration {
         });
 
         log.info("Security filter chain initialized");
-//		http.authorizeExchange()//
-//				.pathMatchers("/", "/header/**").permitAll()//
-//				.pathMatchers("/ws/**").permitAll()//
-//				.pathMatchers("/**").authenticated();
-
         return http.build();
     }
 

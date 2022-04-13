@@ -22,6 +22,7 @@ package org.georchestra.gateway.security;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.georchestra.gateway.model.GeorchestraUsers;
 import org.georchestra.security.model.GeorchestraUser;
@@ -49,7 +50,7 @@ public class BasicAuthenticatedUserMapper implements GeorchestraUserMapperExtens
         GeorchestraUser user = new GeorchestraUser();
 
         Collection<GrantedAuthority> authorities = token.getAuthorities();
-        List<String> roles = authorities.stream().map(GrantedAuthority::getAuthority).toList();
+        List<String> roles = authorities.stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList());
         String name = token.getName();
 
         Object principal = token.getPrincipal();

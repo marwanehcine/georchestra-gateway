@@ -33,7 +33,7 @@ public class GeorchestraUsers {
     static final String GEORCHESTRA_USER_KEY = GeorchestraUsers.class.getCanonicalName();
 
     public static Optional<GeorchestraUser> resolve(ServerWebExchange exchange) {
-        return Optional.ofNullable(exchange.getAttribute(GEORCHESTRA_USER_KEY)).map(GeorchestraUser.class::cast);
+        return Optional.ofNullable(exchange.getAttributes().get(GEORCHESTRA_USER_KEY)).map(GeorchestraUser.class::cast);
     }
 
     public static ServerWebExchange store(@NonNull ServerWebExchange exchange, GeorchestraUser user) {

@@ -24,6 +24,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.georchestra.gateway.security.ldap.LdapAuthenticatedUserMapper;
 import org.georchestra.gateway.security.ldap.LdapConfigProperties;
 import org.georchestra.gateway.security.ldap.LdapSecurityConfiguration.LDAPAuthenticationCustomizer;
+import org.georchestra.security.api.OrganizationsApi;
+import org.georchestra.security.api.RolesApi;
+import org.georchestra.security.api.UsersApi;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
@@ -55,6 +58,9 @@ class LdapSecurityAutoConfigurationTest {
                 "georchestra.gateway.security.ldap.url=ldap://localhost:3891"//
         )//
                 .run(context -> {
+                    assertThat(context).hasSingleBean(UsersApi.class);
+                    assertThat(context).hasSingleBean(OrganizationsApi.class);
+                    assertThat(context).hasSingleBean(RolesApi.class);
                     assertThat(context).hasSingleBean(LdapConfigProperties.class);
                     assertThat(context).hasSingleBean(LDAPAuthenticationCustomizer.class);
                     assertThat(context).hasSingleBean(LdapAuthenticatedUserMapper.class);
