@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 by the geOrchestra PSC
+ * Copyright (C) 2021 by the geOrchestra PSC
  *
  * This file is part of geOrchestra.
  *
@@ -16,34 +16,24 @@
  * You should have received a copy of the GNU General Public License along with
  * geOrchestra.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.georchestra.gateway.security;
+package org.georchestra.gateway.model;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.georchestra.gateway.model.GeorchestraUsers;
 import org.georchestra.security.model.GeorchestraUser;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.server.ServerWebExchange;
 
+import lombok.Data;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 
-/**
- * Relies on the provided {@link GeorchestraUserMapperExtension}s to map an
- * {@link Authentication} to a {@link GeorchestraUsers}.
- */
-@RequiredArgsConstructor
-public class GeorchestraUserMapper {
+@Data
+public class GeorchestraUsers {
 
-    static final String GEORCHESTRA_USER_KEY = GeorchestraUser.class.getCanonicalName();
+    static final String GEORCHESTRA_USER_KEY = GeorchestraUsers.class.getCanonicalName();
 
-    private final @NonNull List<GeorchestraUserMapperExtension> resolvers;
-
-    public Optional<GeorchestraUser> resolve(Authentication authToken) {
-        return resolvers.stream().map(resolver -> resolver.resolve(authToken)).filter(Optional::isPresent)
-                .map(Optional::get).findFirst();
+    public static Optional<GeorchestraUser> resolve(ServerWebExchange exchange) {
+        return Optional.ofNullable(exchange.getAttribute(GEORCHESTRA_USER_KEY)).map(GeorchestraUser.class::cast);
     }
 
     public static ServerWebExchange store(@NonNull ServerWebExchange exchange, GeorchestraUser user) {
@@ -55,5 +45,4 @@ public class GeorchestraUserMapper {
         }
         return exchange;
     }
-
 }

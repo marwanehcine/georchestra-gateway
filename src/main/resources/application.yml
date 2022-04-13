@@ -36,6 +36,7 @@ georchestra:
         userSearchFilter: ${ldapUserSearchFilter:(uid={0})}
         rolesRdn: ${ldapRolesRdn:ou=roles}
         rolesSearchFilter: ${ldapRolesSearchFilter:(member={0})}
+        orgsRdn:  ${ldapOrgsRdn:ou=orgs}
 
 spring:
   config.import: classpath:gateway.yml,optional:${georchestra.datadir}/default.properties,optional:${georchestra.datadir}/gateway/gateway.yaml

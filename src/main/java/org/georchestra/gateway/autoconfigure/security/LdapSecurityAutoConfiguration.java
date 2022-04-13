@@ -20,6 +20,7 @@ package org.georchestra.gateway.autoconfigure.security;
 
 import javax.annotation.PostConstruct;
 
+import org.georchestra.gateway.security.ldap.LdapAccountManagementConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Configuration;
@@ -38,7 +39,8 @@ public class LdapSecurityAutoConfiguration {
 
     @Configuration(proxyBeanMethods = false)
     @ConditionalOnProperty(name = ENABLED_PROP, havingValue = "true", matchIfMissing = false)
-    @Import(org.georchestra.gateway.security.ldap.LdapSecurityConfiguration.class)
+    @Import({ org.georchestra.gateway.security.ldap.LdapSecurityConfiguration.class,
+            LdapAccountManagementConfiguration.class })
     static class Enabled {
 
         public @PostConstruct void log() {

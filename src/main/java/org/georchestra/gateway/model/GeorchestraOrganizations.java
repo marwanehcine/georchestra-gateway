@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 by the geOrchestra PSC
+ * Copyright (C) 2021 by the geOrchestra PSC
  *
  * This file is part of geOrchestra.
  *
@@ -16,23 +16,22 @@
  * You should have received a copy of the GNU General Public License along with
  * geOrchestra.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-package org.georchestra.gateway.security;
+package org.georchestra.gateway.model;
 
 import java.util.Optional;
 
-import org.georchestra.security.model.GeorchestraUser;
-import org.springframework.core.Ordered;
-import org.springframework.security.core.Authentication;
+import org.georchestra.security.model.Organization;
+import org.springframework.web.server.ServerWebExchange;
 
-/**
- *
- */
-public interface GeorchestraUserMapperExtension extends Ordered {
+public class GeorchestraOrganizations {
 
-    Optional<GeorchestraUser> resolve(Authentication authToken);
+    static final String GEORCHESTRA_ORGANIZATION_KEY = GeorchestraOrganizations.class.getCanonicalName();
 
-    default int getOrder() {
-        return 0;
+    public static Optional<Organization> resolve(ServerWebExchange exchange) {
+        return Optional.ofNullable(exchange.getAttribute(GEORCHESTRA_ORGANIZATION_KEY)).map(Organization.class::cast);
+    }
+
+    public static void store(ServerWebExchange exchange, Organization org) {
+        exchange.getAttributes().put(GEORCHESTRA_ORGANIZATION_KEY, org);
     }
 }

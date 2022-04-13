@@ -25,8 +25,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-import org.georchestra.gateway.model.GeorchestraUser;
+import org.georchestra.gateway.model.GeorchestraUsers;
 import org.georchestra.gateway.security.GeorchestraUserMapperExtension;
+import org.georchestra.security.model.GeorchestraUser;
 import org.slf4j.Logger;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;

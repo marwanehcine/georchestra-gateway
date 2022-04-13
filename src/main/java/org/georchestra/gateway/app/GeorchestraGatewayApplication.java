@@ -21,8 +21,8 @@ package org.georchestra.gateway.app;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.georchestra.gateway.model.GeorchestraUser;
 import org.georchestra.gateway.security.GeorchestraUserMapper;
+import org.georchestra.security.model.GeorchestraUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

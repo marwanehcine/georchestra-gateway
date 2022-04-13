@@ -24,7 +24,8 @@ import java.util.function.Consumer;
 
 import org.georchestra.gateway.filter.headers.HeaderContributor;
 import org.georchestra.gateway.model.GeorchestraTargetConfig;
-import org.georchestra.gateway.model.GeorchestraUser;
+import org.georchestra.gateway.model.GeorchestraUsers;
+import org.georchestra.security.model.GeorchestraUser;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -34,7 +35,7 @@ import org.springframework.web.server.ServerWebExchange;
  * <p>
  * For any
  * 
- * @see GeorchestraUser
+ * @see GeorchestraUsers#resolve
  * @see GeorchestraTargetConfig
  */
 public class GeorchestraUserHeadersContributor extends HeaderContributor {
@@ -44,7 +45,7 @@ public class GeorchestraUserHeadersContributor extends HeaderContributor {
             GeorchestraTargetConfig.getTarget(exchange)//
                     .map(GeorchestraTargetConfig::headers)//
                     .ifPresent(mappings -> {
-                        Optional<GeorchestraUser> user = GeorchestraUser.resolve(exchange);
+                        Optional<GeorchestraUser> user = GeorchestraUsers.resolve(exchange);
                         add(headers, "sec-proxy", mappings.getProxy(), "true");
                         add(headers, "sec-username", mappings.getUsername(), user.map(GeorchestraUser::getUsername));
                         add(headers, "sec-org", mappings.getOrg(), user.map(GeorchestraUser::getOrganization));
@@ -53,7 +54,9 @@ public class GeorchestraUserHeadersContributor extends HeaderContributor {
                         add(headers, "sec-lastname", mappings.getLastname(), user.map(GeorchestraUser::getLastName));
                         add(headers, "sec-tel", mappings.getTel(), user.map(GeorchestraUser::getTelephoneNumber));
 
-                        List<String> roles = user.map(GeorchestraUser::getRoles).orElse(List.of());
+                        List<String> roles = user.map(GeorchestraUser::getRoles).orElse(List.of()).stream()
+                                .map(r -> r.startsWith("ROLE_") ? r : "ROLE_" + r).toList();
+
                         add(headers, "sec-roles", mappings.getRoles(), roles);
                     });
         };

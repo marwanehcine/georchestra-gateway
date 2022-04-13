@@ -28,8 +28,16 @@ import lombok.Data;
  */
 @Data
 public class HeaderMappings {
+    ///////// User info headers ///////////////
+
     /** Append the standard {@literal sec-proxy=true} header to proxied requests */
     private Optional<Boolean> proxy = Optional.empty();
+
+    /** Append the standard {@literal sec-userid} header to proxied requests */
+    private Optional<Boolean> userid = Optional.empty();
+
+    /** Append the standard {@literal sec-lastupdated} header to proxied requests */
+    private Optional<Boolean> lastUpdated = Optional.empty();
 
     /** Append the standard {@literal sec-username} header to proxied requests */
     private Optional<Boolean> username = Optional.empty();
@@ -39,9 +47,6 @@ public class HeaderMappings {
 
     /** Append the standard {@literal sec-org} header to proxied requests */
     private Optional<Boolean> org = Optional.empty();
-
-    /** Append the standard {@literal sec-orgname} header to proxied requests */
-    private Optional<Boolean> orgname = Optional.empty();
 
     /** Append the standard {@literal sec-email} header to proxied requests */
     private Optional<Boolean> email = Optional.empty();
@@ -55,6 +60,28 @@ public class HeaderMappings {
     /** Append the standard {@literal sec-tel} header to proxied requests */
     private Optional<Boolean> tel = Optional.empty();
 
+    /**
+     * Append the standard {@literal sec-user} (Base64 JSON payload) header to
+     * proxied requests
+     */
     private Optional<Boolean> jsonUser = Optional.empty();
+
+    ///////// Organization info headers ///////////////
+
+    /** Append the standard {@literal sec-orgname} header to proxied requests */
+    private Optional<Boolean> orgname = Optional.empty();
+
+    /** Append the standard {@literal sec-orgid} header to proxied requests */
+    private Optional<Boolean> orgid = Optional.empty();
+
+    /**
+     * Append the standard {@literal sec-org-lastupdated} header to proxied requests
+     */
+    private Optional<Boolean> orgLastUpdated = Optional.empty();
+
+    /**
+     * Append the standard {@literal sec-organization} (Base64 JSON payload) header
+     * to proxied requests
+     */
     private Optional<Boolean> jsonOrganization = Optional.empty();
 }

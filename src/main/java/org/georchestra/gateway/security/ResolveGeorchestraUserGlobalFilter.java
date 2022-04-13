@@ -22,7 +22,7 @@ import java.util.Set;
 
 import org.georchestra.gateway.filter.global.ResolveTargetGlobalFilter;
 import org.georchestra.gateway.model.GeorchestraTargetConfig;
-import org.georchestra.gateway.model.GeorchestraUser;
+import org.georchestra.gateway.model.GeorchestraUsers;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter;
@@ -39,8 +39,8 @@ import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
 /**
- * A {@link GlobalFilter} that resolves the {@link GeorchestraUser} from the
- * request's {@link Authentication} so it can be {@link GeorchestraUser#resolve
+ * A {@link GlobalFilter} that resolves the {@link GeorchestraUsers} from the
+ * request's {@link Authentication} so it can be {@link GeorchestraUsers#resolve
  * retrieved} down the road during the filter chain.
  * 
  * @see GeorchestraUserMapper
@@ -49,38 +49,38 @@ import reactor.core.publisher.Mono;
 @Slf4j
 public class ResolveGeorchestraUserGlobalFilter implements GlobalFilter, Ordered {
 
-	public static final int ORDER = RouteToRequestUrlFilter.ROUTE_TO_URL_FILTER_ORDER + 1;
+    public static final int ORDER = RouteToRequestUrlFilter.ROUTE_TO_URL_FILTER_ORDER + 1;
 
-	private static final Authentication NONE = new AnonymousAuthenticationToken("none", new Object(),
-			Set.of(new SimpleGrantedAuthority("UNAUTHENTICATED")));
+    private static final Authentication NONE = new AnonymousAuthenticationToken("none", new Object(),
+            Set.of(new SimpleGrantedAuthority("UNAUTHENTICATED")));
 
-	private final @NonNull GeorchestraUserMapper resolver;
+    private final @NonNull GeorchestraUserMapper resolver;
 
-	/**
-	 * @return a lower precedence than {@link RouteToRequestUrlFilter}'s, in order
-	 *         to make sure the matched {@link Route} has been set as a
-	 *         {@link ServerWebExchange#getAttributes attribute} when
-	 *         {@link #filter} is called.
-	 */
-	public @Override int getOrder() {
-		return ResolveTargetGlobalFilter.ORDER;
-	}
+    /**
+     * @return a lower precedence than {@link RouteToRequestUrlFilter}'s, in order
+     *         to make sure the matched {@link Route} has been set as a
+     *         {@link ServerWebExchange#getAttributes attribute} when
+     *         {@link #filter} is called.
+     */
+    public @Override int getOrder() {
+        return ResolveTargetGlobalFilter.ORDER;
+    }
 
-	/**
-	 * Resolves the matched {@link Route} and its corresponding
-	 * {@link GeorchestraTargetConfig}, if possible, and proceeds with the filter
-	 * chain.
-	 */
-	public @Override Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+    /**
+     * Resolves the matched {@link Route} and its corresponding
+     * {@link GeorchestraTargetConfig}, if possible, and proceeds with the filter
+     * chain.
+     */
+    public @Override Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 
-		return exchange.getPrincipal()//
-				.doOnNext(p -> log.debug("resolving user from {}", p.getClass().getName()))//
-				.filter(Authentication.class::isInstance)//
-				.map(Authentication.class::cast)//
-				.defaultIfEmpty(NONE)//
-				.map(resolver::resolve).map(user -> {
-					return GeorchestraUser.store(exchange, user.orElse(null));
-				}).flatMap(chain::filter);
-	}
+        return exchange.getPrincipal()//
+                .doOnNext(p -> log.debug("resolving user from {}", p.getClass().getName()))//
+                .filter(Authentication.class::isInstance)//
+                .map(Authentication.class::cast)//
+                .defaultIfEmpty(NONE)//
+                .map(resolver::resolve).map(user -> {
+                    return GeorchestraUsers.store(exchange, user.orElse(null));
+                }).flatMap(chain::filter);
+    }
 
 }

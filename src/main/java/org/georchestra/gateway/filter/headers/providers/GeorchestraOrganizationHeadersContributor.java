@@ -22,8 +22,9 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 import org.georchestra.gateway.filter.headers.HeaderContributor;
-import org.georchestra.gateway.model.GeorchestraOrganization;
+import org.georchestra.gateway.model.GeorchestraOrganizations;
 import org.georchestra.gateway.model.GeorchestraTargetConfig;
+import org.georchestra.security.model.Organization;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -34,8 +35,10 @@ public class GeorchestraOrganizationHeadersContributor extends HeaderContributor
             GeorchestraTargetConfig.getTarget(exchange)//
                     .map(GeorchestraTargetConfig::headers)//
                     .ifPresent(mappings -> {
-                        Optional<GeorchestraOrganization> org = GeorchestraOrganization.resolve(exchange);
-                        add(headers, "sec-orgname", mappings.getOrgname(), org.map(GeorchestraOrganization::getName));
+                        Optional<Organization> org = GeorchestraOrganizations.resolve(exchange);
+                        add(headers, "sec-orgname", mappings.getOrgname(), org.map(Organization::getName));
+                        add(headers, "sec-org-id", mappings.getOrgid(), org.map(Organization::getId));
+                        add(headers, "sec-org-lastupdated", mappings.getOrgid(), org.map(Organization::getLastUpdated));
                     });
         };
     }

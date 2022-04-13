@@ -60,11 +60,6 @@ public class LdapSecurityConfiguration {
     }
 
     @Bean
-    LdapAuthenticatedUserMapper ldapAuthenticatedUserMapperExtension() {
-        return new LdapAuthenticatedUserMapper();
-    }
-
-    @Bean
     BaseLdapPathContextSource contextSource(LdapConfigProperties config) {
         LdapContextSource context = new LdapContextSource();
         context.setUrl(config.getUrl());

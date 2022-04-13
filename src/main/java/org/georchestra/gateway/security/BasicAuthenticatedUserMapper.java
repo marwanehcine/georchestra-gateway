@@ -17,52 +17,50 @@
  * geOrchestra.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.georchestra.gateway.security.ldap;
+package org.georchestra.gateway.security;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
-import org.georchestra.gateway.security.BasicAuthenticatedUserMapper;
-import org.georchestra.gateway.security.GeorchestraUserMapperExtension;
-import org.georchestra.security.api.OrganizationsApi;
-import org.georchestra.security.api.RolesApi;
-import org.georchestra.security.api.UsersApi;
+import org.georchestra.gateway.model.GeorchestraUsers;
 import org.georchestra.security.model.GeorchestraUser;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.ldap.userdetails.LdapUserDetails;
-
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.GrantedAuthority;
 
 /**
+ * @author groldan
  *
  */
-@RequiredArgsConstructor
-public class LdapAuthenticatedUserMapper implements GeorchestraUserMapperExtension {
+public class BasicAuthenticatedUserMapper implements GeorchestraUserMapperExtension {
 
-    private final @NonNull UsersApi users;
-    private final @NonNull OrganizationsApi organizations;
-    private final @NonNull RolesApi roles;
+    public static final int ORDER = 0;
 
     @Override
     public Optional<GeorchestraUser> resolve(Authentication authToken) {
         return Optional.ofNullable(authToken)//
                 .filter(UsernamePasswordAuthenticationToken.class::isInstance)
                 .map(UsernamePasswordAuthenticationToken.class::cast)//
-                .filter(token -> token.getPrincipal() instanceof LdapUserDetails)//
                 .flatMap(this::map);
     }
 
     Optional<GeorchestraUser> map(UsernamePasswordAuthenticationToken token) {
-        final String username = token.getName();
-        return users.findByUsername(username);
+        GeorchestraUser user = new GeorchestraUser();
+
+        Collection<GrantedAuthority> authorities = token.getAuthorities();
+        List<String> roles = authorities.stream().map(GrantedAuthority::getAuthority).toList();
+        String name = token.getName();
+
+        Object principal = token.getPrincipal();
+        Object details = token.getDetails();
+
+        user.setUsername(name);
+        user.setRoles(roles);
+        return Optional.of(user);
     }
 
-    /**
-     * A higher precedence order than {@link BasicAuthenticatedUserMapper}
-     */
     public @Override int getOrder() {
-        return BasicAuthenticatedUserMapper.ORDER - 1;
+        return ORDER;
     }
-
 }

@@ -18,6 +18,8 @@
  */
 package org.georchestra.gateway.security.ldap;
 
+import java.util.List;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import lombok.Data;
@@ -36,6 +38,7 @@ import lombok.Data;
  * ldapBaseDn=dc=georchestra,dc=org
  * ldapUsersRdn=ou=users
  * ldapRolesRdn=ou=roles
+ * ldapOrgsRdn=ou=orgs
  * }
  * </pre>
  */
@@ -70,4 +73,15 @@ public class LdapConfigProperties {
     private String rolesRdn = "ou=roles";
 
     private String rolesSearchFilter = "(member={0})";
+
+    private String orgsRdn = "ou=orgs";
+
+    private String pendingOrgSearchBaseDN = "ou=pendingorgs";
+
+    private String orgTypeValues = "Association,Company,NGO,Individual,Other";
+
+    private List<String> protectedRolesList = List.of("ADMINISTRATOR", "EXTRACTORAPP", "GN_.*", "ORGADMIN", "REFERENT",
+            "USER", "SUPERUSER");
+
+    private List<String> protectedUsersList = List.of("geoserver_privileged_user");
 }
