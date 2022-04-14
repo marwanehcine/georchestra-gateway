@@ -26,10 +26,22 @@ import org.springframework.core.Ordered;
 import org.springframework.security.core.Authentication;
 
 /**
- *
+ * Extension point to decouple the authentication origin from the logic to
+ * convey geOrchestra-specific HTTP security request headers to back-end
+ * services.
+ * <p>
+ * Beans of this type will be asked by {@link GeorchestraUserMapper} to obtain a
+ * {@link GeorchestraUser} from the current request authentication token. An
+ * instance that knows how to perform such mapping based on the kind of
+ * authentication represented by the token shall return a non-empty user.
  */
 public interface GeorchestraUserMapperExtension extends Ordered {
 
+    /**
+     * @return the mapped {@link GeorchestraUser} based on the provided auth token,
+     *         or {@link Optional#empty()} if this instance can't perform such
+     *         mapping.
+     */
     Optional<GeorchestraUser> resolve(Authentication authToken);
 
     default int getOrder() {

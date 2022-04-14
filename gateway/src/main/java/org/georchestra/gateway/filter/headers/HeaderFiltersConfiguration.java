@@ -22,6 +22,7 @@ import java.util.List;
 
 import org.georchestra.gateway.filter.headers.providers.GeorchestraOrganizationHeadersContributor;
 import org.georchestra.gateway.filter.headers.providers.GeorchestraUserHeadersContributor;
+import org.georchestra.gateway.filter.headers.providers.JsonPayloadHeadersContributor;
 import org.georchestra.gateway.filter.headers.providers.SecProxyHeaderContributor;
 import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
 import org.springframework.context.ApplicationContext;
@@ -56,6 +57,10 @@ public class HeaderFiltersConfiguration {
 
     public @Bean GeorchestraOrganizationHeadersContributor organizationSecurityHeadersProvider() {
         return new GeorchestraOrganizationHeadersContributor();
+    }
+
+    public @Bean JsonPayloadHeadersContributor jsonPayloadHeadersContributor() {
+        return new JsonPayloadHeadersContributor();
     }
 
     /**

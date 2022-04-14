@@ -24,6 +24,7 @@ import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 
 import lombok.Data;
+import lombok.experimental.Accessors;
 
 /**
  * Models access rules to intercepted Ant-pattern URIs based on roles.
@@ -33,6 +34,7 @@ import lombok.Data;
  * {@link GrantedAuthority#getAuthority()}) .
  */
 @Data
+@Accessors(chain = true)
 public class RoleBasedAccessRule {
 
     /**
@@ -43,9 +45,17 @@ public class RoleBasedAccessRule {
 
     /**
      * Whether anonymous (unauthenticated) access is to be granted to the
-     * intercepted URIs.
+     * intercepted URIs. If {@code true}, no further specification is applied to the
+     * intercepted urls (i.e. if set, {@link #allowedRoles} are ignored).
      */
     private boolean anonymous = false;
+
+    /**
+     * Requires an authenticated user, regardless of the roles. If there are
+     * {@link #allowedRoles} defined, this property is assumed to be {@code true},
+     * despite whether it's set or not.
+     */
+    private boolean authenticated = false;
 
     /**
      * Role names that the authenticated user must be part of to be granted access

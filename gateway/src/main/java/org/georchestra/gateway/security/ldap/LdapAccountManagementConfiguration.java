@@ -28,18 +28,27 @@ import org.georchestra.ds.security.UsersApiImpl;
 import org.georchestra.ds.users.AccountDao;
 import org.georchestra.ds.users.AccountDaoImpl;
 import org.georchestra.ds.users.UserRule;
+import org.georchestra.gateway.security.GeorchestraUserMapperExtension;
 import org.georchestra.security.api.OrganizationsApi;
 import org.georchestra.security.api.RolesApi;
 import org.georchestra.security.api.UsersApi;
+import org.georchestra.security.model.GeorchestraUser;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.ldap.core.ContextSource;
 import org.springframework.ldap.core.LdapTemplate;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.ldap.userdetails.LdapUserDetails;
 
 /**
- *
+ * Sets up a {@link GeorchestraUserMapperExtension} that knows how to map an
+ * authentication credentials given by a
+ * {@link UsernamePasswordAuthenticationToken} with an {@link LdapUserDetails}
+ * (i.e., if the user authenticated with LDAP), to a {@link GeorchestraUser},
+ * making use of geOrchestra's {@literal georchestra-ldap-account-management}
+ * module's {@link UsersApi}.
  */
 @Configuration(proxyBeanMethods = false)
 @ComponentScan(basePackageClasses = UsersApiImpl.class)
@@ -66,7 +75,7 @@ public class LdapAccountManagementConfiguration {
             UsersApi users, //
             OrganizationsApi orgs, //
             RolesApi roles) {
-        return new LdapAuthenticatedUserMapper(users, orgs, roles);
+        return new LdapAuthenticatedUserMapper(users);
     }
 
     //////////////////////////////////////////////

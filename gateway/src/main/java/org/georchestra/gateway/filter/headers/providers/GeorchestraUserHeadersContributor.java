@@ -33,39 +33,36 @@ import org.springframework.web.server.ServerWebExchange;
 /**
  * Contributes user-related {@literal sec-*} request headers.
  * 
- * <p>
- * For any
- * 
  * @see GeorchestraUsers#resolve
  * @see GeorchestraTargetConfig
  */
 public class GeorchestraUserHeadersContributor extends HeaderContributor {
 
-	public @Override Consumer<HttpHeaders> prepare(ServerWebExchange exchange) {
-		return headers -> {
-			GeorchestraTargetConfig.getTarget(exchange)//
-					.map(GeorchestraTargetConfig::headers)//
-					.ifPresent(mappings -> {
-						Optional<GeorchestraUser> user = GeorchestraUsers.resolve(exchange);
-						add(headers, "sec-userid", mappings.getUserid(), user.map(GeorchestraUser::getId));
-						add(headers, "sec-username", mappings.getUsername(), user.map(GeorchestraUser::getUsername));
-						add(headers, "sec-org", mappings.getOrg(), user.map(GeorchestraUser::getOrganization));
-						add(headers, "sec-email", mappings.getEmail(), user.map(GeorchestraUser::getEmail));
-						add(headers, "sec-firstname", mappings.getFirstname(), user.map(GeorchestraUser::getFirstName));
-						add(headers, "sec-lastname", mappings.getLastname(), user.map(GeorchestraUser::getLastName));
-						add(headers, "sec-tel", mappings.getTel(), user.map(GeorchestraUser::getTelephoneNumber));
+    public @Override Consumer<HttpHeaders> prepare(ServerWebExchange exchange) {
+        return headers -> {
+            GeorchestraTargetConfig.getTarget(exchange)//
+                    .map(GeorchestraTargetConfig::headers)//
+                    .ifPresent(mappings -> {
+                        Optional<GeorchestraUser> user = GeorchestraUsers.resolve(exchange);
+                        add(headers, "sec-userid", mappings.getUserid(), user.map(GeorchestraUser::getId));
+                        add(headers, "sec-username", mappings.getUsername(), user.map(GeorchestraUser::getUsername));
+                        add(headers, "sec-org", mappings.getOrg(), user.map(GeorchestraUser::getOrganization));
+                        add(headers, "sec-email", mappings.getEmail(), user.map(GeorchestraUser::getEmail));
+                        add(headers, "sec-firstname", mappings.getFirstname(), user.map(GeorchestraUser::getFirstName));
+                        add(headers, "sec-lastname", mappings.getLastname(), user.map(GeorchestraUser::getLastName));
+                        add(headers, "sec-tel", mappings.getTel(), user.map(GeorchestraUser::getTelephoneNumber));
 
-						List<String> roles = user.map(GeorchestraUser::getRoles).orElse(List.of()).stream()
-								.map(r -> r.startsWith("ROLE_") ? r : "ROLE_" + r).collect(Collectors.toList());
+                        List<String> roles = user.map(GeorchestraUser::getRoles).orElse(List.of()).stream()
+                                .map(r -> r.startsWith("ROLE_") ? r : "ROLE_" + r).collect(Collectors.toList());
 
-						add(headers, "sec-roles", mappings.getRoles(), roles);
+                        add(headers, "sec-roles", mappings.getRoles(), roles);
 
-						add(headers, "sec-lastupdated", mappings.getLastUpdated(),
-								user.map(GeorchestraUser::getLastUpdated));
-						add(headers, "sec-address", mappings.getAddress(), user.map(GeorchestraUser::getPostalAddress));
-						add(headers, "sec-title", mappings.getTitle(), user.map(GeorchestraUser::getTitle));
-						add(headers, "sec-notes", mappings.getNotes(), user.map(GeorchestraUser::getNotes));
-					});
-		};
-	}
+                        add(headers, "sec-lastupdated", mappings.getLastUpdated(),
+                                user.map(GeorchestraUser::getLastUpdated));
+                        add(headers, "sec-address", mappings.getAddress(), user.map(GeorchestraUser::getPostalAddress));
+                        add(headers, "sec-title", mappings.getTitle(), user.map(GeorchestraUser::getTitle));
+                        add(headers, "sec-notes", mappings.getNotes(), user.map(GeorchestraUser::getNotes));
+                    });
+        };
+    }
 }

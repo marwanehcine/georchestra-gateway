@@ -28,7 +28,8 @@ public class GeorchestraOrganizations {
     static final String GEORCHESTRA_ORGANIZATION_KEY = GeorchestraOrganizations.class.getCanonicalName();
 
     public static Optional<Organization> resolve(ServerWebExchange exchange) {
-        return Optional.ofNullable(exchange.getAttribute(GEORCHESTRA_ORGANIZATION_KEY)).map(Organization.class::cast);
+        return Optional.ofNullable(exchange.getAttributes().get(GEORCHESTRA_ORGANIZATION_KEY))
+                .map(Organization.class::cast);
     }
 
     public static void store(ServerWebExchange exchange, Organization org) {

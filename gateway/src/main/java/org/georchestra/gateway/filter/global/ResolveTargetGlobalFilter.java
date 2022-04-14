@@ -34,6 +34,8 @@ import org.springframework.cloud.gateway.route.Route;
 import org.springframework.core.Ordered;
 import org.springframework.web.server.ServerWebExchange;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -71,17 +73,17 @@ public class ResolveTargetGlobalFilter implements GlobalFilter, Ordered {
      */
     public @Override Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         Route route = (Route) exchange.getAttributes().get(GATEWAY_ROUTE_ATTR);
-        if (null == route) {
-            log.info("Requested URI didn't match any Route, geOrchestra target resolution ignored.");
-        } else {
-            GeorchestraTargetConfig config = resolveTarget(route);
-            log.debug("Storing geOrchestra target config for Route {} request context", route.getId());
-            GeorchestraTargetConfig.setTarget(exchange, config);
-        }
+        Objects.requireNonNull(route, "no route matched, filter shouldn't be hit");
+
+        GeorchestraTargetConfig config = resolveTarget(route);
+        log.debug("Storing geOrchestra target config for Route {} request context", route.getId());
+        GeorchestraTargetConfig.setTarget(exchange, config);
         return chain.filter(exchange);
     }
 
-    private @NonNull GeorchestraTargetConfig resolveTarget(@NonNull Route route) {
+    @VisibleForTesting
+    @NonNull
+    GeorchestraTargetConfig resolveTarget(@NonNull Route route) {
 
         GeorchestraTargetConfig target = new GeorchestraTargetConfig().headers(config.getDefaultHeaders())
                 .accessRules(config.getGlobalAccessRules());

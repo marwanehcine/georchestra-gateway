@@ -23,8 +23,6 @@ import java.util.Optional;
 
 import org.georchestra.gateway.security.BasicAuthenticatedUserMapper;
 import org.georchestra.gateway.security.GeorchestraUserMapperExtension;
-import org.georchestra.security.api.OrganizationsApi;
-import org.georchestra.security.api.RolesApi;
 import org.georchestra.security.api.UsersApi;
 import org.georchestra.security.model.GeorchestraUser;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -35,14 +33,14 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 /**
- *
+ * {@link GeorchestraUserMapperExtension} that maps LDAP-authenticated token to
+ * {@link GeorchestraUser} by calling {@link UsersApi#findByUsername(String)},
+ * with the authentication token's principal name as argument.
  */
 @RequiredArgsConstructor
 public class LdapAuthenticatedUserMapper implements GeorchestraUserMapperExtension {
 
     private final @NonNull UsersApi users;
-    private final @NonNull OrganizationsApi organizations;
-    private final @NonNull RolesApi roles;
 
     @Override
     public Optional<GeorchestraUser> resolve(Authentication authToken) {
@@ -54,7 +52,7 @@ public class LdapAuthenticatedUserMapper implements GeorchestraUserMapperExtensi
     }
 
     Optional<GeorchestraUser> map(UsernamePasswordAuthenticationToken token) {
-        final String username = token.getName();
+        String username = ((LdapUserDetails) token.getPrincipal()).getUsername();
         return users.findByUsername(username);
     }
 

@@ -31,7 +31,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 
 /**
- * @author groldan
  *
  */
 public class BasicAuthenticatedUserMapper implements GeorchestraUserMapperExtension {

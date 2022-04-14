@@ -31,17 +31,46 @@ import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.ReactiveAuthenticationManagerAdapter;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
 import org.springframework.security.core.authority.mapping.SimpleAuthorityMapper;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.ldap.authentication.BindAuthenticator;
 import org.springframework.security.ldap.authentication.LdapAuthenticationProvider;
 import org.springframework.security.ldap.search.FilterBasedLdapUserSearch;
 import org.springframework.security.ldap.userdetails.DefaultLdapAuthoritiesPopulator;
+import org.springframework.security.ldap.userdetails.LdapUserDetails;
 import org.springframework.security.web.server.authentication.AuthenticationWebFilter;
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers;
 
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * {@link ServerHttpSecurityCustomizer} to enable LDAP based authentication and
+ * authorization.
+ * <p>
+ * This configuration sets up the required beans for spring-based LDAP
+ * authentication and authorization, using {@link LdapConfigProperties} to get
+ * {@link LdapConfigProperties#getUrl() connection URL} and the
+ * {@link LdapConfigProperties#getBaseDn() base DN}.
+ * <p>
+ * As a result, the {@link ServerHttpSecurity} will have HTTP-Basic
+ * authentication enabled and {@link ServerHttpSecurity#formLogin() form login}
+ * set up.
+ * <p>
+ * Upon successful authentication, the corresponding {@link Authentication} with
+ * an {@link LdapUserDetails} as {@link Authentication#getPrincipal() principal}
+ * and the roles extracted from LDAP as {@link Authentication#getAuthorities()
+ * authorities}, will be set as the security context's
+ * {@link SecurityContext#getAuthentication() authentication} property.
+ * <p>
+ * Note however, this may not be enough information to convey
+ * geOrchestra-specific HTTP request headers to backend services, depending on
+ * the matching gateway-route configuration. See
+ * {@link LdapAccountManagementConfiguration} for further details.
+ * 
+ * @see LdapAccountManagementConfiguration
+ */
 @Configuration(proxyBeanMethods = true)
 @EnableConfigurationProperties(LdapConfigProperties.class)
 @Slf4j(topic = "org.georchestra.gateway.security.ldap")

@@ -28,34 +28,32 @@ import static org.mockito.Mockito.when;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 import org.georchestra.gateway.filter.headers.HeaderContributor;
+import org.georchestra.gateway.model.GeorchestraOrganizations;
 import org.georchestra.gateway.model.GeorchestraTargetConfig;
-import org.georchestra.gateway.model.GeorchestraUsers;
 import org.georchestra.gateway.model.HeaderMappings;
-import org.georchestra.security.model.GeorchestraUser;
+import org.georchestra.security.model.Organization;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
- * Test suite for the {@link GeorchestraUserHeadersContributor}
+ * Test suite for the {@link GeorchestraOrganizationHeadersContributor}
  * {@link HeaderContributor}
  *
  */
-class GeorchestraUserHeadersContributorTest {
+class GeorchestraOrganizationHeadersContributorTest {
 
-    GeorchestraUserHeadersContributor headerContributor;
+    GeorchestraOrganizationHeadersContributor headerContributor;
     ServerWebExchange exchange;
     HeaderMappings matchedRouteHeadersConfig;
 
     @BeforeEach
     void init() {
-        headerContributor = new GeorchestraUserHeadersContributor();
+        headerContributor = new GeorchestraOrganizationHeadersContributor();
         matchedRouteHeadersConfig = new HeaderMappings();
         GeorchestraTargetConfig matchedRouteConfig = new GeorchestraTargetConfig().headers(matchedRouteHeadersConfig);
 
@@ -80,7 +78,7 @@ class GeorchestraUserHeadersContributorTest {
     }
 
     @Test
-    void testNoUser() {
+    void testNoOrganization() {
         Consumer<HttpHeaders> contributor = headerContributor.prepare(exchange);
         assertNotNull(contributor);
 
@@ -90,21 +88,13 @@ class GeorchestraUserHeadersContributorTest {
     }
 
     @Test
-    void testContributesHeadersFromUser() {
-        GeorchestraUser user = new GeorchestraUser();
-        user.setId("abc");
-        user.setUsername("testuser");
-        user.setOrganization("PSC");
-        user.setEmail("testuser@example.com");
-        user.setFirstName("Test");
-        user.setLastName("User");
-        user.setTelephoneNumber("34144444");
-        user.setTitle("Advisor");
-        user.setPostalAddress("123 happy street");
-        user.setNotes(":)");
-        user.setRoles(List.of("ROLE_ADMIN", "ROLE_USER"));
+    void testContributesHeadersFromOrganization() {
+        Organization org = new Organization();
+        org.setId("abc");
+        org.setName("PSC");
+        org.setLastUpdated("123");
 
-        GeorchestraUsers.store(exchange, user);
+        GeorchestraOrganizations.store(exchange, org);
 
         matchedRouteHeadersConfig.enableAll();
 
@@ -114,36 +104,8 @@ class GeorchestraUserHeadersContributorTest {
         HttpHeaders target = new HttpHeaders();
         contributor.accept(target);
 
-        assertEquals(List.of(user.getId()), target.get("sec-userid"));
-        assertEquals(List.of(user.getUsername()), target.get("sec-username"));
-        assertEquals(List.of(user.getFirstName()), target.get("sec-firstname"));
-        assertEquals(List.of(user.getLastName()), target.get("sec-lastname"));
-        assertEquals(List.of(user.getOrganization()), target.get("sec-org"));
-        assertEquals(List.of(user.getEmail()), target.get("sec-email"));
-        assertEquals(List.of(user.getTelephoneNumber()), target.get("sec-tel"));
-        assertEquals(List.of(user.getPostalAddress()), target.get("sec-address"));
-        assertEquals(List.of(user.getTitle()), target.get("sec-title"));
-        assertEquals(List.of(user.getNotes()), target.get("sec-notes"));
-
-        String roles = user.getRoles().stream().collect(Collectors.joining(";"));
-        assertEquals(List.of(roles), target.get("sec-roles"));
-    }
-
-    @Test
-    void testRolePrefixAppendedToRoleNames() {
-
-        GeorchestraUser user = new GeorchestraUser();
-        user.setRoles(List.of("ROLE_ADMIN", "USER", "EDITOR"));
-
-        final List<String> expected = List.of("ROLE_ADMIN;ROLE_USER;ROLE_EDITOR");
-
-        GeorchestraUsers.store(exchange, user);
-
-        matchedRouteHeadersConfig.disableAll();
-        matchedRouteHeadersConfig.setRoles(Optional.of(true));
-
-        HttpHeaders target = new HttpHeaders();
-        headerContributor.prepare(exchange).accept(target);
-        assertEquals(expected, target.get("sec-roles"));
+        assertEquals(List.of(org.getId()), target.get("sec-orgid"));
+        assertEquals(List.of(org.getName()), target.get("sec-orgname"));
+        assertEquals(List.of(org.getLastUpdated()), target.get("sec-org-lastupdated"));
     }
 }

@@ -41,7 +41,8 @@ public class GeorchestraTargetConfig {
     private List<RoleBasedAccessRule> accessRules;
 
     public static Optional<GeorchestraTargetConfig> getTarget(ServerWebExchange exchange) {
-        return Optional.ofNullable(exchange.getAttributes().get(TARGET_CONFIG_KEY)).map(GeorchestraTargetConfig.class::cast);
+        return Optional.ofNullable(exchange.getAttributes().get(TARGET_CONFIG_KEY))
+                .map(GeorchestraTargetConfig.class::cast);
     }
 
     public static void setTarget(ServerWebExchange exchange, GeorchestraTargetConfig config) {

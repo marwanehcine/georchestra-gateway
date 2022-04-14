@@ -30,97 +30,99 @@ import lombok.Data;
  */
 @Data
 public class HeaderMappings {
-	///////// User info headers ///////////////
+    ///////// User info headers ///////////////
 
-	/** Append the standard {@literal sec-proxy=true} header to proxied requests */
-	private Optional<Boolean> proxy = Optional.empty();
+    /** Append the standard {@literal sec-proxy=true} header to proxied requests */
+    private Optional<Boolean> proxy = Optional.empty();
 
-	/** Append the standard {@literal sec-userid} header to proxied requests */
-	private Optional<Boolean> userid = Optional.empty();
+    /** Append the standard {@literal sec-userid} header to proxied requests */
+    private Optional<Boolean> userid = Optional.empty();
 
-	/** Append the standard {@literal sec-lastupdated} header to proxied requests */
-	private Optional<Boolean> lastUpdated = Optional.empty();
+    /** Append the standard {@literal sec-lastupdated} header to proxied requests */
+    private Optional<Boolean> lastUpdated = Optional.empty();
 
-	/** Append the standard {@literal sec-username} header to proxied requests */
-	private Optional<Boolean> username = Optional.empty();
+    /** Append the standard {@literal sec-username} header to proxied requests */
+    private Optional<Boolean> username = Optional.empty();
 
-	/** Append the standard {@literal sec-roles} header to proxied requests */
-	private Optional<Boolean> roles = Optional.empty();
+    /** Append the standard {@literal sec-roles} header to proxied requests */
+    private Optional<Boolean> roles = Optional.empty();
 
-	/** Append the standard {@literal sec-org} header to proxied requests */
-	private Optional<Boolean> org = Optional.empty();
+    /** Append the standard {@literal sec-org} header to proxied requests */
+    private Optional<Boolean> org = Optional.empty();
 
-	/** Append the standard {@literal sec-email} header to proxied requests */
-	private Optional<Boolean> email = Optional.empty();
+    /** Append the standard {@literal sec-email} header to proxied requests */
+    private Optional<Boolean> email = Optional.empty();
 
-	/** Append the standard {@literal sec-firstname} header to proxied requests */
-	private Optional<Boolean> firstname = Optional.empty();
+    /** Append the standard {@literal sec-firstname} header to proxied requests */
+    private Optional<Boolean> firstname = Optional.empty();
 
-	/** Append the standard {@literal sec-lastname} header to proxied requests */
-	private Optional<Boolean> lastname = Optional.empty();
+    /** Append the standard {@literal sec-lastname} header to proxied requests */
+    private Optional<Boolean> lastname = Optional.empty();
 
-	/** Append the standard {@literal sec-tel} header to proxied requests */
-	private Optional<Boolean> tel = Optional.empty();
+    /** Append the standard {@literal sec-tel} header to proxied requests */
+    private Optional<Boolean> tel = Optional.empty();
 
-	/** Append the standard {@literal sec-address} header to proxied requests */
-	private Optional<Boolean> address = Optional.empty();
+    /** Append the standard {@literal sec-address} header to proxied requests */
+    private Optional<Boolean> address = Optional.empty();
 
-	/** Append the standard {@literal sec-title} header to proxied requests */
-	private Optional<Boolean> title = Optional.empty();
+    /** Append the standard {@literal sec-title} header to proxied requests */
+    private Optional<Boolean> title = Optional.empty();
 
-	/** Append the standard {@literal sec-notes} header to proxied requests */
-	private Optional<Boolean> notes = Optional.empty();
-	/**
-	 * Append the standard {@literal sec-user} (Base64 JSON payload) header to
-	 * proxied requests
-	 */
-	private Optional<Boolean> jsonUser = Optional.empty();
+    /** Append the standard {@literal sec-notes} header to proxied requests */
+    private Optional<Boolean> notes = Optional.empty();
+    /**
+     * Append the standard {@literal sec-user} (Base64 JSON payload) header to
+     * proxied requests
+     */
+    private Optional<Boolean> jsonUser = Optional.empty();
 
-	///////// Organization info headers ///////////////
+    ///////// Organization info headers ///////////////
 
-	/** Append the standard {@literal sec-orgname} header to proxied requests */
-	private Optional<Boolean> orgname = Optional.empty();
+    /** Append the standard {@literal sec-orgname} header to proxied requests */
+    private Optional<Boolean> orgname = Optional.empty();
 
-	/** Append the standard {@literal sec-orgid} header to proxied requests */
-	private Optional<Boolean> orgid = Optional.empty();
+    /** Append the standard {@literal sec-orgid} header to proxied requests */
+    private Optional<Boolean> orgid = Optional.empty();
 
-	/**
-	 * Append the standard {@literal sec-org-lastupdated} header to proxied requests
-	 */
-	private Optional<Boolean> orgLastUpdated = Optional.empty();
+    /**
+     * Append the standard {@literal sec-org-lastupdated} header to proxied requests
+     */
+    private Optional<Boolean> orgLastUpdated = Optional.empty();
 
-	/**
-	 * Append the standard {@literal sec-organization} (Base64 JSON payload) header
-	 * to proxied requests
-	 */
-	private Optional<Boolean> jsonOrganization = Optional.empty();
+    /**
+     * Append the standard {@literal sec-organization} (Base64 JSON payload) header
+     * to proxied requests
+     */
+    private Optional<Boolean> jsonOrganization = Optional.empty();
 
-	public @VisibleForTesting void enableAll() {
-		this.setAll(Optional.of(Boolean.TRUE));
-	}
+    public @VisibleForTesting HeaderMappings enableAll() {
+        this.setAll(Optional.of(Boolean.TRUE));
+        return this;
+    }
 
-	public @VisibleForTesting void disableAll() {
-		this.setAll(Optional.of(Boolean.FALSE));
-	}
+    public @VisibleForTesting HeaderMappings disableAll() {
+        this.setAll(Optional.of(Boolean.FALSE));
+        return this;
+    }
 
-	private void setAll(Optional<Boolean> val) {
-		this.proxy = val;
-		this.userid = val;
-		this.lastUpdated = val;
-		this.username = val;
-		this.roles = val;
-		this.org = val;
-		this.email = val;
-		this.firstname = val;
-		this.lastname = val;
-		this.tel = val;
-		this.address = val;
-		this.title = val;
-		this.notes = val;
-		this.jsonUser = val;
-		this.orgname = val;
-		this.orgid = val;
-		this.orgLastUpdated = val;
-		this.jsonOrganization = val;
-	}
+    private void setAll(Optional<Boolean> val) {
+        this.proxy = val;
+        this.userid = val;
+        this.lastUpdated = val;
+        this.username = val;
+        this.roles = val;
+        this.org = val;
+        this.email = val;
+        this.firstname = val;
+        this.lastname = val;
+        this.tel = val;
+        this.address = val;
+        this.title = val;
+        this.notes = val;
+        this.jsonUser = val;
+        this.orgname = val;
+        this.orgid = val;
+        this.orgLastUpdated = val;
+        this.jsonOrganization = val;
+    }
 }

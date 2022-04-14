@@ -21,7 +21,6 @@ package org.georchestra.gateway.filter.headers.providers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -30,32 +29,38 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
+import org.georchestra.commons.security.SecurityHeaders;
 import org.georchestra.gateway.filter.headers.HeaderContributor;
+import org.georchestra.gateway.model.GeorchestraOrganizations;
 import org.georchestra.gateway.model.GeorchestraTargetConfig;
 import org.georchestra.gateway.model.GeorchestraUsers;
 import org.georchestra.gateway.model.HeaderMappings;
 import org.georchestra.security.model.GeorchestraUser;
+import org.georchestra.security.model.Organization;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.server.ServerWebExchange;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 /**
- * Test suite for the {@link GeorchestraUserHeadersContributor}
+ * Test suite for the {@link JsonPayloadHeadersContributorTest}
  * {@link HeaderContributor}
  *
  */
-class GeorchestraUserHeadersContributorTest {
+class JsonPayloadHeadersContributorTest {
 
-    GeorchestraUserHeadersContributor headerContributor;
+    JsonPayloadHeadersContributor headerContributor;
     ServerWebExchange exchange;
     HeaderMappings matchedRouteHeadersConfig;
 
     @BeforeEach
     void init() {
-        headerContributor = new GeorchestraUserHeadersContributor();
+        headerContributor = new JsonPayloadHeadersContributor();
         matchedRouteHeadersConfig = new HeaderMappings();
         GeorchestraTargetConfig matchedRouteConfig = new GeorchestraTargetConfig().headers(matchedRouteHeadersConfig);
 
@@ -64,33 +69,14 @@ class GeorchestraUserHeadersContributorTest {
         when(exchange.getAttributes()).thenReturn(exchangeAttributes);
 
         GeorchestraTargetConfig.setTarget(exchange, matchedRouteConfig);
+
+        matchedRouteHeadersConfig.disableAll();
+        matchedRouteHeadersConfig.setJsonUser(Optional.of(true));
+        matchedRouteHeadersConfig.setJsonOrganization(Optional.of(true));
     }
 
     @Test
-    void testNoMatchedRouteConfig() {
-        GeorchestraTargetConfig.setTarget(exchange, null);
-        assertTrue(GeorchestraTargetConfig.getTarget(exchange).isEmpty());
-
-        Consumer<HttpHeaders> contributor = headerContributor.prepare(exchange);
-        assertNotNull(contributor);
-
-        HttpHeaders target = new HttpHeaders();
-        contributor.accept(target);
-        assertTrue(target.isEmpty());
-    }
-
-    @Test
-    void testNoUser() {
-        Consumer<HttpHeaders> contributor = headerContributor.prepare(exchange);
-        assertNotNull(contributor);
-
-        HttpHeaders target = new HttpHeaders();
-        contributor.accept(target);
-        assertTrue(target.isEmpty());
-    }
-
-    @Test
-    void testContributesHeadersFromUser() {
+    void testUser() throws Exception {
         GeorchestraUser user = new GeorchestraUser();
         user.setId("abc");
         user.setUsername("testuser");
@@ -106,44 +92,41 @@ class GeorchestraUserHeadersContributorTest {
 
         GeorchestraUsers.store(exchange, user);
 
-        matchedRouteHeadersConfig.enableAll();
+        testContributesJsonHeader(user, "sec-user");
+    }
 
+    @Test
+    void testOrganization() throws Exception {
+        Organization org = new Organization();
+        org.setId("abc");
+        org.setName("PSC");
+        org.setShortName("Project Steering Committee");
+        org.setCategory("category");
+        org.setDescription("desc");
+        org.setLastUpdated("123");
+        org.setLinkage("http://test.com");
+        org.setMembers(List.of("homer", "march", "lisa", "bart", "maggie"));
+        org.setNotes("notes");
+        org.setPostalAddress("123 springfield");
+
+        GeorchestraOrganizations.store(exchange, org);
+
+        testContributesJsonHeader(org, "sec-organization");
+    }
+
+    private void testContributesJsonHeader(Object object, String headerName)
+            throws JsonProcessingException, JsonMappingException {
         Consumer<HttpHeaders> contributor = headerContributor.prepare(exchange);
         assertNotNull(contributor);
 
         HttpHeaders target = new HttpHeaders();
         contributor.accept(target);
 
-        assertEquals(List.of(user.getId()), target.get("sec-userid"));
-        assertEquals(List.of(user.getUsername()), target.get("sec-username"));
-        assertEquals(List.of(user.getFirstName()), target.get("sec-firstname"));
-        assertEquals(List.of(user.getLastName()), target.get("sec-lastname"));
-        assertEquals(List.of(user.getOrganization()), target.get("sec-org"));
-        assertEquals(List.of(user.getEmail()), target.get("sec-email"));
-        assertEquals(List.of(user.getTelephoneNumber()), target.get("sec-tel"));
-        assertEquals(List.of(user.getPostalAddress()), target.get("sec-address"));
-        assertEquals(List.of(user.getTitle()), target.get("sec-title"));
-        assertEquals(List.of(user.getNotes()), target.get("sec-notes"));
-
-        String roles = user.getRoles().stream().collect(Collectors.joining(";"));
-        assertEquals(List.of(roles), target.get("sec-roles"));
-    }
-
-    @Test
-    void testRolePrefixAppendedToRoleNames() {
-
-        GeorchestraUser user = new GeorchestraUser();
-        user.setRoles(List.of("ROLE_ADMIN", "USER", "EDITOR"));
-
-        final List<String> expected = List.of("ROLE_ADMIN;ROLE_USER;ROLE_EDITOR");
-
-        GeorchestraUsers.store(exchange, user);
-
-        matchedRouteHeadersConfig.disableAll();
-        matchedRouteHeadersConfig.setRoles(Optional.of(true));
-
-        HttpHeaders target = new HttpHeaders();
-        headerContributor.prepare(exchange).accept(target);
-        assertEquals(expected, target.get("sec-roles"));
+        List<String> val = target.get(headerName);
+        assertNotNull(val);
+        String base64Ecnoded = val.get(0);
+        String json = SecurityHeaders.decode(base64Ecnoded);
+        Object decoded = new ObjectMapper().readValue(json, object.getClass());
+        assertEquals(object, decoded);
     }
 }

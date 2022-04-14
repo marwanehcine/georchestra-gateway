@@ -37,7 +37,7 @@ public class GeorchestraOrganizationHeadersContributor extends HeaderContributor
                     .ifPresent(mappings -> {
                         Optional<Organization> org = GeorchestraOrganizations.resolve(exchange);
                         add(headers, "sec-orgname", mappings.getOrgname(), org.map(Organization::getName));
-                        add(headers, "sec-org-id", mappings.getOrgid(), org.map(Organization::getId));
+                        add(headers, "sec-orgid", mappings.getOrgid(), org.map(Organization::getId));
                         add(headers, "sec-org-lastupdated", mappings.getOrgid(), org.map(Organization::getLastUpdated));
                     });
         };
