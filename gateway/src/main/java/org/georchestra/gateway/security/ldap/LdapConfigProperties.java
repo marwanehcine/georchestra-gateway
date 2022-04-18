@@ -23,6 +23,7 @@ import java.util.List;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import lombok.Data;
+import lombok.Generated;
 
 /**
  * Config properties, usually loaded from georchestra datadir's
@@ -43,6 +44,7 @@ import lombok.Data;
  * </pre>
  */
 @Data
+@Generated
 @ConfigurationProperties(prefix = "georchestra.gateway.security.ldap")
 public class LdapConfigProperties {
 

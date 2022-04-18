@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Optional;
 
 import lombok.Data;
+import lombok.Generated;
 
 /**
  * Model object used to configure which authenticated user's roles can reach a
@@ -31,6 +32,7 @@ import lombok.Data;
  *
  */
 @Data
+@Generated
 public class Service {
     /**
      * Back end service URL the Gateway will use to proxy incoming requests to,

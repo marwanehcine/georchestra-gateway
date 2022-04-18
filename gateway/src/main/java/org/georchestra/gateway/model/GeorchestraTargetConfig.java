@@ -25,6 +25,7 @@ import org.springframework.cloud.gateway.route.Route;
 import org.springframework.web.server.ServerWebExchange;
 
 import lombok.Data;
+import lombok.Generated;
 import lombok.experimental.Accessors;
 
 /**
@@ -32,6 +33,7 @@ import lombok.experimental.Accessors;
  * {@link Route}
  */
 @Data
+@Generated
 @Accessors(fluent = true, chain = true)
 public class GeorchestraTargetConfig {
 

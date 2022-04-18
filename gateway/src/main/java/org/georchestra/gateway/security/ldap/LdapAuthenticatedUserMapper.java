@@ -21,7 +21,6 @@ package org.georchestra.gateway.security.ldap;
 
 import java.util.Optional;
 
-import org.georchestra.gateway.security.BasicAuthenticatedUserMapper;
 import org.georchestra.gateway.security.GeorchestraUserMapperExtension;
 import org.georchestra.security.api.UsersApi;
 import org.georchestra.security.model.GeorchestraUser;
@@ -54,13 +53,6 @@ public class LdapAuthenticatedUserMapper implements GeorchestraUserMapperExtensi
     Optional<GeorchestraUser> map(UsernamePasswordAuthenticationToken token) {
         String username = ((LdapUserDetails) token.getPrincipal()).getUsername();
         return users.findByUsername(username);
-    }
-
-    /**
-     * A higher precedence order than {@link BasicAuthenticatedUserMapper}
-     */
-    public @Override int getOrder() {
-        return BasicAuthenticatedUserMapper.ORDER - 1;
     }
 
 }

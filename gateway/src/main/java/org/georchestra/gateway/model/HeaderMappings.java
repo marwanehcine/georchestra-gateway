@@ -23,12 +23,14 @@ import java.util.Optional;
 import com.google.common.annotations.VisibleForTesting;
 
 import lombok.Data;
+import lombok.Generated;
 
 /**
  * Models which geOrchestra-specific HTTP request headers to append to proxied
  * requests.
  */
 @Data
+@Generated
 public class HeaderMappings {
     ///////// User info headers ///////////////
 

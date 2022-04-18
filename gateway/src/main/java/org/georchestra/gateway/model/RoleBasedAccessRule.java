@@ -24,6 +24,7 @@ import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 
 import lombok.Data;
+import lombok.Generated;
 import lombok.experimental.Accessors;
 
 /**
@@ -34,6 +35,7 @@ import lombok.experimental.Accessors;
  * {@link GrantedAuthority#getAuthority()}) .
  */
 @Data
+@Generated
 @Accessors(chain = true)
 public class RoleBasedAccessRule {
 

@@ -25,6 +25,7 @@ import java.util.Map;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import lombok.Data;
+import lombok.Generated;
 
 /**
  * Model object representing the externalized configuration properties used to
@@ -33,6 +34,7 @@ import lombok.Data;
  *
  */
 @Data
+@Generated
 @ConfigurationProperties("georchestra.gateway")
 public class GatewayConfigProperties {
 
