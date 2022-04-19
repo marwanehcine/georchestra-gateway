@@ -9,13 +9,15 @@
     <!-- lookup parent from repository -->
   </parent>
   <groupId>org.georchestra</groupId>
-  <artifactId>georchestra-gateway</artifactId>
+  <artifactId>georchestra-gateway-parent</artifactId>
   <version>${revision}</version>
-  <name>gateway</name>
-  <description>geOrchestra application gateway</description>
+  <packaging>pom</packaging>
+  <name>gateway-root</name>
+  <modules>
+    <module>gateway</module>
+  </modules>
   <properties>
     <revision>21.0-SNAPSHOT</revision>
-    <java.version>17</java.version>
     <spring-cloud.version>2021.0.1</spring-cloud.version>
     <formatter-maven-plugin.version>2.10.0</formatter-maven-plugin.version>
     <fmt.skip>false</fmt.skip>
@@ -35,72 +37,13 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
+      <dependency>
+        <groupId>org.georchestra</groupId>
+        <artifactId>georchestra-ldap-account-management</artifactId>
+        <version>22.1-SNAPSHOT</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
-  <dependencies>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-oauth2-client</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-security</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.security</groupId>
-      <artifactId>spring-security-ldap</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.cloud</groupId>
-      <artifactId>spring-cloud-starter-gateway</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-actuator</artifactId>
-    </dependency>
-    <!--     <dependency> -->
-    <!--       <groupId>org.georchestra</groupId> -->
-    <!--       <artifactId>georchestra-ldap-account-management</artifactId> -->
-    <!--       <version>${project.version}</version> -->
-    <!--     </dependency> -->
-
-    <dependency>
-      <groupId>org.projectlombok</groupId>
-      <artifactId>lombok</artifactId>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
-      <!-- Annotation processor that generates metadata about classes annotated with @ConfigurationProperties. -->
-      <!-- This metadata is used by IDEs to provide auto-completion and documentation for the properties when editing application.properties 
-        and application.yaml -->
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-configuration-processor</artifactId>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
-      <!-- Generates META-INF/spring-autoconfigure-metadata.properties for inclusion in the project's jar. -->
-      <!-- This file helps with startup time, but is not necessary for your app to function correctly. -->
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-autoconfigure-processor</artifactId>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-devtools</artifactId>
-      <scope>runtime</scope>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-test</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <!-- <dependency> -->
-    <!-- <groupId>org.springframework.security</groupId> -->
-    <!-- <artifactId>spring-security-test</artifactId> -->
-    <!-- <scope>test</scope> -->
-    <!-- </dependency> -->
-  </dependencies>
   <repositories>
     <repository>
       <snapshots>
@@ -111,7 +54,6 @@
       <url>https://repo.spring.io/milestone</url>
     </repository>
   </repositories>
-
   <build>
     <pluginManagement>
       <plugins>
@@ -144,145 +86,16 @@
         </plugin>
       </plugins>
     </pluginManagement>
-    <plugins>
-      <plugin>
-        <groupId>net.revelc.code.formatter</groupId>
-        <artifactId>formatter-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <goals>
-              <goal>${fmt.action}</goal>
-            </goals>
-          </execution>
-        </executions>
-        <inherited>true</inherited>
-        <configuration>
-          <skip>${fmt.skip}</skip>
-          <configFile>${maven.multiModuleProjectDirectory}/.mvn/formatter.xml</configFile>
-          <compilerSource>${java.version}</compilerSource>
-          <compilerCompliance>${java.version}</compilerCompliance>
-          <compilerTargetPlatform>${java.version}</compilerTargetPlatform>
-          <!-- Use Unix and Mac style line endings -->
-          <lineEnding>LF</lineEnding>
-          <encoding>UTF-8</encoding>
-          <skipJsFormatting>true</skipJsFormatting>
-          <skipCssFormatting>true</skipCssFormatting>
-          <skipHtmlFormatting>true</skipHtmlFormatting>
-          <skipJsonFormatting>true</skipJsonFormatting>
-          <skipXmlFormatting>true</skipXmlFormatting>
-          <skipJavaFormatting>false</skipJavaFormatting>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-enforcer-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>enforce-maven-and-java</id>
-            <goals>
-              <goal>enforce</goal>
-            </goals>
-            <configuration>
-              <rules>
-                <requireJavaVersion>
-                  <version>[17,)</version>
-                </requireJavaVersion>
-                <requireMavenVersion>
-                  <version>[3.6.3,)</version>
-                </requireMavenVersion>
-              </rules>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>com.github.ekryd.sortpom</groupId>
-        <artifactId>sortpom-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <phase>verify</phase>
-            <goals>
-              <goal>${pom.fmt.action}</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <skip>${pom.fmt.skip}</skip>
-          <pomFile>pom.xml</pomFile>
-          <keepBlankLines>true</keepBlankLines>
-          <spaceBeforeCloseEmptyElement>false</spaceBeforeCloseEmptyElement>
-          <createBackupFile>false</createBackupFile>
-          <verifyFail>stop</verifyFail>
-          <verifyFailOn>strict</verifyFailOn>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>flatten-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>flatten</id>
-            <phase>process-resources</phase>
-            <goals>
-              <goal>flatten</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>flatten.clean</id>
-            <phase>clean</phase>
-            <goals>
-              <goal>clean</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <updatePomFile>true</updatePomFile>
-          <!--flattenMode>resolveCiFriendliesOnly</flattenMode -->
-          <flattenMode>oss</flattenMode>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>build-info</id>
-            <goals>
-              <goal>build-info</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
   </build>
-
   <profiles>
     <profile>
-      <id>docker</id>
-      <activation>
-        <activeByDefault>false</activeByDefault>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-maven-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>build-image</id>
-                <goals>
-                  <goal>build-image</goal>
-                </goals>
-              </execution>
-            </executions>
-            <configuration>
-              <image>
-                <pullPolicy>IF_NOT_PRESENT</pullPolicy>
-              </image>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
+      <id>georchestra</id>
+      <activation><activeByDefault>true</activeByDefault></activation>
+      <modules>
+        <module>georchestra/commons</module>
+        <module>georchestra/testcontainers</module>
+        <module>georchestra/ldap-account-management</module>
+      </modules>
     </profile>
   </profiles>
 </project>
