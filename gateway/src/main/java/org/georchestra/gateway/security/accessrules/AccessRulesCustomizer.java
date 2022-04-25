@@ -61,18 +61,22 @@ public class AccessRulesCustomizer implements ServerHttpSecurityCustomizer {
 
         AuthorizeExchangeSpec authorizeExchange = http.authorizeExchange();
 
-        log.info("Applying global access rules...");
-        apply(authorizeExchange, config.getGlobalAccessRules());
+        // apply service-specific rules before global rules, order matters, and
+        // otherwise global path matches would be applied before service ones.
 
         config.getServices().forEach((name, service) -> {
             log.info("Applying access rules for backend service '{}'", name);
-            apply(authorizeExchange, service.getAccessRules());
+            apply(name, authorizeExchange, service.getAccessRules());
         });
+
+        log.info("Applying global access rules...");
+        apply("global", authorizeExchange, config.getGlobalAccessRules());
     }
 
-    private void apply(AuthorizeExchangeSpec authorizeExchange, List<RoleBasedAccessRule> accessRules) {
+    private void apply(String serviceName, AuthorizeExchangeSpec authorizeExchange,
+            List<RoleBasedAccessRule> accessRules) {
         if (accessRules == null || accessRules.isEmpty()) {
-            log.info("No access rules found.");
+            log.debug("No {} access rules found.", serviceName);
             return;
         }
         for (RoleBasedAccessRule rule : accessRules) {
@@ -83,10 +87,14 @@ public class AccessRulesCustomizer implements ServerHttpSecurityCustomizer {
     @VisibleForTesting
     void apply(AuthorizeExchangeSpec authorizeExchange, RoleBasedAccessRule rule) {
         final List<String> antPatterns = resolveAntPatterns(rule);
+        final boolean forbidden = rule.isForbidden();
         final boolean anonymous = rule.isAnonymous();
         final List<String> allowedRoles = rule.getAllowedRoles() == null ? List.of() : rule.getAllowedRoles();
         Access access = authorizeExchange(authorizeExchange, antPatterns);
-        if (anonymous) {
+        if (forbidden) {
+            log.debug("Denying access to everyone for {}", antPatterns);
+            denyAll(access);
+        } else if (anonymous) {
             log.debug("Granting anonymous access for {}", antPatterns);
             permitAll(access);
         } else if (allowedRoles.isEmpty()) {
@@ -94,7 +102,7 @@ public class AccessRulesCustomizer implements ServerHttpSecurityCustomizer {
             requireAuthenticatedUser(access);
         } else {
             List<String> roles = resolveRoles(antPatterns, allowedRoles);
-            log.debug("Granting access to roles {} for {}", antPatterns);
+            log.debug("Granting access to roles {} for {}", roles, antPatterns);
             hasAnyAuthority(access, roles);
         }
     }
@@ -115,10 +123,7 @@ public class AccessRulesCustomizer implements ServerHttpSecurityCustomizer {
     }
 
     private List<String> resolveRoles(List<String> antPatterns, List<String> allowedRoles) {
-        List<String> roles = allowedRoles.stream().map(this::ensureRolePrefix).collect(Collectors.toList());
-        if (log.isDebugEnabled())
-            log.debug("Access rule: {} has any role: {}", antPatterns, roles.stream().collect(Collectors.joining(",")));
-        return roles;
+        return allowedRoles.stream().map(this::ensureRolePrefix).collect(Collectors.toList());
     }
 
     @VisibleForTesting
@@ -134,6 +139,11 @@ public class AccessRulesCustomizer implements ServerHttpSecurityCustomizer {
     @VisibleForTesting
     void permitAll(Access access) {
         access.permitAll();
+    }
+
+    @VisibleForTesting
+    void denyAll(Access access) {
+        access.denyAll();
     }
 
     private String ensureRolePrefix(@NonNull String roleName) {

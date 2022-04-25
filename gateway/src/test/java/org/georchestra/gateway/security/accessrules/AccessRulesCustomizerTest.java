@@ -21,19 +21,17 @@ package org.georchestra.gateway.security.accessrules;
 
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Map;
@@ -46,7 +44,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity.AuthorizeExchangeSpec;
-import org.springframework.security.config.web.server.ServerHttpSecurity.AuthorizeExchangeSpec.Access;
 
 /**
  * Test suite for {@link AccessRulesCustomizer}
@@ -79,7 +76,7 @@ class AccessRulesCustomizerTest {
     }
 
     @Test
-    void testCustomize_applies_global_rules_before_service_rules() {
+    void testCustomize_applies_service_rules_before_global_rules() {
 
         RoleBasedAccessRule global1 = mock(RoleBasedAccessRule.class);
         RoleBasedAccessRule global2 = mock(RoleBasedAccessRule.class);
@@ -99,10 +96,10 @@ class AccessRulesCustomizerTest {
         doNothing().when(customizer).apply(any(), any());
         customizer.customize(http);
         verify(customizer, times(4)).apply(any(), ruleCaptor.capture());
-        assertSame(global1, ruleCaptor.getAllValues().get(0));
-        assertSame(global2, ruleCaptor.getAllValues().get(1));
-        assertSame(service1Rule1, ruleCaptor.getAllValues().get(2));
-        assertSame(service1Rule2, ruleCaptor.getAllValues().get(3));
+        assertSame(service1Rule1, ruleCaptor.getAllValues().get(0));
+        assertSame(service1Rule2, ruleCaptor.getAllValues().get(1));
+        assertSame(global1, ruleCaptor.getAllValues().get(2));
+        assertSame(global2, ruleCaptor.getAllValues().get(3));
     }
 
     @Test
@@ -188,6 +185,19 @@ class AccessRulesCustomizerTest {
 
         verify(customizer, times(1)).authorizeExchange(same(spec), eq(List.of("/test/**", "/page1")));
         verify(customizer, times(1)).hasAnyAuthority(any(), eq(expected));
+    }
+
+    @Test
+    void testApplyRule_forbidden() {
+        AuthorizeExchangeSpec spec = http.authorizeExchange();
+        RoleBasedAccessRule rule = rule("/test/**", "/page1").setForbidden(true);
+        customizer = spy(customizer);
+        customizer.apply(spec, rule);
+
+        verify(customizer, times(1)).denyAll(any());
+        verify(customizer, never()).requireAuthenticatedUser(any());
+        verify(customizer, never()).hasAnyAuthority(any(), any());
+        verify(customizer, never()).permitAll(any());
     }
 
     private RoleBasedAccessRule rule(String... interceptUrls) {

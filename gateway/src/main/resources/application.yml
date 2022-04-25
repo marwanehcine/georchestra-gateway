@@ -191,8 +191,8 @@ logging:
     root: warn
     '[org.springframework]': info
     '[org.springframework.cloud.gateway]': info
-    '[org.springframework.security]': debug
+    '[org.springframework.security]': info
     '[org.springframework.security.oauth2]': debug
     '[reactor.netty.http ]': debug
-    '[org.georchestra.gateway]': debug
+    '[org.georchestra.gateway]': info
     

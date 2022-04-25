@@ -82,7 +82,7 @@ public abstract class HeaderContributor implements Ordered {
             if (null == value) {
                 log.debug("Value for header {} is not present", header);
             } else {
-                log.info("Appending header {}: {}", header, value);
+                log.debug("Appending header {}: {}", header, value);
                 target.add(header, value);
             }
         } else {

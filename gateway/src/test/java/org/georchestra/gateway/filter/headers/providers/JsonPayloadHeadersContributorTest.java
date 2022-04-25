@@ -105,7 +105,7 @@ class JsonPayloadHeadersContributorTest {
         org.setDescription("desc");
         org.setLastUpdated("123");
         org.setLinkage("http://test.com");
-        org.setMembers(List.of("homer", "march", "lisa", "bart", "maggie"));
+        org.setMembers(List.of("homer", "marge", "lisa", "bart", "maggie"));
         org.setNotes("notes");
         org.setPostalAddress("123 springfield");
 
