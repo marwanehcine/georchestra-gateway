@@ -1,0 +1,33 @@
+name: "Test pull request"
+on:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+    - name: "Checking out"
+      uses: actions/checkout@v3
+      with:
+        submodules: 'true'
+
+    - name: "Setting up Java"
+      uses: actions/setup-java@v2
+      with:
+        distribution: 'adopt'
+        java-version: '11'
+        cache: 'maven'
+
+    - name: "Build georchestra dependencies"
+      run: ./mvnw -f georchestra/ clean install -pl :georchestra-ldap-account-management -am -DskipTests -P-all -ntp
+
+    - name: "Build gateway"
+      run: ./mvnw verify -pl :georchestra-gateway -ntp -T1C
+
+    - name: "Build docker image"
+      run: ./mvnw -f gateway/ spring-boot:build-image -ntp -DskipTests
+
+    - name: "Remove SNAPSHOT jars from repository"
+      run: |
+        find .m2/repository -name "*SNAPSHOT*" -type d | xargs rm -rf {}
