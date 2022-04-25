@@ -48,16 +48,12 @@ public class RoleBasedAccessRule {
     /**
      * Whether anonymous (unauthenticated) access is to be granted to the
      * intercepted URIs. If {@code true}, no further specification is applied to the
-     * intercepted urls (i.e. if set, {@link #allowedRoles} are ignored).
+     * intercepted urls (i.e. if set, {@link #allowedRoles} are ignored). If
+     * {@code false} and the {@link #getAllowedRoles() allowed roles} is empty, then
+     * any authenticated user is granted access to the {@link #getInterceptUrl()
+     * intercepted URLs}.
      */
     private boolean anonymous = false;
-
-    /**
-     * Requires an authenticated user, regardless of the roles. If there are
-     * {@link #allowedRoles} defined, this property is assumed to be {@code true},
-     * despite whether it's set or not.
-     */
-    private boolean authenticated = false;
 
     /**
      * Role names that the authenticated user must be part of to be granted access

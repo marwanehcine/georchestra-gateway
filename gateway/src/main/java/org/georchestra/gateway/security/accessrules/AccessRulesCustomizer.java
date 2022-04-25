@@ -84,22 +84,18 @@ public class AccessRulesCustomizer implements ServerHttpSecurityCustomizer {
     void apply(AuthorizeExchangeSpec authorizeExchange, RoleBasedAccessRule rule) {
         final List<String> antPatterns = resolveAntPatterns(rule);
         final boolean anonymous = rule.isAnonymous();
-        final boolean authenticated = rule.isAuthenticated();
         final List<String> allowedRoles = rule.getAllowedRoles() == null ? List.of() : rule.getAllowedRoles();
         Access access = authorizeExchange(authorizeExchange, antPatterns);
         if (anonymous) {
-            log.debug("Access rule: {} anonymous", antPatterns);
+            log.debug("Granting anonymous access for {}", antPatterns);
             permitAll(access);
-        } else if (authenticated) {
+        } else if (allowedRoles.isEmpty()) {
+            log.debug("Granting access to any authenticated user for {}", antPatterns);
             requireAuthenticatedUser(access);
-        } else if (!allowedRoles.isEmpty()) {
-            List<String> roles = resolveRoles(antPatterns, allowedRoles);
-            hasAnyAuthority(access, roles);
         } else {
-            log.warn(
-                    "The following intercepted URL's don't have any access rule defined. Defaulting to 'authenticated': {}",
-                    antPatterns);
-            requireAuthenticatedUser(access);
+            List<String> roles = resolveRoles(antPatterns, allowedRoles);
+            log.debug("Granting access to roles {} for {}", antPatterns);
+            hasAnyAuthority(access, roles);
         }
     }
 

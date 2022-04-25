@@ -1,10 +1,9 @@
-name: "docker"
+name: "Build and publish docker image"
 on:
   workflow_dispatch:
   push:
     branches:
       - main
-  pull_request:
 
 jobs:
   build:
@@ -23,34 +22,34 @@ jobs:
         java-version: '11'
         cache: 'maven'
 
-    - name: Build georchestra dependencies
+    - name: "Build georchestra dependencies"
       run: ./mvnw -f georchestra/ clean install -pl :georchestra-ldap-account-management -am -DskipTests -P-all -ntp
 
-    - name: Build gateway
+    - name: "Build gateway"
       run: ./mvnw verify -pl :georchestra-gateway -ntp -T1C
 
-    - name: Calculating docker image tag
+    - name: "Resolve docker image tag"
       id: version
       run: echo ::set-output name=VERSION::$(echo $GITHUB_REF | cut -d / -f 3)
 
-    - name: "Building a docker image"
+    - name: "Build docker image"
       if: github.repository == 'georchestra/georchestra-gateway'
       run: ./mvnw -f gateway/ -DimageTag=${{ steps.version.outputs.VERSION }} spring-boot:build-image -ntp -DskipTests
 
-    - name: "Logging in to docker.io"
+    - name: "Log in to docker.io"
       if: github.repository == 'georchestra/georchestra-gateway'
       uses: azure/docker-login@v1
       with:
         username: '${{ secrets.DOCKER_HUB_USERNAME }}'
         password: '${{ secrets.DOCKER_HUB_PASSWORD }}'
 
-    - name: "Pushing latest to docker.io"
+    - name: "Push latest to docker.io"
       if: github.ref == 'refs/heads/main' && github.repository == 'georchestra/georchestra-gateway'
       run: |
         docker tag georchestra/gateway:${{ steps.version.outputs.VERSION }} georchestra/gateway:latest
         docker push georchestra/gateway:latest
 
-    - name: "Pushing image to docker.io"
+    - name: "Push tagged image to docker.io"
       if: github.ref != 'refs/heads/main' && github.repository == 'georchestra/georchestra-gateway'
       run: |
         docker push georchestra/gateway:${{ steps.version.outputs.VERSION }}

@@ -138,11 +138,10 @@ class AccessRulesCustomizerTest {
     }
 
     @Test
-    void testApplyRule_anonymous_has_precedence_over_authenticated_and_roles_list() {
+    void testApplyRule_anonymous_has_precedence_over_roles_list() {
         AuthorizeExchangeSpec spec = http.authorizeExchange();
 
-        RoleBasedAccessRule rule = rule("/test/**", "/page1").setAnonymous(true).setAuthenticated(true)
-                .setAllowedRoles(List.of("ROLE_ADMIN"));
+        RoleBasedAccessRule rule = rule("/test/**", "/page1").setAnonymous(true).setAllowedRoles(List.of("ROLE_ADMIN"));
         customizer = spy(customizer);
         customizer.apply(spec, rule);
 
@@ -156,26 +155,12 @@ class AccessRulesCustomizerTest {
     void testApplyRule_authenticated() {
         AuthorizeExchangeSpec spec = http.authorizeExchange();
 
-        RoleBasedAccessRule rule = rule("/test/**", "/page1").setAuthenticated(true);
+        RoleBasedAccessRule rule = rule("/test/**", "/page1").setAnonymous(false);
         customizer = spy(customizer);
         customizer.apply(spec, rule);
 
         verify(customizer, times(1)).authorizeExchange(same(spec), eq(List.of("/test/**", "/page1")));
         verify(customizer, times(1)).requireAuthenticatedUser(any());
-    }
-
-    @Test
-    void testApplyRule_authenticated_has_precedence_over_roles_list() {
-        AuthorizeExchangeSpec spec = http.authorizeExchange();
-
-        RoleBasedAccessRule rule = rule("/test/**", "/page1").setAuthenticated(true).setAnonymous(false)
-                .setAllowedRoles(List.of("ROLE_ADMIN"));
-        customizer = spy(customizer);
-        customizer.apply(spec, rule);
-
-        verify(customizer, times(1)).authorizeExchange(same(spec), eq(List.of("/test/**", "/page1")));
-        verify(customizer, times(1)).requireAuthenticatedUser(any());
-        verify(customizer, times(0)).hasAnyAuthority(any(), any());
     }
 
     @Test
