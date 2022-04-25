@@ -47,7 +47,7 @@ import reactor.core.publisher.Mono;
  * @see GeorchestraUserMapper
  */
 @RequiredArgsConstructor
-@Slf4j
+@Slf4j(topic = "org.georchestra.gateway.security")
 public class ResolveGeorchestraUserGlobalFilter implements GlobalFilter, Ordered {
 
     public static final int ORDER = RouteToRequestUrlFilter.ROUTE_TO_URL_FILTER_ORDER + 1;

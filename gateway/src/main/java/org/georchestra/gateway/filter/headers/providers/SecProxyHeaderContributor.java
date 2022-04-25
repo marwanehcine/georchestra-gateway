@@ -18,22 +18,30 @@
  */
 package org.georchestra.gateway.filter.headers.providers;
 
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
 import org.georchestra.gateway.filter.headers.HeaderContributor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.server.ServerWebExchange;
 
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+
 /**
- * Unconditionally contributes the {@literal sec-proxy: true} request header,
- * which is required by all backend services as a flag indicating the request is
- * authenticated.
+ * Contributes the {@literal sec-proxy: true} request header based on the value
+ * returned by the provided {@link BooleanSupplier}, which is required by all
+ * backend services as a flag indicating the request is authenticated.
  */
+@RequiredArgsConstructor
 public class SecProxyHeaderContributor extends HeaderContributor {
+
+    private final @NonNull BooleanSupplier secProxyHeaderEnabled;
 
     public @Override Consumer<HttpHeaders> prepare(ServerWebExchange exchange) {
         return headers -> {
-            headers.add("sec-proxy", "true");
+            if (secProxyHeaderEnabled.getAsBoolean())
+                add(headers, "sec-proxy", "true");
         };
     }
 }

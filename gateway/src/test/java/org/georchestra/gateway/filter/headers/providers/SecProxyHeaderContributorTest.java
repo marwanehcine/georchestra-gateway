@@ -21,6 +21,7 @@ package org.georchestra.gateway.filter.headers.providers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 
 import java.util.List;
@@ -39,11 +40,17 @@ class SecProxyHeaderContributorTest {
     @Test
     void test() {
         ServerWebExchange exchange = mock(ServerWebExchange.class);
-        Consumer<HttpHeaders> consumer = new SecProxyHeaderContributor().prepare(exchange);
+        Consumer<HttpHeaders> consumer = new SecProxyHeaderContributor(() -> true).prepare(exchange);
         assertNotNull(consumer);
         HttpHeaders headers = new HttpHeaders();
         consumer.accept(headers);
         assertEquals(List.of("true"), headers.get("sec-proxy"));
+
+        consumer = new SecProxyHeaderContributor(() -> false).prepare(exchange);
+        assertNotNull(consumer);
+        headers = new HttpHeaders();
+        consumer.accept(headers);
+        assertNull(headers.get("sec-proxy"));
     }
 
 }

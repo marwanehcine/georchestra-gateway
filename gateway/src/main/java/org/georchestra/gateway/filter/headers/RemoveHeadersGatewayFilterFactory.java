@@ -60,7 +60,7 @@ import lombok.extern.slf4j.Slf4j;
  * </pre>
  * 
  */
-@Slf4j(topic = "org.georchestra.gateway.headers")
+@Slf4j(topic = "org.georchestra.gateway.filter.headers")
 public class RemoveHeadersGatewayFilterFactory extends AbstractGatewayFilterFactory<RegExConfig> {
 
     public RemoveHeadersGatewayFilterFactory() {
@@ -119,7 +119,7 @@ public class RemoveHeadersGatewayFilterFactory extends AbstractGatewayFilterFact
         void removeMatching(@NonNull HttpHeaders headers) {
             new HashSet<>(headers.keySet()).stream()//
                     .filter(this::matches)//
-                    .peek(name -> log.debug("Removing header {}", name))//
+                    .peek(name -> log.trace("Removing header {}", name))//
                     .forEach(headers::remove);
         }
     }

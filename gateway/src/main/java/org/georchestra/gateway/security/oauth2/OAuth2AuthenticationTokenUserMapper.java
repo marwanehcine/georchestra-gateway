@@ -41,7 +41,7 @@ import lombok.extern.slf4j.Slf4j;
  * @author groldan
  *
  */
-@Slf4j
+@Slf4j(topic = "org.georchestra.gateway.security.oauth2")
 public class OAuth2AuthenticationTokenUserMapper implements GeorchestraUserMapperExtension {
 
     @Override

@@ -195,4 +195,10 @@ logging:
     '[org.springframework.security.oauth2]': debug
     '[reactor.netty.http ]': debug
     '[org.georchestra.gateway]': info
+    '[org.georchestra.gateway.filter.headers]': debug
+    '[org.georchestra.gateway.config.security]': debug
+    '[org.georchestra.gateway.config.security.accessrules]': debug
+    '[org.georchestra.gateway.security.ldap]': debug
+    '[org.georchestra.gateway.security.oauth2]': debug
+    
     

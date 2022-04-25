@@ -31,6 +31,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.web.server.ServerWebExchange;
 
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -44,7 +45,7 @@ import lombok.extern.slf4j.Slf4j;
  * @see GeorchestraUserHeadersContributor
  * @see GeorchestraOrganizationHeadersContributor
  */
-@Slf4j
+@Slf4j(topic = "org.georchestra.gateway.filter.headers")
 public abstract class HeaderContributor implements Ordered {
 
     /**
@@ -69,25 +70,37 @@ public abstract class HeaderContributor implements Ordered {
         return 0;
     }
 
-    protected void add(HttpHeaders target, String header, Optional<Boolean> enabled, Optional<String> value) {
+    protected void add(@NonNull HttpHeaders target, @NonNull String header, @NonNull Optional<Boolean> enabled,
+            @NonNull Optional<String> value) {
         add(target, header, enabled, value.orElse(null));
     }
 
-    protected void add(HttpHeaders target, String header, Optional<Boolean> enabled, List<String> values) {
-        add(target, header, enabled, values.stream().collect(Collectors.joining(";")));
+    protected void add(@NonNull HttpHeaders target, @NonNull String header, @NonNull Optional<Boolean> enabled,
+            @NonNull List<String> values) {
+        String val = values.isEmpty() ? null : values.stream().collect(Collectors.joining(";"));
+        add(target, header, enabled, val);
     }
 
-    protected void add(HttpHeaders target, String header, Optional<Boolean> enabled, String value) {
+    protected void add(@NonNull HttpHeaders target, @NonNull String header, @NonNull Optional<Boolean> enabled,
+            String value) {
         if (enabled.orElse(Boolean.FALSE).booleanValue()) {
             if (null == value) {
-                log.debug("Value for header {} is not present", header);
+                log.trace("Value for header {} is not present", header);
             } else {
                 log.debug("Appending header {}: {}", header, value);
                 target.add(header, value);
             }
         } else {
-            log.debug("Header {} is not enabled", header);
+            log.trace("Header {} is not enabled", header);
         }
     }
 
+    protected void add(@NonNull HttpHeaders target, @NonNull String header, String value) {
+        if (null == value) {
+            log.trace("Value for header {} is not present", header);
+        } else {
+            log.debug("Appending header {}: {}", header, value);
+            target.add(header, value);
+        }
+    }
 }

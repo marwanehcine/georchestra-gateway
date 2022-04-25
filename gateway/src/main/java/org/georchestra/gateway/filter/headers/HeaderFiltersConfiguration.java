@@ -19,11 +19,13 @@
 package org.georchestra.gateway.filter.headers;
 
 import java.util.List;
+import java.util.function.BooleanSupplier;
 
 import org.georchestra.gateway.filter.headers.providers.GeorchestraOrganizationHeadersContributor;
 import org.georchestra.gateway.filter.headers.providers.GeorchestraUserHeadersContributor;
 import org.georchestra.gateway.filter.headers.providers.JsonPayloadHeadersContributor;
 import org.georchestra.gateway.filter.headers.providers.SecProxyHeaderContributor;
+import org.georchestra.gateway.model.GatewayConfigProperties;
 import org.springframework.cloud.gateway.filter.factory.GatewayFilterFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -51,8 +53,9 @@ public class HeaderFiltersConfiguration {
         return new GeorchestraUserHeadersContributor();
     }
 
-    public @Bean SecProxyHeaderContributor secProxyHeaderProvider() {
-        return new SecProxyHeaderContributor();
+    public @Bean SecProxyHeaderContributor secProxyHeaderProvider(GatewayConfigProperties configProps) {
+        BooleanSupplier secProxyEnabledSupplier = () -> configProps.getDefaultHeaders().getProxy().orElse(false);
+        return new SecProxyHeaderContributor(secProxyEnabledSupplier);
     }
 
     public @Bean GeorchestraOrganizationHeadersContributor organizationSecurityHeadersProvider() {
