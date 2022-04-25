@@ -1,0 +1,15 @@
+# if in need of debugging what's going on with the proxied requests and the wiremock server,
+# set wiretap to true and logging levels to trace
+spring:
+  cloud:
+    gateway:
+      httpclient:
+        wiretap: false
+      httpserver:
+        wiretap: false
+
+logging:
+  level:
+    reactor.netty: info
+    org.springframework.cloud.gateway: info
+    org.georchestra.gateway.config.security.accessrules: info

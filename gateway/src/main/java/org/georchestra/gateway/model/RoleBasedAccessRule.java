@@ -46,6 +46,12 @@ public class RoleBasedAccessRule {
     private List<String> interceptUrl = List.of();
 
     /**
+     * Highest precedence rule, if {@code true}, forbids access to the intercepted
+     * URLs
+     */
+    private boolean forbidden = false;
+
+    /**
      * Whether anonymous (unauthenticated) access is to be granted to the
      * intercepted URIs. If {@code true}, no further specification is applied to the
      * intercepted urls (i.e. if set, {@link #allowedRoles} are ignored). If

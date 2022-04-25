@@ -26,7 +26,6 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import org.georchestra.gateway.model.GeorchestraUsers;
 import org.georchestra.gateway.security.GeorchestraUserMapperExtension;
 import org.georchestra.security.model.GeorchestraUser;
 import org.slf4j.Logger;
@@ -42,7 +41,7 @@ import lombok.extern.slf4j.Slf4j;
  * @author groldan
  *
  */
-@Slf4j
+@Slf4j(topic = "org.georchestra.gateway.security.oauth2")
 public class OAuth2AuthenticationTokenUserMapper implements GeorchestraUserMapperExtension {
 
     @Override

@@ -12,16 +12,10 @@ georchestra:
       org: true
       orgname: true
     global-access-rules:
-    - intercept-url: .*/ogcproxy/.*
-      allowed-roles: NO_ONE
-    - intercept-url: /testPage
-      anonymous: false
-    - intercept-url: .*(\?|&amp;)login.*
-      allowed-roles: USER,GN_EDITOR,GN_REVIEWER,GN_ADMIN,ADMINISTRATOR,SUPERUSER,ORGADMIN
     - intercept-url:
-      - /
       - /**
-      - /proxy/\?url=.*
+      #TODO: implement proxy in gateaway, mirroring security-proxy's behavior
+      #- /proxy/\?url=.*
       anonymous: true
       # wonder what's the purpose of having several roles defined in security-proxy's security-mappings.xml
       # if anonymous access is granted:
@@ -68,7 +62,7 @@ georchestra:
         access-rules:
         - intercept-url: /extractorapp/admin*
           allowed-roles: ADMINISTRATOR
-        - intercept-url: /extractorapp/jobs/**)
+        - intercept-url: /extractorapp/jobs/**
           allowed-roles: ADMINISTRATOR
         - intercept-url: /extractorapp/**
           allowed-roles: EXTRACTORAPP
@@ -101,6 +95,11 @@ georchestra:
           anonymous: true
       mapfishapp: 
         target: http://mapfishapp:8080/mapfishapp/
+        access-rules:
+        - intercept-url: /mapfishapp/ogcproxy/**
+          forbidden: true
+        - intercept-url: /mapfishapp/**
+          anonymous: true
       geowebcache: 
         target: http://geowebcache:8080/geowebcache/
       mapstore: 
