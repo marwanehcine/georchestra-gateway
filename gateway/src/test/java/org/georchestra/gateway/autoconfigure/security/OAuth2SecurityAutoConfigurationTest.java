@@ -27,6 +27,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.security.oauth2.client.endpoint.ReactiveOAuth2AccessTokenResponseClient;
+import org.springframework.security.oauth2.client.oidc.userinfo.OidcReactiveOAuth2UserService;
+import org.springframework.security.oauth2.client.userinfo.DefaultReactiveOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.ReactiveOAuth2UserService;
 
 /**
@@ -56,7 +58,8 @@ class OAuth2SecurityAutoConfigurationTest {
                     assertThat(context).hasSingleBean(OAuth2ProxyConfigProperties.class);
                     assertThat(context).hasSingleBean(OAuth2AuthenticationCustomizer.class);
                     assertThat(context).hasSingleBean(ReactiveOAuth2AccessTokenResponseClient.class);
-                    assertThat(context).hasSingleBean(ReactiveOAuth2UserService.class);
+                    assertThat(context).hasSingleBean(DefaultReactiveOAuth2UserService.class);
+                    assertThat(context).hasSingleBean(OidcReactiveOAuth2UserService.class);
                     assertThat(context).hasBean("oauth2WebClient");
                     assertThat(context).hasBean("oAuth2AuthenticationTokenUserMapper");
                     assertThat(context).hasBean("oAuth2AuthenticationTokenOpenIDUserMapper");

@@ -30,10 +30,13 @@ import org.springframework.security.config.web.server.ServerHttpSecurity.OAuth2L
 import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest;
 import org.springframework.security.oauth2.client.endpoint.ReactiveOAuth2AccessTokenResponseClient;
 import org.springframework.security.oauth2.client.endpoint.WebClientReactiveAuthorizationCodeTokenResponseClient;
+import org.springframework.security.oauth2.client.oidc.userinfo.OidcReactiveOAuth2UserService;
+import org.springframework.security.oauth2.client.registration.ClientRegistration;
+import org.springframework.security.oauth2.client.registration.ClientRegistration.ProviderDetails;
 import org.springframework.security.oauth2.client.userinfo.DefaultReactiveOAuth2UserService;
-import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
-import org.springframework.security.oauth2.client.userinfo.ReactiveOAuth2UserService;
-import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
+import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
+import org.springframework.security.oauth2.jwt.ReactiveJwtDecoderFactory;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import lombok.extern.slf4j.Slf4j;
@@ -91,13 +94,39 @@ public class OAuth2Configuration {
         return client;
     }
 
+    /**
+     * Custom JWT decoder factory to use the web client that can be set up to go
+     * through an HTTP proxy
+     */
     @Bean
-    public ReactiveOAuth2UserService<OAuth2UserRequest, OAuth2User> reactiveOAuth2UserService(
+    public ReactiveJwtDecoderFactory<ClientRegistration> idTokenDecoderFactory(
+            @Qualifier("oauth2WebClient") WebClient oauth2WebClient) {
+        return (clientRegistration) -> {
+            ProviderDetails providerDetails = clientRegistration.getProviderDetails();
+            String jwkSetUri = providerDetails.getJwkSetUri();
+            return NimbusReactiveJwtDecoder//
+                    .withJwkSetUri(jwkSetUri)//
+                    .jwsAlgorithm(SignatureAlgorithm.RS256)//
+                    .webClient(oauth2WebClient)//
+                    .build();
+        };
+    }
+
+    @Bean
+    public DefaultReactiveOAuth2UserService reactiveOAuth2UserService(
             @Qualifier("oauth2WebClient") WebClient oauth2WebClient) {
 
         DefaultReactiveOAuth2UserService service = new DefaultReactiveOAuth2UserService();
         service.setWebClient(oauth2WebClient);
         return service;
+    };
+
+    @Bean
+    public OidcReactiveOAuth2UserService oidcReactiveOAuth2UserService(
+            DefaultReactiveOAuth2UserService oauth2Delegate) {
+        OidcReactiveOAuth2UserService oidUserService = new OidcReactiveOAuth2UserService();
+        oidUserService.setOauth2UserService(oauth2Delegate);
+        return oidUserService;
     };
 
     /**
