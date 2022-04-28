@@ -1,0 +1,20 @@
+= geOrchestra Gateway
+:toc:
+:toc-placement!:
+
+
+toc::[]
+
+
+== Introduction
+
+=== Data directory property sources
+
+Routes and other relevant configuration properties are loaded from geOrchestra "data directory"'s
+`default.properties` and `gateway/gateway.yaml`.
+
+The location of the data directory is picked up from the `georchestra.datadir` environment property,
+and the additional property sources by means of spring-boot's 
+`spring.config.import` environment property, like in:
+`spring.config.import: ${georchestra.datadir}/default.properties,${georchestra.datadir}/gateway/gateway.yaml`.
+

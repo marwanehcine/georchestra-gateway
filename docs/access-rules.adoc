@@ -1,17 +1,24 @@
+= Security access rules
+:toc:
+:toc-placement!:
 
-# Configuration properties
+toc::[]
 
-## Configuration object model
 
-```mermaid
+=== Configuration Object Model
+
+[source,mermaid]
+----
 classDiagram
-  GatewayConfigProperties *-- HeaderMappings : defaultHeaders
-  GatewayConfigProperties *-- "0..*" RoleBasedAccessRule : globalAccessRules
+  GatewayConfigProperties *-- HeaderMappings
+  GatewayConfigProperties *-- "0..*" RoleBasedAccessRule
   GatewayConfigProperties *-- "0..*" Service
-  Service *-- HeaderMappings : headers
-  Service *-- "0..*" RoleBasedAccessRule : accessRules
+  Service *-- "0..*" HeaderMappings
+  Service *-- "0..*" RoleBasedAccessRule
   class GatewayConfigProperties{
-    Map<String, Service> services
+    Map~String, Service~ services
+    HeaderMappings defaultHeaders
+    RoleBasedAccessRule[ ] globalAccessRules
   }
   class HeaderMappings{
     boolean proxy
@@ -27,18 +34,21 @@ classDiagram
     boolean jsonOrganization
   }
   class RoleBasedAccessRule{
-    List~String~ interceptUrl
+    String[ ] interceptUrl
     boolean anonymous
-    List~String~ allowedRoles
+    String[ ] allowedRoles
   }
   class Service{
     URL target
+    HeaderMappings headers
+    RoleBasedAccessRule[ ] accessRules
   }
-```
+----
 
-## Example YAML configuration
+=== Externalized Configuration
 
-```yaml
+[source,yaml]
+----
 georchestra:
   gateway:
     default-headers:
@@ -69,4 +79,5 @@ georchestra:
           - /console/private/**
           - /console/manager/**
           allowed-roles: SUPERUSER, ORGADMIN
-```
+----
+

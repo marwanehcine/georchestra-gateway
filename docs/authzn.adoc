@@ -1,0 +1,114 @@
+= Authentication and Authorization
+:toc:
+:toc-placement!:
+
+
+toc::[]
+
+
+== LDAP (HTTP Basic and Form Login)
+
+LDAP Authentication is enabled and set up through the following configuration properties in `application.yml`:
+
+[source,yaml]
+----
+georchestra.security.ldap:
+  enabled: true
+  url: ${ldapScheme}://${ldapHost}:${ldapPort}
+  baseDn: ${ldapBaseDn:dc=georchestra,dc=org}
+  usersRdn: ${ldapUsersRdn:ou=users}
+  userSearchFilter: ${ldapUserSearchFilter:(uid={0})}
+  rolesRdn: ${ldapRolesRdn:ou=roles}
+  rolesSearchFilter: ${ldapRolesSearchFilter:(member={0})}
+----
+
+If `georchestra.security.ldap.enabled` is `false`,the log-in page won't show the username/password form inputs.
+
+=== Externalized Configuration
+
+== OAuth2
+
+=== OAuth2 Externalized Configuration
+
+== OpenID Connect
+
+=== Externalized Configuration
+
+Both standard and non-standard claims can be used to set the `GeorchestraUser`'s `roles`
+`organization` short name properties using JSONPath expressions with
+`OidcUser#getClaims():Map<String, Object>` as the expresion's root object.
+
+Configuration properties after `georchestra.gateway.security.oidc.claims`:
+|===
+|Property name | Default value | Description
+|`organization.path`
+|
+|JSONPath expression to extract the organization short name from the OIDC claims map
+
+|`roles.path`
+| 
+|JSONPath expression to extract the user role names from the OIDC claims map
+
+|`roles.uppercase`
+| true
+|Whether to return mapped role names as upper-case.
+
+|`roles.normalize`
+| true
+|Whether to remove special characters and replace spaces by underscores.
+
+|`roles.append`
+| true
+|Whether to append (`true`) the resolved role names to the roles given by the OAuth2 authentication, or replace them (`false`).
+|===
+
+=== Example
+
+Take as example the following claims provided by an OIDC ID Token:
+
+[source,json]
+----
+{
+    "family_name": "Doe",
+    "given_name": "John",
+    "locale": "en-US",
+    "name": "John Doe",
+    "preferred_username": "jd@example.com",
+    "sub": "...",
+    "updated_at": 1490198843,
+    "groups": [
+        "GDI Planer",
+        "GDI Editor"
+    ],
+    "PartyOrganisationID": "6007280321"
+}
+----
+
+The following configuration properties can be used to extract the role names from the `groups` claim,
+and the organization's short name from the `PartyOrganisationID` claim:
+
+[source,yaml]
+----
+georchestra.gateway.security.oidc.claims:
+  organization.path: "$.PartyOrganisationID"
+  roles:
+    path: "$.groups..['name']"
+    uppercase: true
+    normalize: true
+    append: true
+----
+
+Resulting in the following property values for the `GeorchestraUser` instance associated to the request:
+
+```
+roles = ["ROLE_GDI_PLANER", "ROLE_GDI_EDITOR"]
+organization = "6007280321"
+```
+
+Which the gateway will then convey to the proxied services as the following request headers:
+
+```
+sec-roles: ROLE_GDI_PLANER;ROLE_GDI_EDITOR
+sec-org: 6007280321
+```
+
