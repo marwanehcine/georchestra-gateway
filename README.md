@@ -2,12 +2,10 @@
 
 ## Features
 
-- [x] OpenID Connect authentication (provided github and google pre-configured auth sources)
-- [x] LDAP authentication
-- [ ] CAS authentication
-- [ ] HTTP Proxy
-- [ ] HTTP/2
-- [ ] Websockets
+- [x] OAuth2 and OpenID Connect authentication and authorization
+- [x] LDAP authentication and authorization
+- [x] HTTP/2
+- [x] Websockets
 
 ## Configuration
 

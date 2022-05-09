@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.georchestra.gateway.security.GeorchestraUserMapperExtension;
@@ -32,25 +33,43 @@ import org.slf4j.Logger;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
-import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * @author groldan
- *
+ * Maps {@link OAuth2AuthenticationToken} to {@link GeorchestraUser}.
+ * <p>
+ * <ul>
+ * <li>The {@link OAuth2User principal}'s {@literal login}
+ * {@link OAuth2User#getAttributes() attribute} is used with preference to the
+ * {@link OAuth2AuthenticationToken#getName() name} if provided, to set the
+ * {@link GeorchestraUser#setUsername(String) username}, since the name is
+ * usually an external sytem's numeric identifier that's not really appropriate
+ * for a username.
+ * <li>The user's {@link GeorchestraUser#setEmail(String) email} is obtained
+ * from the {@literal email} {@link OAuth2User#getAttributes() attribute}, if
+ * present.
+ * <li>The user's {@link GeorchestraUser#setRoles(List) roles} are derived from
+ * the {@link GrantedAuthority granted authorities} in the
+ * {@link OAuth2User#getAuthorities()}, removing those that start with
+ * {@literal ROLE_SCOPE_} or {@code SCOPE_}.
+ * </ul>
  */
 @Slf4j(topic = "org.georchestra.gateway.security.oauth2")
-public class OAuth2AuthenticationTokenUserMapper implements GeorchestraUserMapperExtension {
+public class OAuth2UserMapper implements GeorchestraUserMapperExtension {
 
     @Override
     public Optional<GeorchestraUser> resolve(Authentication authToken) {
         return Optional.ofNullable(authToken)//
                 .filter(OAuth2AuthenticationToken.class::isInstance)//
                 .map(OAuth2AuthenticationToken.class::cast)//
-                .filter(token -> !(token.getPrincipal() instanceof OidcUser))//
+                .filter(tokenFilter())//
                 .flatMap(this::map);
+    }
+
+    protected Predicate<OAuth2AuthenticationToken> tokenFilter() {
+        return token -> true;
     }
 
     protected Optional<GeorchestraUser> map(OAuth2AuthenticationToken token) {
@@ -60,11 +79,17 @@ public class OAuth2AuthenticationTokenUserMapper implements GeorchestraUserMappe
         OAuth2User oAuth2User = token.getPrincipal();
         GeorchestraUser user = new GeorchestraUser();
 
+        Map<String, Object> attributes = oAuth2User.getAttributes();
+
         List<String> roles = resolveRoles(oAuth2User.getAuthorities());
         String userName = token.getName();
-
-        Map<String, Object> attributes = oAuth2User.getAttributes();
         String login = (String) attributes.get("login");
+
+        /*
+         * plain Oauth2 authentication user names are usually a number. The 'login'
+         * attribute usually carries over a more meaningful name, so use it in
+         * preference of userName if provided
+         */
         apply(user::setUsername, login, userName);
         apply(user::setEmail, (String) attributes.get("email"));
         user.setRoles(roles);

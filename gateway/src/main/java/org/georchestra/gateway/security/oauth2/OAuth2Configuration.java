@@ -44,7 +44,7 @@ import reactor.netty.http.client.HttpClient;
 import reactor.netty.transport.ProxyProvider;
 
 @Configuration(proxyBeanMethods = false)
-@EnableConfigurationProperties(OAuth2ProxyConfigProperties.class)
+@EnableConfigurationProperties({ OAuth2ProxyConfigProperties.class, OpenIdConnectCustomClaimsConfigProperties.class })
 @Slf4j(topic = "org.georchestra.gateway.security.oauth2")
 public class OAuth2Configuration {
 
@@ -62,13 +62,14 @@ public class OAuth2Configuration {
     }
 
     @Bean
-    OAuth2AuthenticationTokenUserMapper oAuth2AuthenticationTokenUserMapper() {
-        return new OAuth2AuthenticationTokenUserMapper();
+    OAuth2UserMapper oAuth2GeorchestraUserUserMapper() {
+        return new OAuth2UserMapper();
     }
 
     @Bean
-    OAuth2AuthenticationTokenOpenIDUserMapper oAuth2AuthenticationTokenOpenIDUserMapper() {
-        return new OAuth2AuthenticationTokenOpenIDUserMapper();
+    OpenIdConnectUserMapper openIdConnectGeorchestraUserUserMapper(
+            OpenIdConnectCustomClaimsConfigProperties nonStandardClaimsConfig) {
+        return new OpenIdConnectUserMapper(nonStandardClaimsConfig);
     }
 
     /**

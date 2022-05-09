@@ -61,8 +61,8 @@ class OAuth2SecurityAutoConfigurationTest {
                     assertThat(context).hasSingleBean(DefaultReactiveOAuth2UserService.class);
                     assertThat(context).hasSingleBean(OidcReactiveOAuth2UserService.class);
                     assertThat(context).hasBean("oauth2WebClient");
-                    assertThat(context).hasBean("oAuth2AuthenticationTokenUserMapper");
-                    assertThat(context).hasBean("oAuth2AuthenticationTokenOpenIDUserMapper");
+                    assertThat(context).hasBean("oAuth2GeorchestraUserUserMapper");
+                    assertThat(context).hasBean("openIdConnectGeorchestraUserUserMapper");
                 });
         ;
     }
@@ -74,8 +74,8 @@ class OAuth2SecurityAutoConfigurationTest {
             assertThat(context).doesNotHaveBean(ReactiveOAuth2AccessTokenResponseClient.class);
             assertThat(context).doesNotHaveBean(ReactiveOAuth2UserService.class);
             assertThat(context).doesNotHaveBean("oauth2WebClient");
-            assertThat(context).doesNotHaveBean("oAuth2AuthenticationTokenUserMapper");
-            assertThat(context).doesNotHaveBean("oAuth2AuthenticationTokenOpenIDUserMapper");
+            assertThat(context).doesNotHaveBean("oAuth2GeorchestraUserUserMapper");
+            assertThat(context).doesNotHaveBean("openIdConnectGeorchestraUserUserMapper");
         });
     }
 }
