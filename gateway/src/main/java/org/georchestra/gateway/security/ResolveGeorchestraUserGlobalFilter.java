@@ -61,7 +61,7 @@ public class ResolveGeorchestraUserGlobalFilter implements GlobalFilter, Ordered
      *         {@link #filter} is called.
      */
     public @Override int getOrder() {
-        return ResolveTargetGlobalFilter.ORDER;
+        return ORDER;
     }
 
     /**

@@ -8,7 +8,8 @@ toc::[]
 
 == LDAP (HTTP Basic and Form Login)
 
-LDAP Authentication is enabled and set up through the following configuration properties in `application.yml`:
+LDAP Authentication is enabled and set up through the following
+configuration properties in `application.yml`:
 
 [source,yaml]
 ----
@@ -22,7 +23,8 @@ georchestra.security.ldap:
   rolesSearchFilter: ${ldapRolesSearchFilter:(member={0})}
 ----
 
-If `georchestra.security.ldap.enabled` is `false`,the log-in page won't show the username/password form inputs.
+If `georchestra.security.ldap.enabled` is `false`,the log-in page won't show the
+username/password form inputs.
 
 === Externalized Configuration
 
@@ -34,9 +36,11 @@ If `georchestra.security.ldap.enabled` is `false`,the log-in page won't show the
 
 === Externalized Configuration
 
-Both standard and non-standard claims can be used to set the `GeorchestraUser`'s `roles`
-`organization` short name properties using JSONPath expressions with
+Both standard and non-standard claims can be used to set the `GeorchestraUser`'s
+`organization` short name and `roles` properties using JSONPath expressions with
 `OidcUser#getClaims():Map<String, Object>` as the expresion's root object.
+
+> `org.springframework.security.oauth2.core.oidc.user.OidcUser`
 
 Configuration properties after `georchestra.gateway.security.oidc.claims`:
 |===
