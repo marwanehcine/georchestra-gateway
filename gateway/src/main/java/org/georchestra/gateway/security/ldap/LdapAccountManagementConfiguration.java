@@ -19,6 +19,8 @@
 
 package org.georchestra.gateway.security.ldap;
 
+import java.util.List;
+
 import org.georchestra.ds.orgs.OrgsDao;
 import org.georchestra.ds.orgs.OrgsDaoImpl;
 import org.georchestra.ds.roles.RoleDao;
@@ -29,6 +31,8 @@ import org.georchestra.ds.users.AccountDao;
 import org.georchestra.ds.users.AccountDaoImpl;
 import org.georchestra.ds.users.UserRule;
 import org.georchestra.gateway.security.GeorchestraUserMapperExtension;
+import org.georchestra.gateway.security.ldap.LdapConfigProperties.Server;
+import org.georchestra.gateway.security.ldap.LdapConfigProperties.Users;
 import org.georchestra.security.api.OrganizationsApi;
 import org.georchestra.security.api.RolesApi;
 import org.georchestra.security.api.UsersApi;
@@ -100,14 +104,15 @@ public class LdapAccountManagementConfiguration {
     AccountDao accountDao(@Qualifier("defaultGeorchestraLdapTemplate") LdapTemplate ldapTemplate,
             LdapConfigProperties config) {
 
+        Server server = config.getLdap().values().stream().findFirst().orElseThrow();
+
         AccountDaoImpl impl = new AccountDaoImpl(ldapTemplate);
-        impl.setBasePath(config.getBaseDn());
-        impl.setUserSearchBaseDN(config.getUsersRdn());
-        impl.setOrgSearchBaseDN(config.getOrgsRdn());
-        impl.setRoleSearchBaseDN(config.getRolesRdn());
-        // REVISIT add to config?
-        impl.setPendingOrgSearchBaseDN("ou=pendingusers");
-        impl.setPendingOrgSearchBaseDN("ou=pendingorgs");
+        impl.setBasePath(server.getBaseDn());
+        impl.setUserSearchBaseDN(server.getUsers().getRdn());
+        impl.setOrgSearchBaseDN(server.getOrgs().getRdn());
+        impl.setRoleSearchBaseDN(server.getRoles().getRdn());
+        impl.setPendingUserSearchBaseDN(server.getUsers().getPendingUsersSearchBaseDN());
+        impl.setPendingOrgSearchBaseDN(server.getOrgs().getPendingOrgSearchBaseDN());
         return impl;
     }
 
@@ -119,9 +124,11 @@ public class LdapAccountManagementConfiguration {
     RoleDao roleDao(@Qualifier("defaultGeorchestraLdapTemplate") LdapTemplate ldapTemplate,
             LdapConfigProperties config) {
 
+        Server server = config.getLdap().values().stream().findFirst().orElseThrow();
+
         RoleDaoImpl impl = new RoleDaoImpl();
         impl.setLdapTemplate(ldapTemplate);
-        String rolesRdn = config.getRolesRdn();
+        String rolesRdn = server.getRoles().getRdn();
         impl.setRoleSearchBaseDN(rolesRdn);
         return impl;
     }
@@ -138,12 +145,14 @@ public class LdapAccountManagementConfiguration {
     OrgsDao orgsDao(@Qualifier("defaultGeorchestraLdapTemplate") LdapTemplate ldapTemplate,
             LdapConfigProperties config) {
 
+        Server server = config.getLdap().values().stream().findFirst().orElseThrow();
+
         OrgsDaoImpl impl = new OrgsDaoImpl();
         impl.setLdapTemplate(ldapTemplate);
-        impl.setBasePath(config.getBaseDn());
-        impl.setOrgSearchBaseDN(config.getOrgsRdn());
-        impl.setPendingOrgSearchBaseDN(config.getPendingOrgSearchBaseDN());
-        impl.setOrgTypeValues(config.getOrgTypeValues());
+        impl.setBasePath(server.getBaseDn());
+        impl.setOrgSearchBaseDN(server.getOrgs().getRdn());
+        impl.setPendingOrgSearchBaseDN(server.getOrgs().getPendingOrgSearchBaseDN());
+        impl.setOrgTypeValues(server.getOrgs().getOrgTypes());
         return impl;
     }
 
@@ -156,8 +165,11 @@ public class LdapAccountManagementConfiguration {
 //	  </bean>
     @Bean
     UserRule ldapUserRule(LdapConfigProperties config) {
+        Server server = config.getLdap().values().stream().findFirst().orElseThrow();
+        Users users = server.getUsers();
+        List<String> protectedUsers = users.getProtectedUsers();
         UserRule rule = new UserRule();
-        rule.setListOfprotectedUsers(config.getProtectedUsersList().toArray(String[]::new));
+        rule.setListOfprotectedUsers(protectedUsers.toArray(String[]::new));
         return rule;
     }
 
@@ -170,8 +182,10 @@ public class LdapAccountManagementConfiguration {
 //	  </bean>
     @Bean
     RoleProtected ldapProtectedRoles(LdapConfigProperties config) {
+        Server server = config.getLdap().values().stream().findFirst().orElseThrow();
+        List<String> protectedRoles = server.getRoles().getProtectedRoles();
         RoleProtected bean = new RoleProtected();
-        bean.setListOfprotectedRoles(config.getProtectedRolesList().toArray(String[]::new));
+        bean.setListOfprotectedRoles(protectedRoles.toArray(String[]::new));
         return bean;
     }
 

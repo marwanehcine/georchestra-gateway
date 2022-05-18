@@ -19,6 +19,7 @@
 package org.georchestra.gateway.security.ldap;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -45,45 +46,66 @@ import lombok.Generated;
  */
 @Data
 @Generated
-@ConfigurationProperties(prefix = "georchestra.gateway.security.ldap")
+@ConfigurationProperties(prefix = "georchestra.gateway.security")
 public class LdapConfigProperties {
 
-    private String url;
+    private Map<String, Server> ldap = Map.of();
 
-    /**
-     * Base DN of the LDAP directory Base Distinguished Name of the LDAP directory.
-     * Also named root or suffix, see
-     * http://www.zytrax.com/books/ldap/apd/index.html#base
-     */
+    public static @Data class Server {
 
-    private String baseDn = "dc=georchestra,dc=org";
+        boolean enabled;
 
-    /**
-     * Users RDN Relative distinguished name of the "users" LDAP organization unit.
-     * E.g. if the complete name (or DN) is ou=users,dc=georchestra,dc=org, the RDN
-     * is ou=users.
-     */
-    private String usersRdn = "ou=users";
+        private String url;
 
-    private String userSearchFilter = "(uid={0})";
+        /**
+         * Base DN of the LDAP directory Base Distinguished Name of the LDAP directory.
+         * Also named root or suffix, see
+         * http://www.zytrax.com/books/ldap/apd/index.html#base
+         * <p>
+         * For example, georchestra's default baseDn is dc=georchestra,dc=org
+         */
+        private String baseDn;
 
-    /**
-     * Roles RDN Relative distinguished name of the "roles" LDAP organization unit.
-     * E.g. if the complete name (or DN) is ou=roles,dc=georchestra,dc=org, the RDN
-     * is ou=roles.
-     */
-    private String rolesRdn = "ou=roles";
+        private Users users = new Users();
+        private Roles roles = new Roles();
+        private Organizations orgs = null;
+    }
 
-    private String rolesSearchFilter = "(member={0})";
+    public static @Data class Users {
 
-    private String orgsRdn = "ou=orgs";
+        /**
+         * Users RDN Relative distinguished name of the "users" LDAP organization unit.
+         * E.g. if the complete name (or DN) is ou=users,dc=georchestra,dc=org, the RDN
+         * is ou=users.
+         */
+        private String rdn = "ou=users";
 
-    private String pendingOrgSearchBaseDN = "ou=pendingorgs";
+        private String searchFilter = "(uid={0})";
 
-    private String orgTypeValues = "Association,Company,NGO,Individual,Other";
+        private String pendingUsersSearchBaseDN = "ou=pendingusers";
 
-    private List<String> protectedRolesList = List.of("ADMINISTRATOR", "EXTRACTORAPP", "GN_.*", "ORGADMIN", "REFERENT",
-            "USER", "SUPERUSER");
+        private List<String> protectedUsers = List.of();
+    }
 
-    private List<String> protectedUsersList = List.of("geoserver_privileged_user");
+    public static @Data class Roles {
+        /**
+         * Roles RDN Relative distinguished name of the "roles" LDAP organization unit.
+         * E.g. if the complete name (or DN) is ou=roles,dc=georchestra,dc=org, the RDN
+         * is ou=roles.
+         */
+        private String rdn = "ou=roles";
+
+        private String searchFilter = "(member={0})";
+
+        private List<String> protectedRoles = List.of();
+    }
+
+    public static @Data class Organizations {
+
+        private String rdn = "ou=orgs";
+
+        private String orgTypes = "Association,Company,NGO,Individual,Other";
+
+        private String pendingOrgSearchBaseDN = "ou=pendingorgs";
+    }
 }

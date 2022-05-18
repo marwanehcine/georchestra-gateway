@@ -29,14 +29,29 @@ georchestra:
           username: jack
           password: insecure
       ldap:
-        enabled: false
-        url: ${ldapScheme}://${ldapHost}:${ldapPort}
-        baseDn: ${ldapBaseDn:dc=georchestra,dc=org}
-        usersRdn: ${ldapUsersRdn:ou=users}
-        userSearchFilter: ${ldapUserSearchFilter:(uid={0})}
-        rolesRdn: ${ldapRolesRdn:ou=roles}
-        rolesSearchFilter: ${ldapRolesSearchFilter:(member={0})}
-        orgsRdn:  ${ldapOrgsRdn:ou=orgs}
+        # Multiple LDAP data sources are supported. The first key defines a simple
+        # name for them. The `default` one here, disabled by default, is pre-configured
+        # to use Georchestra's default OpenLDAP database.
+        # You should usually just enable it in the georchestra dataidr's gateway.yml
+        # with georchestra.gateway.security.ldap.default.enabled: true
+        default:
+          enabled: false
+          url: ${ldapScheme}://${ldapHost}:${ldapPort}
+          baseDn: ${ldapBaseDn:dc=georchestra,dc=org}
+          usersRdn: ${ldapUsersRdn:ou=users}
+          users:
+            rdn: ou=users
+            searchFilter: ${ldapUserSearchFilter:(uid={0})}
+            pendingUsersSearchBaseDN: ou=pendingusers
+            protectedUsers: geoserver_privileged_user
+          roles:
+            rdn: ${ldapRolesRdn:ou=roles}
+            searchFilter: ${ldapRolesSearchFilter:(member={0})}
+            protectedRoles: ADMINISTRATOR, EXTRACTORAPP, GN_.*, ORGADMIN, REFERENT, USER, SUPERUSER
+          orgs:
+            rdn: ${ldapOrgsRdn:ou=orgs}
+            orgTypes: Association,Company,NGO,Individual,Other
+            pendingOrgSearchBaseDN: ou=pendingorgs
 
 spring:
   config.import: classpath:gateway.yml,optional:${georchestra.datadir}/default.properties,optional:${georchestra.datadir}/gateway/gateway.yaml

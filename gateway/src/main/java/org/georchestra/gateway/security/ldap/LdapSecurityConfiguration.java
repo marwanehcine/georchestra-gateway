@@ -21,6 +21,7 @@ package org.georchestra.gateway.security.ldap;
 import java.util.Arrays;
 
 import org.georchestra.gateway.security.ServerHttpSecurityCustomizer;
+import org.georchestra.gateway.security.ldap.LdapConfigProperties.Server;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -51,7 +52,7 @@ import lombok.extern.slf4j.Slf4j;
  * <p>
  * This configuration sets up the required beans for spring-based LDAP
  * authentication and authorization, using {@link LdapConfigProperties} to get
- * {@link LdapConfigProperties#getUrl() connection URL} and the
+ * the {@link LdapConfigProperties#getUrl() connection URL} and the
  * {@link LdapConfigProperties#getBaseDn() base DN}.
  * <p>
  * As a result, the {@link ServerHttpSecurity} will have HTTP-Basic
@@ -90,9 +91,10 @@ public class LdapSecurityConfiguration {
 
     @Bean
     BaseLdapPathContextSource contextSource(LdapConfigProperties config) {
+        Server server = config.getLdap().values().stream().findFirst().orElseThrow();
         LdapContextSource context = new LdapContextSource();
-        context.setUrl(config.getUrl());
-        context.setBase(config.getBaseDn());
+        context.setUrl(server.getUrl());
+        context.setBase(server.getBaseDn());
         context.afterPropertiesSet();
         return context;
     }
@@ -110,8 +112,10 @@ public class LdapSecurityConfiguration {
             LdapConfigProperties config, DefaultLdapAuthoritiesPopulator authoritiesPopulator) {
         GrantedAuthoritiesMapper authoritiesMapper = ldapAuthoritiesMapper();
 
-        String ldapUserSearchBase = config.getUsersRdn();
-        String ldapUserSearchFilter = config.getUserSearchFilter();
+        Server server = config.getLdap().values().stream().findFirst().orElseThrow();
+
+        String ldapUserSearchBase = server.getUsers().getRdn();
+        String ldapUserSearchFilter = server.getUsers().getSearchFilter();
 
         FilterBasedLdapUserSearch search = new FilterBasedLdapUserSearch(ldapUserSearchBase, ldapUserSearchFilter,
                 contextSource);
@@ -130,8 +134,10 @@ public class LdapSecurityConfiguration {
     @Bean
     DefaultLdapAuthoritiesPopulator ldapAuthoritiesPopulator(BaseLdapPathContextSource contextSource,
             LdapConfigProperties config) {
-        String ldapGroupSearchBase = config.getRolesRdn();
-        String ldapGroupSearchFilter = config.getRolesSearchFilter();
+
+        Server server = config.getLdap().values().stream().findFirst().orElseThrow();
+        String ldapGroupSearchBase = server.getRoles().getRdn();
+        String ldapGroupSearchFilter = server.getRoles().getSearchFilter();
 
         DefaultLdapAuthoritiesPopulator authoritiesPopulator = new DefaultLdapAuthoritiesPopulator(contextSource,
                 ldapGroupSearchBase);

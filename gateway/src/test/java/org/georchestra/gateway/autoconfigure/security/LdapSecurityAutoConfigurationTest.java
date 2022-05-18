@@ -48,14 +48,25 @@ class LdapSecurityAutoConfigurationTest {
 
     @Test
     void testDisabledExplicitly() {
-        testDisabled(runner.withPropertyValues("georchestra.gateway.security.ldap.enabled=false"));
+        testDisabled(runner.withPropertyValues("georchestra.gateway.security.ldap.default.enabled=false"));
     }
 
     @Test
-    void testEnabled() {
+    void testDefaultLDAPEnabled() {
         runner.withPropertyValues(//
-                "georchestra.gateway.security.ldap.enabled=true", //
-                "georchestra.gateway.security.ldap.url=ldap://localhost:3891"//
+                "georchestra.gateway.security.ldap.default.enabled: true" //
+                , "georchestra.gateway.security.ldap.default.url: ldap://localhost:3891"//
+                , "georchestra.gateway.security.ldap.default.baseDn: dc=georchestra,dc=org"//
+                , "georchestra.gateway.security.ldap.default.users.rdn: ou=users"//
+                , "georchestra.gateway.security.ldap.default.users.searchFilter: (uid={0})"//
+                , "georchestra.gateway.security.ldap.default.users.pendingUsersSearchBaseDN: ou=pendingusers"//
+                , "georchestra.gateway.security.ldap.default.users.protectedUsers: geoserver_privileged_user"//
+                , "georchestra.gateway.security.ldap.default.roles.rdn: ou=roles"//
+                , "georchestra.gateway.security.ldap.default.roles.searchFilter: (member={0})"//
+                , "georchestra.gateway.security.ldap.default.roles.protectedRoles: ADMINISTRATOR, EXTRACTORAPP"//
+                , "georchestra.gateway.security.ldap.default.orgs.rdn: ou=orgs"//
+                , "georchestra.gateway.security.ldap.default.orgs.orgTypes: Association,Company"//
+                , "georchestra.gateway.security.ldap.default.orgs.pendingOrgSearchBaseDN: ou=pendingorgs"//
         )//
                 .run(context -> {
                     assertThat(context).hasSingleBean(UsersApi.class);
