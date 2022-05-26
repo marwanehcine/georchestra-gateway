@@ -20,7 +20,7 @@ package org.georchestra.gateway.autoconfigure.security;
 
 import javax.annotation.PostConstruct;
 
-import org.georchestra.gateway.security.ldap.MultipleLdapSecurityConfiguration;
+import org.georchestra.gateway.security.ldap.GeorchestraLdapAccountManagementConfiguration;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
@@ -28,11 +28,11 @@ import lombok.extern.slf4j.Slf4j;
 
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnLdapEnabled
-@Import(MultipleLdapSecurityConfiguration.class)
+@Import(GeorchestraLdapAccountManagementConfiguration.class)
 @Slf4j(topic = "org.georchestra.gateway.autoconfigure.security")
-public class LdapSecurityAutoConfiguration {
+public class GeorchestraLdapAccountManagementAutoConfiguration {
 
     public @PostConstruct void log() {
-        log.info("georchestra LDAP security enabled");
+        log.info("georchestra LDAP security extensions enabled");
     }
 }

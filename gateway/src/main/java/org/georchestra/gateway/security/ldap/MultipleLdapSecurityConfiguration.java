@@ -18,9 +18,11 @@
  */
 package org.georchestra.gateway.security.ldap;
 
-import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.georchestra.gateway.security.ServerHttpSecurityCustomizer;
+import org.georchestra.gateway.security.ldap.LdapConfigProperties.LdapServerConfig;
 import org.georchestra.gateway.security.ldap.LdapConfigProperties.Server;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -28,18 +30,22 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.ldap.core.support.BaseLdapPathContextSource;
 import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.ReactiveAuthenticationManagerAdapter;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
 import org.springframework.security.core.authority.mapping.SimpleAuthorityMapper;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.ldap.authentication.BindAuthenticator;
 import org.springframework.security.ldap.authentication.LdapAuthenticationProvider;
+import org.springframework.security.ldap.authentication.LdapAuthenticator;
 import org.springframework.security.ldap.search.FilterBasedLdapUserSearch;
 import org.springframework.security.ldap.userdetails.DefaultLdapAuthoritiesPopulator;
+import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
 import org.springframework.security.ldap.userdetails.LdapUserDetails;
 import org.springframework.security.web.server.authentication.AuthenticationWebFilter;
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers;
@@ -48,7 +54,7 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * {@link ServerHttpSecurityCustomizer} to enable LDAP based authentication and
- * authorization.
+ * authorization across multiple LDAP databases.
  * <p>
  * This configuration sets up the required beans for spring-based LDAP
  * authentication and authorization, using {@link LdapConfigProperties} to get
@@ -68,14 +74,15 @@ import lombok.extern.slf4j.Slf4j;
  * Note however, this may not be enough information to convey
  * geOrchestra-specific HTTP request headers to backend services, depending on
  * the matching gateway-route configuration. See
- * {@link LdapAccountManagementConfiguration} for further details.
+ * {@link GeorchestraLdapAccountManagementConfiguration} for further details.
  * 
- * @see LdapAccountManagementConfiguration
+ * @see GeorchestraLdapAccountManagementConfiguration
+ * @see LdapConfigProperties
  */
 @Configuration(proxyBeanMethods = true)
 @EnableConfigurationProperties(LdapConfigProperties.class)
 @Slf4j(topic = "org.georchestra.gateway.security.ldap")
-public class LdapSecurityConfiguration {
+public class MultipleLdapSecurityConfiguration {
 
     public static final class LDAPAuthenticationCustomizer implements ServerHttpSecurityCustomizer {
         public @Override void customize(ServerHttpSecurity http) {
@@ -85,18 +92,8 @@ public class LdapSecurityConfiguration {
     }
 
     @Bean
-    ServerHttpSecurityCustomizer ldapHttpBasicLoginFormEnablerExtension() {
+    public ServerHttpSecurityCustomizer ldapHttpBasicLoginFormEnablerExtension() {
         return new LDAPAuthenticationCustomizer();
-    }
-
-    @Bean
-    BaseLdapPathContextSource contextSource(LdapConfigProperties config) {
-        Server server = config.getLdap().values().stream().findFirst().orElseThrow();
-        LdapContextSource context = new LdapContextSource();
-        context.setUrl(server.getUrl());
-        context.setBase(server.getBaseDn());
-        context.afterPropertiesSet();
-        return context;
     }
 
     @Bean
@@ -108,14 +105,69 @@ public class LdapSecurityConfiguration {
     }
 
     @Bean
-    ReactiveAuthenticationManager ldapAuthenticationManager(BaseLdapPathContextSource contextSource,
-            LdapConfigProperties config, DefaultLdapAuthoritiesPopulator authoritiesPopulator) {
-        GrantedAuthoritiesMapper authoritiesMapper = ldapAuthoritiesMapper();
+    public LdapAuthenticatedUserMapper ldapAuthenticatedUserMapper() {
+        return new LdapAuthenticatedUserMapper();
+    }
 
-        Server server = config.getLdap().values().stream().findFirst().orElseThrow();
+    /**
+     * @return a {@link ReactiveAuthenticationManager} that will probe
+     *         username/password authentication over all configured and enabled LDAP
+     *         databases in {@link LdapConfigProperties}, returning the first
+     *         successful authorization.
+     */
+    @Bean
+    public ReactiveAuthenticationManager ldapAuthenticationManager(LdapConfigProperties config) {
+        List<LdapServerConfig> enabledConfigs = config.configs().stream().filter(LdapServerConfig::isEnabled)
+                .collect(Collectors.toList());
+        List<AuthenticationProvider> providers = enabledConfigs.stream().map(this::createLdapProvider)
+                .collect(Collectors.toList());
+        AuthenticationManager manager = new ProviderManager(providers);
+        return new ReactiveAuthenticationManagerAdapter(manager);
+    }
 
-        String ldapUserSearchBase = server.getUsers().getRdn();
-        String ldapUserSearchFilter = server.getUsers().getSearchFilter();
+    private AuthenticationProvider createLdapProvider(LdapServerConfig ldapConfig) {
+        log.info("Creating LDAP AuthenticationProvider for {}", ldapConfig.getUrl());
+        final BaseLdapPathContextSource source = contextSource(ldapConfig);
+        final BindAuthenticator authenticator = ldapAuthenticator(ldapConfig, source);
+        final DefaultLdapAuthoritiesPopulator rolesPopulator = ldapAuthoritiesPopulator(ldapConfig, source);
+
+        LdapAuthenticationProvider provider;
+        if (ldapConfig.hasGeorchestraExtensions()) {
+            String configName = ldapConfig.getName();
+            provider = new GeorchestraLdapAuthenticationProvider(configName, authenticator, rolesPopulator);
+        } else {
+            provider = new LdapAuthenticationProvider(authenticator, rolesPopulator);
+        }
+
+        final GrantedAuthoritiesMapper rolesMapper = ldapAuthoritiesMapper(ldapConfig);
+        provider.setAuthoritiesMapper(rolesMapper);
+        return provider;
+    }
+
+    private static class GeorchestraLdapAuthenticationProvider extends LdapAuthenticationProvider {
+
+        private String configName;
+
+        GeorchestraLdapAuthenticationProvider(//
+                String configName, //
+                LdapAuthenticator authenticator, //
+                LdapAuthoritiesPopulator authoritiesPopulator) {
+
+            super(authenticator, authoritiesPopulator);
+            this.configName = configName;
+        }
+
+        @Override
+        public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+            Authentication auth = super.authenticate(authentication);
+            log.debug("Authenticated {} with roles {}", auth.getName(), auth.getAuthorities());
+            return new GeorchestraUserNamePasswordAuthenticationToken(configName, auth);
+        }
+    }
+
+    private BindAuthenticator ldapAuthenticator(Server server, final BaseLdapPathContextSource contextSource) {
+        final String ldapUserSearchBase = server.getUsers().getRdn();
+        final String ldapUserSearchFilter = server.getUsers().getSearchFilter();
 
         FilterBasedLdapUserSearch search = new FilterBasedLdapUserSearch(ldapUserSearchBase, ldapUserSearchFilter,
                 contextSource);
@@ -123,34 +175,39 @@ public class LdapSecurityConfiguration {
         BindAuthenticator authenticator = new BindAuthenticator(contextSource);
         authenticator.setUserSearch(search);
         authenticator.afterPropertiesSet();
-
-        LdapAuthenticationProvider provider = new LdapAuthenticationProvider(authenticator, authoritiesPopulator);
-        provider.setAuthoritiesMapper(authoritiesMapper);
-
-        AuthenticationManager manager = new ProviderManager(Arrays.asList(provider));
-        return new ReactiveAuthenticationManagerAdapter(manager);
+        return authenticator;
     }
 
-    @Bean
-    DefaultLdapAuthoritiesPopulator ldapAuthoritiesPopulator(BaseLdapPathContextSource contextSource,
-            LdapConfigProperties config) {
+    private BaseLdapPathContextSource contextSource(LdapServerConfig server) {
+        LdapContextSource context = new LdapContextSource();
+        context.setUrl(server.getUrl());
+        context.setBase(server.getBaseDn());
+        context.afterPropertiesSet();
+        return context;
+    }
 
-        Server server = config.getLdap().values().stream().findFirst().orElseThrow();
+    private GrantedAuthoritiesMapper ldapAuthoritiesMapper(LdapServerConfig server) {
+        boolean upperCase = server.getRoles().isUpperCase();
+        SimpleAuthorityMapper authorityMapper = new SimpleAuthorityMapper();
+        authorityMapper.setConvertToUpperCase(upperCase);
+        return authorityMapper;
+    }
+
+    private DefaultLdapAuthoritiesPopulator ldapAuthoritiesPopulator(LdapServerConfig server,
+            BaseLdapPathContextSource contextSource) {
+
         String ldapGroupSearchBase = server.getRoles().getRdn();
         String ldapGroupSearchFilter = server.getRoles().getSearchFilter();
 
         DefaultLdapAuthoritiesPopulator authoritiesPopulator = new DefaultLdapAuthoritiesPopulator(contextSource,
                 ldapGroupSearchBase);
         authoritiesPopulator.setGroupSearchFilter(ldapGroupSearchFilter);
-        authoritiesPopulator.setRolePrefix("ROLE_");
+
+        String prefix = server.getRoles().getPrefix();
+        if (null != prefix) {
+            authoritiesPopulator.setRolePrefix(prefix);
+        }
 
         return authoritiesPopulator;
-    }
-
-    @Bean
-    GrantedAuthoritiesMapper ldapAuthoritiesMapper() {
-        SimpleAuthorityMapper authorityMapper = new SimpleAuthorityMapper();
-        authorityMapper.setConvertToUpperCase(true);
-        return authorityMapper;
     }
 }

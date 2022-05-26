@@ -18,6 +18,8 @@
  */
 package org.georchestra.gateway.app;
 
+import java.io.File;
+import java.net.URI;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -72,6 +74,9 @@ public class GeorchestraGatewayApplication {
     public void onApplicationReady(ApplicationReadyEvent e) {
         Environment env = e.getApplicationContext().getEnvironment();
         String datadir = env.getProperty("georchestra.datadir");
+        if (null != datadir) {
+            datadir = new File(datadir).getAbsolutePath();
+        }
         String app = env.getProperty("spring.application.name");
         String instanceId = env.getProperty("info.instance-id");
         int cpus = Runtime.getRuntime().availableProcessors();

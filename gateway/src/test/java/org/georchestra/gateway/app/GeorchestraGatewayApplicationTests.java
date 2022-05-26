@@ -35,7 +35,7 @@ import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.core.env.Environment;
 import org.springframework.test.context.ActiveProfiles;
 
-@SpringBootTest(properties = "georchestra.datadir=classpath:/test-datadir")
+@SpringBootTest(properties = "georchestra.datadir=src/test/resources/test-datadir")
 @ActiveProfiles({ "test" })
 class GeorchestraGatewayApplicationTests {
 
@@ -43,10 +43,10 @@ class GeorchestraGatewayApplicationTests {
     private @Autowired RouteLocator routeLocator;
 
     public @Test void contextLoadsFromDatadir() {
-        assertEquals("classpath:/test-datadir", env.getProperty("georchestra.datadir"));
+        assertEquals("src/test/resources/test-datadir", env.getProperty("georchestra.datadir"));
 
         assertEquals(
-                "classpath:gateway.yml,optional:classpath:/test-datadir/default.properties,optional:classpath:/test-datadir/gateway/gateway.yaml",
+                "optional:file:src/test/resources/test-datadir/default.properties,optional:file:src/test/resources/test-datadir/gateway/gateway.yaml",
                 env.getProperty("spring.config.import"));
 
         Boolean propertyFromTestDatadir = env.getProperty("georchestra.test-datadir", Boolean.class);

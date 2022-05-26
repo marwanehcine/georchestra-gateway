@@ -20,11 +20,18 @@ package org.georchestra.gateway.security.ldap;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.util.StringUtils;
+import org.springframework.validation.annotation.Validated;
 
 import lombok.Data;
 import lombok.Generated;
+import lombok.Getter;
 
 /**
  * Config properties, usually loaded from georchestra datadir's
@@ -47,14 +54,40 @@ import lombok.Generated;
 @Data
 @Generated
 @ConfigurationProperties(prefix = "georchestra.gateway.security")
+@Validated
 public class LdapConfigProperties {
 
     private Map<String, Server> ldap = Map.of();
+
+    public static class LdapServerConfig extends Server {
+
+        private @Getter String name;
+
+        public LdapServerConfig(String name, Server value) {
+            this.name = name;
+            super.setUrl(value.getUrl());
+            super.setBaseDn(value.getBaseDn());
+            super.setEnabled(value.isEnabled());
+            super.setExtended(value.isExtended());
+            super.setUsers(value.getUsers());
+            super.setRoles(value.getRoles());
+            super.setOrgs(value.getOrgs());
+        }
+
+    }
+
+    public List<LdapServerConfig> configs() {
+        return ldap.entrySet().stream().map(e -> new LdapServerConfig(e.getKey(), e.getValue()))
+                .collect(Collectors.toList());
+    }
 
     public static @Data class Server {
 
         boolean enabled;
 
+        boolean extended;
+
+        @NotBlank
         private String url;
 
         /**
@@ -64,11 +97,40 @@ public class LdapConfigProperties {
          * <p>
          * For example, georchestra's default baseDn is dc=georchestra,dc=org
          */
+        @NotBlank
         private String baseDn;
 
+        @NotNull
         private Users users = new Users();
+
+        @NotNull
         private Roles roles = new Roles();
+
         private Organizations orgs = null;
+
+        /**
+         * Configured the LDAP authentication source to use georchestra specific
+         * extensions. For example, when using the default OpenLDAP database with
+         * additional information like pending users and organizations
+         */
+        public boolean hasGeorchestraExtensions() {
+            if (this.isExtended()) {// forced use of extensions
+                return true;
+            }
+            // heuristically determining whether it's a georchestra extended db
+            Users users = getUsers();
+            if (StringUtils.hasText(users.getPendingUsersSearchBaseDN())) {
+                return true;
+            }
+            Roles roles = getRoles();
+            if (roles.getProtectedRoles() != null && !roles.getProtectedRoles().isEmpty()) {
+                return true;
+            }
+            if (null != getOrgs()) {
+                return true;
+            }
+            return false;
+        }
     }
 
     public static @Data class Users {
@@ -78,11 +140,16 @@ public class LdapConfigProperties {
          * E.g. if the complete name (or DN) is ou=users,dc=georchestra,dc=org, the RDN
          * is ou=users.
          */
+        @NotBlank
         private String rdn = "ou=users";
 
+        @NotBlank
         private String searchFilter = "(uid={0})";
 
-        private String pendingUsersSearchBaseDN = "ou=pendingusers";
+        /**
+         * E.g. ou=pendingusers
+         */
+        private String pendingUsersSearchBaseDN;
 
         private List<String> protectedUsers = List.of();
     }
@@ -93,19 +160,29 @@ public class LdapConfigProperties {
          * E.g. if the complete name (or DN) is ou=roles,dc=georchestra,dc=org, the RDN
          * is ou=roles.
          */
+        @NotBlank
         private String rdn = "ou=roles";
 
+        @NotBlank
         private String searchFilter = "(member={0})";
+
+        @NotBlank
+        private String prefix = "ROLE_";
+
+        private boolean upperCase = true;
 
         private List<String> protectedRoles = List.of();
     }
 
     public static @Data class Organizations {
 
+        @NotBlank
         private String rdn = "ou=orgs";
 
+        @NotBlank
         private String orgTypes = "Association,Company,NGO,Individual,Other";
 
+        @NotBlank
         private String pendingOrgSearchBaseDN = "ou=pendingorgs";
     }
 }

@@ -19,10 +19,13 @@
 
 package org.georchestra.gateway.autoconfigure.security;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Predicate;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.springframework.boot.autoconfigure.condition.ConditionMessage;
@@ -38,40 +41,18 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
 
 import com.google.common.collect.Streams;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  *
  */
-@Slf4j
 class AtLeastOneLdapDatasourceEnabledCondition extends SpringBootCondition {
 
     @Override
     public ConditionOutcome getMatchOutcome(ConditionContext context, AnnotatedTypeMetadata metadata) {
-        Environment environment = context.getEnvironment();
-        MutablePropertySources propertySources = ((AbstractEnvironment) environment).getPropertySources();
 
-        final String regex = "georchestra\\.gateway\\.security\\.ldap\\.(.*)\\.enabled";
-        final Pattern pattern = Pattern.compile(regex);
-        final Predicate<String> propertyNameFilter = pattern.asMatchPredicate();
+        Set<String> enabledDatasourceNames = findEnabled(context);
+        boolean anyEnabled = !enabledDatasourceNames.isEmpty();
 
-        final List<String> patternMatches = new ArrayList<>();
-
-        final boolean anyMatch = Streams.stream(propertySources)//
-                .filter(EnumerablePropertySource.class::isInstance)//
-                .map(EnumerablePropertySource.class::cast)//
-                .map(EnumerablePropertySource::getPropertyNames)//
-                .flatMap(Stream::of)//
-                .filter(propertyNameFilter)//
-                .peek(p -> {
-                    log.debug("checking if LDAP config is enabled for {}", p);
-                    patternMatches.add(p);
-                })//
-                .map(environment::getProperty)//
-                .map(Boolean::valueOf)//
-                .anyMatch(enabled -> enabled);
-
-        if (anyMatch) {
+        if (anyEnabled) {
             return ConditionOutcome.match();
         }
 
@@ -79,13 +60,51 @@ class AtLeastOneLdapDatasourceEnabledCondition extends SpringBootCondition {
                 .didNotFind("any enabled ldap config");
 
         ConditionMessage message;
-        if (patternMatches.isEmpty()) {
+        if (enabledDatasourceNames.isEmpty()) {
             message = itemsBuilder.atAll();
         } else {
-            message = itemsBuilder.items(patternMatches);
+            message = itemsBuilder.items(enabledDatasourceNames);
         }
 
         return ConditionOutcome.noMatch(message);
+    }
+
+    /**
+     * @return the configured LDAP data source names that are enabled
+     */
+    static Set<String> findEnabled(ConditionContext context) {
+        Environment environment = context.getEnvironment();
+        MutablePropertySources propertySources = ((AbstractEnvironment) environment).getPropertySources();
+
+        final String regex = "georchestra\\.gateway\\.security\\.ldap\\.(.*)\\.enabled";
+        final Pattern pattern = Pattern.compile(regex);
+
+        List<String> propertyNames = findMatchingPropertyNames(propertySources, regex);
+        Set<String> names = new HashSet<>();
+        for (String p : propertyNames) {
+            String value = environment.getProperty(p);
+            if (Boolean.valueOf(value)) {
+                Matcher matcher = pattern.matcher(p);
+                if (matcher.matches()) {
+                    String name = matcher.group(1);
+                    names.add(name);
+                }
+            }
+        }
+        return names;
+    }
+
+    static List<String> findMatchingPropertyNames(MutablePropertySources propertySources, final String regex) {
+
+        final Pattern pattern = Pattern.compile(regex);
+        final Predicate<String> filter = pattern.asMatchPredicate();
+        return Streams.stream(propertySources)//
+                .filter(EnumerablePropertySource.class::isInstance)//
+                .map(EnumerablePropertySource.class::cast)//
+                .map(EnumerablePropertySource::getPropertyNames)//
+                .flatMap(Stream::of)//
+                .filter(filter)//
+                .collect(Collectors.toList());
     }
 
 }

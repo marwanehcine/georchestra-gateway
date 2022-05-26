@@ -16,45 +16,9 @@ server:
     enabled: false
     #TODO: configure SSL with a self-signed certificate
     
-# Custom security subsystem configuration
-georchestra:
-  gateway:
-    security:
-      oauth2:
-        enabled: true
-        proxy:
-          enabled: false
-          host: localhost
-          port: 8000
-          username: jack
-          password: insecure
-      ldap:
-        # Multiple LDAP data sources are supported. The first key defines a simple
-        # name for them. The `default` one here, disabled by default, is pre-configured
-        # to use Georchestra's default OpenLDAP database.
-        # You should usually just enable it in the georchestra dataidr's gateway.yml
-        # with georchestra.gateway.security.ldap.default.enabled: true
-        default:
-          enabled: false
-          url: ${ldapScheme}://${ldapHost}:${ldapPort}
-          baseDn: ${ldapBaseDn:dc=georchestra,dc=org}
-          usersRdn: ${ldapUsersRdn:ou=users}
-          users:
-            rdn: ou=users
-            searchFilter: ${ldapUserSearchFilter:(uid={0})}
-            pendingUsersSearchBaseDN: ou=pendingusers
-            protectedUsers: geoserver_privileged_user
-          roles:
-            rdn: ${ldapRolesRdn:ou=roles}
-            searchFilter: ${ldapRolesSearchFilter:(member={0})}
-            protectedRoles: ADMINISTRATOR, EXTRACTORAPP, GN_.*, ORGADMIN, REFERENT, USER, SUPERUSER
-          orgs:
-            rdn: ${ldapOrgsRdn:ou=orgs}
-            orgTypes: Association,Company,NGO,Individual,Other
-            pendingOrgSearchBaseDN: ou=pendingorgs
-
 spring:
-  config.import: classpath:gateway.yml,optional:${georchestra.datadir}/default.properties,optional:${georchestra.datadir}/gateway/gateway.yaml
+  config:
+    import: optional:file:${georchestra.datadir}/default.properties,optional:file:${georchestra.datadir}/gateway/gateway.yaml
   main:
     banner-mode: off
     web-application-type: reactive
@@ -63,30 +27,6 @@ spring:
   autoconfigure:
     exclude:
     - org.springframework.boot.autoconfigure.ldap.LdapAutoConfiguration
-  security:
-    oauth2:
-      client:
-        registration:
-          google:
-            clientId: 539019376623-98bfblg8t9efd507ia4qv0v7r79afits.apps.googleusercontent.com
-            clientSecret: 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
-            scope:
-            #The openid scope is required for OpenID Connect Authentication Requests.
-            - openid
-            # The email scope requests access to the email email_verified claims.
-            - email
-            # The profile scope requests access to the default profile claims, which are:
-            - profile
-            # The address scope requests access to the {@code address} claim.
-            - address
-            # profile, picture, website, gender, birthdate, zoneinfo, locale, updated_at.
-            # The phone scope requests access to the phone_number and  phone_number_verified claims.
-            # name, family_name, given_name, middle_name, nickname, preferred_username,
-            - phone
-          github:
-            clientId: Iv1.412513e628b94312
-            clientSecret: 423a3c62e00b6eecd6edb69737f536e37feda57e
-#          login-client:
   cloud:
     gateway:
       enabled: true
@@ -110,78 +50,44 @@ spring:
           xss-protection-header: 0
           referrer-policy: no-referrer
           #content-security-policy: script-src 'self' 'unsafe-eval'; object-src 'self';
-      routes:
-      - id: root
-        uri: ${georchestra.gateway.services.header.target}
-        predicates:
-        - Path=/
-        filters:
-        - RewritePath=/, /header
-      - id: loginredirect
-        uri: no://op
-        predicates:
-        - Path=/header
-        - QueryParam=login
-        filters:
-        - RedirectTo=308, /login
-      - id: header
-        uri: ${georchestra.gateway.services.header.target}
-        predicates:
-        - Path=/header,/header/**
-      - id: analytics
-        uri: ${georchestra.gateway.services.analytics.target}
-        predicates:
-        - Path=/analytics/**
-      - id: atlas
-        uri: ${georchestra.gateway.services.atlas.target}
-        predicates:
-        - Path=/atlas/**
-      - id: console
-        uri: ${georchestra.gateway.services.console.target}
-        predicates:
-        - Path=/console/**
-      - id: extractorapp
-        uri: ${georchestra.gateway.services.extractorapp.target}
-        predicates:
-        - Path=/extractorapp/**
-      - id: geonetwork
-        uri: ${georchestra.gateway.services.geonetwork.target}
-        predicates:
-        - Path=/geonetwork/**
-      - id: geoserver
-        uri: ${georchestra.gateway.services.geoserver.target}
-        predicates:
-        - Path=/geoserver/**
-      - id: mapfishapp
-        uri: ${georchestra.gateway.services.mapfishapp.target}
-        predicates:
-        - Path=/mapfishapp/**
-      - id: geowebcache
-        uri: ${georchestra.gateway.services.geowebcache.target}
-        predicates:
-        - Path=/geowebcache/**
-      - id: mapstore
-        uri: ${georchestra.gateway.services.mapstore.target}
-        predicates:
-        - Path=/mapstore/**
-      - id: datafeeder
-        uri: ${georchestra.gateway.services.datafeeder.target}
-        predicates:
-        - Path=/datafeeder/**
-      - id: import
-        uri: ${georchestra.gateway.services.import.target}
-        predicates:
-        - Path=/import/**
-      - id: http2demo
-        uri: ${demo.http2.target:https://localhost:8443}
-        predicates:
-        - Path=/demo/http2
-        filters:
-        - RewritePath=/demo/http2, /
-      - id: websockets-demo
-        uri: ${demo.ws.targt:http://localhost:8111}
-        predicates:
-        - Path=/ws/**
+      #routes: ought to be loaded from gateway.yaml, preferrably from georchestra's datadir
+
+georchestra:
+  gateway:
+    security:
+      oauth2:
+        enabled: false
+        proxy:
+          enabled: false
+          host: localhost
+          port: 8000
+          username: jack
+          password: insecure
+      ldap:
+        # Multiple LDAP data sources are supported. The first key defines a simple
+        # name for them. The `default` one here, disabled by default, is pre-configured
+        # to use Georchestra's default OpenLDAP database.
+        # You should usually just enable it in the georchestra dataidr's gateway.yml
+        # with georchestra.gateway.security.ldap.default.enabled: true
+        default:
+          enabled: false
+          extended: true
+          url: ${ldapScheme}://${ldapHost}:${ldapPort}
+          baseDn: ${ldapBaseDn:dc=georchestra,dc=org}
+          users:
+            rdn: ${ldapUsersRdn:ou=users}
+            searchFilter: ${ldapUserSearchFilter:(uid={0})}
+            pendingUsersSearchBaseDN: ou=pendingusers
+            protectedUsers: geoserver_privileged_user
+          roles:
+            rdn: ${ldapRolesRdn:ou=roles}
+            searchFilter: ${ldapRolesSearchFilter:(member={0})}
+            protectedRoles: ADMINISTRATOR, EXTRACTORAPP, GN_.*, ORGADMIN, REFERENT, USER, SUPERUSER
+          orgs:
+            rdn: ${ldapOrgsRdn:ou=orgs}
+            orgTypes: Association,Company,NGO,Individual,Other
+            pendingOrgSearchBaseDN: ou=pendingorgs
+
 management:
   server:
     port: 8090
@@ -215,5 +121,7 @@ logging:
     '[org.georchestra.gateway.config.security.accessrules]': debug
     '[org.georchestra.gateway.security.ldap]': debug
     '[org.georchestra.gateway.security.oauth2]': debug
-    
-    
+
+---
+spring.config.activate.on-profile: dev
+spring.config.import: file:../datadir/default.properties,file:../datadir/gateway/gateway.yaml

@@ -20,13 +20,16 @@ jobs:
         cache: 'maven'
 
     - name: "Build georchestra dependencies"
-      run: ./mvnw -f georchestra/ clean install -pl :georchestra-ldap-account-management -am -DskipTests -P-all -ntp
+      run: make deps
 
     - name: "Build gateway"
-      run: ./mvnw verify -pl :georchestra-gateway -ntp -T1C
+      run: make install
+
+    - name: "Run tests"
+      run: make test
 
     - name: "Build docker image"
-      run: ./mvnw -f gateway/ spring-boot:build-image -ntp -DskipTests
+      run: make docker
 
     - name: "Remove SNAPSHOT jars from repository"
       run: |

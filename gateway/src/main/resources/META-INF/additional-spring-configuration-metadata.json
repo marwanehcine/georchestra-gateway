@@ -1,0 +1,5 @@
+{"properties": [{
+  "name": "georchestra.gateway.security.oauth2.enabled",
+  "type": "java.lang.Boolean",
+  "description": "Enables configuration of OAuth2/OpenID Connect authentication sources."
+}]}

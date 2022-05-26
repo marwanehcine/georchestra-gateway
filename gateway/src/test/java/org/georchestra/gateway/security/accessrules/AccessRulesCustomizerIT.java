@@ -44,14 +44,20 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * Integration tests for {@link AccessRulesCustomizer} for the access rules in
  * the default {@literal gateway.yml} config file.
  *
  */
-@SpringBootTest(classes = GeorchestraGatewayApplication.class, webEnvironment = WebEnvironment.MOCK)
+@SpringBootTest(classes = GeorchestraGatewayApplication.class, webEnvironment = WebEnvironment.MOCK, properties = {
+        "georchestra.datadir=../datadir"//
+        , "georchestra.gateway.security.ldap.default.enabled=false"//
+})
 @AutoConfigureWebTestClient(timeout = "PT20S")
 @ActiveProfiles("it")
+@Slf4j
 class AccessRulesCustomizerIT {
 
     @RegisterExtension
@@ -66,6 +72,9 @@ class AccessRulesCustomizerIT {
      */
     @DynamicPropertySource
     static void registerPgProperties(DynamicPropertyRegistry registry) {
+        log.debug("redirecting target URLs to WireMock dynamic base '{}'",
+                mockService.getRuntimeInfo().getHttpBaseUrl());
+
         mockServiceTarget(registry, "header", "/header");
         mockServiceTarget(registry, "mapfishapp", "/mapfishapp");
         mockServiceTarget(registry, "geoserver", "/geoserver");
@@ -104,6 +113,7 @@ class AccessRulesCustomizerIT {
         String proxiedURI = URI.create(httpBaseUrl + "/" + targetBaseURI).normalize().toString();
         String propertyName = String.format("georchestra.gateway.services.%s.target", serviceName);
         registry.add(propertyName, () -> proxiedURI);
+        log.debug("overridden dynamic target {}={}", propertyName, proxiedURI);
     }
 
     private @Autowired WebTestClient testClient;
@@ -147,15 +157,13 @@ class AccessRulesCustomizerIT {
 
         testClient.get().uri("/mapfishapp/ogcproxy")//
                 .exchange()//
-                .expectStatus().isFound()//
-                .expectHeader().location("/login");
+                .expectStatus().isUnauthorized();
 
-        testClient.get().uri("/mapfishapp/ogcproxy/test")//
+        testClient.get().uri("/mapfishapp/ogcproxy/somethingprivate")//
                 .exchange()//
-                .expectStatus().isFound()//
-                .expectHeader().location("/login");
+                .expectStatus().isUnauthorized();
 
-        testClient.get().uri("/mapfishapp/should_be_ok")//
+        testClient.get().uri("/mapfishapp/somethingpublic")//
                 .exchange()//
                 .expectStatus().isOk();
     }
@@ -198,18 +206,16 @@ class AccessRulesCustomizerIT {
      *     anonymous: false
      * }
      */
-    public @Test void testService_requires_authenticated_user_redirects_to_login_page() {
+    public @Test void testService_unauthorized_if_not_logged_in_and_requires_any_authenticated_user() {
         mockService.stubFor(get(urlMatching("/import(/.*)?")).willReturn(noContent()));
 
         testClient.get().uri("/import")//
                 .exchange()//
-                .expectStatus().isFound()//
-                .expectHeader().location("/login");
+                .expectStatus().isUnauthorized();
 
         testClient.get().uri("/import/any/thing")//
                 .exchange()//
-                .expectStatus().isFound()//
-                .expectHeader().location("/login");
+                .expectStatus().isUnauthorized();
     }
 
     /**
@@ -287,18 +293,16 @@ class AccessRulesCustomizerIT {
      *     allowed-roles: SUPERUSER,ORGADMIN
      * }
      */
-    public @Test void testService_requires_specific_roles_redirects_unauthenticated_to_login() {
+    public @Test void testService_unauthorized_if_not_logged_in_and_requires_role() {
         mockService.stubFor(get(urlMatching("/analytics(/.*)?")).willReturn(ok()));
 
         testClient.get().uri("/analytics")//
                 .exchange()//
-                .expectStatus().isFound()//
-                .expectHeader().location("/login");
+                .expectStatus().isUnauthorized();
 
         testClient.get().uri("/analytics/any/thing")//
                 .exchange()//
-                .expectStatus().isFound()//
-                .expectHeader().location("/login");
+                .expectStatus().isUnauthorized();
     }
 
     /**
