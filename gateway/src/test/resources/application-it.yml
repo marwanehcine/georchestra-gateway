@@ -13,3 +13,4 @@ logging:
     reactor.netty: info
     org.springframework.cloud.gateway: info
     org.georchestra.gateway.config.security.accessrules: info
+    org.georchestra.gateway.security: debug

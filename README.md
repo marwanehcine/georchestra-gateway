@@ -37,25 +37,44 @@ and the additional property sources by means of spring-boot's
 `spring.config.import` environment property, like in:
 `spring.config.import: ${georchestra.datadir}/default.properties,${georchestra.datadir}/gateway/gateway.yaml`.
 
+## Build
+
+```
+make
+```
+
+Builds georchestra submodule dependencies, the gateway, runs tests,
+and builds the docker image.
+
+### Build dependencies only
+
+```
+make deps
+```
+
+### Build and install without tests
+
+```
+make install
+```
+
+### Run tests
+
+```
+make test
+```
 
 ## Docker image build
 
-TL;DR:
+```
+make docker
+```
 
-Any of the following commands will build the image:
+Or manually:
 
-- `./mvnw [-DimageTag=<tag>] spring-boot:build-image` (e.g. `./mvnw -DimageTag=latest spring-boot:build-image`)
-- `./mvnw [-DimageTag=<tag>] install` will also build it.
-- `[BTAG=<tag>] make docker-build-gateway` at the georchestra project root directory (e.g. `BTAG=test make docker-build-gateway`)
-
-> Not explicitly specifying the image tag produces `georchestra/gateway:latest` in the case of
-using the `Makefile`, and `georchestra/gateway:${project.version}` with maven.
-
-The docker image is called `georchestra/gateway:<tag>`, by means of the
-`spring-boot.build-image.imageName` maven property.
-
-The tag is resolved through the `imageTag` maven property, and defaults to 
-the pom's `${project.version}` value.
+```
+./mvnw -f gateway [-DimageTag=<tag>] spring-boot:build-image
+```
 
 The docker image is created by the `spring-boot-maven-plugin` under the 
 `docker` maven profile, which is active by default.

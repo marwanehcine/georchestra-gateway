@@ -65,7 +65,7 @@ public class AccessRulesCustomizer implements ServerHttpSecurityCustomizer {
         // otherwise global path matches would be applied before service ones.
 
         config.getServices().forEach((name, service) -> {
-            log.info("Applying access rules for backend service '{}'", name);
+            log.info("Applying access rules for backend service '{}' at {}", name, service.getTarget());
             apply(name, authorizeExchange, service.getAccessRules());
         });
 

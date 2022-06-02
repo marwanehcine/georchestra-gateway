@@ -16,23 +16,27 @@
  * You should have received a copy of the GNU General Public License along with
  * geOrchestra.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package org.georchestra.gateway.autoconfigure.security;
 
-import javax.annotation.PostConstruct;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-import org.georchestra.gateway.security.ldap.MultipleLdapSecurityConfiguration;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.ldap.core.LdapTemplate;
 
-import lombok.extern.slf4j.Slf4j;
+/**
+ *
+ */
+@Target({ ElementType.TYPE, ElementType.METHOD })
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@ConditionalOnClass(LdapTemplate.class)
+@Conditional(AtLeastOneLdapDatasourceEnabledCondition.class)
+public @interface ConditionalOnLdapEnabled {
 
-@Configuration(proxyBeanMethods = false)
-@ConditionalOnLdapEnabled
-@Import(MultipleLdapSecurityConfiguration.class)
-@Slf4j(topic = "org.georchestra.gateway.autoconfigure.security")
-public class LdapSecurityAutoConfiguration {
-
-    public @PostConstruct void log() {
-        log.info("georchestra LDAP security enabled");
-    }
 }

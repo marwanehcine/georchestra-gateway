@@ -32,6 +32,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.georchestra.security.api.UsersApi;
@@ -45,19 +46,20 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.ldap.userdetails.LdapUserDetails;
 
 /**
- * Test suite for {@link LdapAuthenticatedUserMapper}
+ * Test suite for {@link GeorchestraLdapAuthenticatedUserMapper}
  *
  */
-class LdapAuthenticatedUserMapperTest {
+class GeorchestraLdapAuthenticatedUserMapperTest {
 
-    private LdapAuthenticatedUserMapper mapper;
+    private GeorchestraLdapAuthenticatedUserMapper mapper;
     private UsersApi mockUsers;
 
     @BeforeEach
     void before() {
         mockUsers = mock(UsersApi.class);
         when(mockUsers.findByUsername(anyString())).thenReturn(Optional.empty());
-        mapper = new LdapAuthenticatedUserMapper(mockUsers);
+        DemultiplexingUsersApi demultiplexingUsers = new DemultiplexingUsersApi(Map.of("default", mockUsers));
+        mapper = new GeorchestraLdapAuthenticatedUserMapper(demultiplexingUsers);
     }
 
     @Test
@@ -70,11 +72,24 @@ class LdapAuthenticatedUserMapperTest {
     }
 
     @Test
-    void testNotAnLdapUserDetails() {
+    void testNotAGeorchestraUserNamePasswordAuthenticationToken() {
         UserDetails principal = new User("testuser", "secret", List.of());
         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(principal, null);
 
         Optional<GeorchestraUser> resolve = mapper.resolve(auth);
+        assertNotNull(resolve);
+        assertTrue(resolve.isEmpty());
+
+        verifyNoInteractions(mockUsers);
+    }
+
+    @Test
+    void testNotAnLdapUserDetails() {
+        UserDetails principal = new User("testuser", "secret", List.of());
+        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(principal, null);
+
+        Optional<GeorchestraUser> resolve = mapper
+                .resolve(new GeorchestraUserNamePasswordAuthenticationToken("default", auth));
         assertNotNull(resolve);
         assertTrue(resolve.isEmpty());
 
@@ -89,7 +104,8 @@ class LdapAuthenticatedUserMapperTest {
         when(mockUsers.findByUsername(eq("ldapuser"))).thenReturn(Optional.of(expected));
         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(principal, null);
 
-        Optional<GeorchestraUser> resolve = mapper.resolve(auth);
+        Optional<GeorchestraUser> resolve = mapper
+                .resolve(new GeorchestraUserNamePasswordAuthenticationToken("default", auth));
         assertNotNull(resolve);
         assertSame(expected, resolve.orElseThrow());
 
