@@ -20,18 +20,23 @@ package org.georchestra.gateway.security.ldap;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
+import javax.validation.Valid;
 
+import org.georchestra.gateway.security.ldap.activedirectory.ActiveDirectoryLdapServerConfig;
+import org.georchestra.gateway.security.ldap.basic.LdapServerConfig;
+import org.georchestra.gateway.security.ldap.extended.ExtendedLdapConfig;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.util.StringUtils;
+import org.springframework.validation.Errors;
+import org.springframework.validation.Validator;
 import org.springframework.validation.annotation.Validated;
 
 import lombok.Data;
 import lombok.Generated;
-import lombok.Getter;
+import lombok.experimental.Accessors;
 
 /**
  * Config properties, usually loaded from georchestra datadir's
@@ -53,42 +58,38 @@ import lombok.Getter;
  */
 @Data
 @Generated
-@ConfigurationProperties(prefix = "georchestra.gateway.security")
 @Validated
-public class LdapConfigProperties {
+@Accessors(chain = true)
+@ConfigurationProperties(prefix = "georchestra.gateway.security")
+public class LdapConfigProperties implements Validator {
 
+    @Valid
     private Map<String, Server> ldap = Map.of();
 
-    public static class LdapServerConfig extends Server {
-
-        private @Getter String name;
-
-        public LdapServerConfig(String name, Server value) {
-            this.name = name;
-            super.setUrl(value.getUrl());
-            super.setBaseDn(value.getBaseDn());
-            super.setEnabled(value.isEnabled());
-            super.setExtended(value.isExtended());
-            super.setUsers(value.getUsers());
-            super.setRoles(value.getRoles());
-            super.setOrgs(value.getOrgs());
-        }
-
-    }
-
-    public List<LdapServerConfig> configs() {
-        return ldap.entrySet().stream().map(e -> new LdapServerConfig(e.getKey(), e.getValue()))
-                .collect(Collectors.toList());
-    }
-
+    @Generated
     public static @Data class Server {
 
         boolean enabled;
 
+        /**
+         * Whether the LDAP authentication source shall use georchestra-specific
+         * extensions. For example, when using the default OpenLDAP database with
+         * additional user identity information
+         */
         boolean extended;
 
-        @NotBlank
         private String url;
+
+        /**
+         * Flag indicating the LDAP authentication end point is an Active Directory
+         * service
+         */
+        private boolean activeDirectory;
+
+        /**
+         * The active directory domain, maybe null or empty.
+         */
+        private String domain;
 
         /**
          * Base DN of the LDAP directory Base Distinguished Name of the LDAP directory.
@@ -97,92 +98,113 @@ public class LdapConfigProperties {
          * <p>
          * For example, georchestra's default baseDn is dc=georchestra,dc=org
          */
-        @NotBlank
         private String baseDn;
 
-        @NotNull
-        private Users users = new Users();
-
-        @NotNull
-        private Roles roles = new Roles();
-
-        private Organizations orgs = null;
+        /**
+         * How to extract user information. Only searchFilter is used if activeDirectory
+         * is true
+         */
+        private Users users;
 
         /**
-         * Configured the LDAP authentication source to use georchestra specific
-         * extensions. For example, when using the default OpenLDAP database with
-         * additional information like pending users and organizations
+         * How to extract role information, un-used for Active Directory
          */
-        public boolean hasGeorchestraExtensions() {
-            if (this.isExtended()) {// forced use of extensions
-                return true;
-            }
-            // heuristically determining whether it's a georchestra extended db
-            Users users = getUsers();
-            if (StringUtils.hasText(users.getPendingUsersSearchBaseDN())) {
-                return true;
-            }
-            Roles roles = getRoles();
-            if (roles.getProtectedRoles() != null && !roles.getProtectedRoles().isEmpty()) {
-                return true;
-            }
-            if (null != getOrgs()) {
-                return true;
-            }
-            return false;
-        }
+        private Roles roles;
+
+        /**
+         * How to extract Organization information, only used for OpenLDAP if extended =
+         * true
+         */
+        private Organizations orgs;
     }
 
-    public static @Data class Users {
+    @Generated
+    public static @Data @Accessors(chain = true) class Users {
 
         /**
          * Users RDN Relative distinguished name of the "users" LDAP organization unit.
          * E.g. if the complete name (or DN) is ou=users,dc=georchestra,dc=org, the RDN
          * is ou=users.
          */
-        @NotBlank
-        private String rdn = "ou=users";
-
-        @NotBlank
-        private String searchFilter = "(uid={0})";
+        private String rdn;
 
         /**
-         * E.g. ou=pendingusers
+         * Users search filter, e.g. (uid={0}) for OpenLDAP, and
+         * (&(objectClass=user)(userPrincipalName={0})) for ActiveDirectory
          */
-        private String pendingUsersSearchBaseDN;
-
-        private List<String> protectedUsers = List.of();
+        private String searchFilter;
     }
 
-    public static @Data class Roles {
+    @Generated
+    public static @Data @Accessors(chain = true) class Roles {
         /**
          * Roles RDN Relative distinguished name of the "roles" LDAP organization unit.
          * E.g. if the complete name (or DN) is ou=roles,dc=georchestra,dc=org, the RDN
          * is ou=roles.
          */
-        @NotBlank
-        private String rdn = "ou=roles";
+        private String rdn;
 
-        @NotBlank
-        private String searchFilter = "(member={0})";
-
-        @NotBlank
-        private String prefix = "ROLE_";
-
-        private boolean upperCase = true;
-
-        private List<String> protectedRoles = List.of();
+        /**
+         * Roles search filter. e.g. (member={0})
+         */
+        private String searchFilter;
     }
 
-    public static @Data class Organizations {
+    @Generated
+    public static @Data @Accessors(chain = true) class Organizations {
 
-        @NotBlank
+        /**
+         * Organizations search base. Default: ou=orgs
+         */
         private String rdn = "ou=orgs";
-
-        @NotBlank
-        private String orgTypes = "Association,Company,NGO,Individual,Other";
-
-        @NotBlank
-        private String pendingOrgSearchBaseDN = "ou=pendingorgs";
     }
+
+    public @Override boolean supports(Class<?> clazz) {
+        return LdapConfigProperties.class.equals(clazz);
+    }
+
+    @Override
+    public void validate(Object target, Errors errors) {
+        LdapConfigProperties config = (LdapConfigProperties) target;
+        Map<String, Server> ldap = config.getLdap();
+        if (ldap == null || ldap.isEmpty()) {
+            return;
+        }
+        LdapConfigPropertiesValidations validations = new LdapConfigPropertiesValidations();
+        ldap.forEach((name, serverConfig) -> validations.validate(name, serverConfig, errors));
+    }
+
+    public List<LdapServerConfig> simpleEnabled() {
+        LdapConfigBuilder builder = new LdapConfigBuilder();
+        return entries()//
+                .filter(e -> e.getValue().isEnabled())//
+                .filter(e -> !e.getValue().isActiveDirectory())//
+                .filter(e -> !e.getValue().isExtended())//
+                .map(e -> builder.asBasicLdapConfig(e.getKey(), e.getValue()))//
+                .collect(Collectors.toList());
+    }
+
+    public List<ExtendedLdapConfig> extendedEnabled() {
+        LdapConfigBuilder builder = new LdapConfigBuilder();
+        return entries()//
+                .filter(e -> e.getValue().isEnabled())//
+                .filter(e -> !e.getValue().isActiveDirectory())//
+                .filter(e -> e.getValue().isExtended())//
+                .map(e -> builder.asExtendedLdapConfig(e.getKey(), e.getValue()))//
+                .collect(Collectors.toList());
+    }
+
+    public List<ActiveDirectoryLdapServerConfig> activeDirectoryEnabled() {
+        LdapConfigBuilder builder = new LdapConfigBuilder();
+        return entries()//
+                .filter(e -> e.getValue().isEnabled())//
+                .filter(e -> e.getValue().isActiveDirectory())//
+                .map(e -> builder.asActiveDirectoryConfig(e.getKey(), e.getValue()))//
+                .collect(Collectors.toList());
+    }
+
+    private Stream<Entry<String, Server>> entries() {
+        return ldap == null ? Stream.empty() : ldap.entrySet().stream();
+    }
+
 }

@@ -8,33 +8,147 @@ toc::[]
 
 == LDAP (HTTP Basic and Form Login)
 
+Georchestra Gateway supports authentication and authorization against LDAP,
+including Microsoft Active Directory.
+
+Multiple LDAP authorization services can be configured, in which case, when
+doing HTTP Basic auth and Form login, each **enabled** LDAP service will be
+probed for the authentication credentials in the order they appear in the
+configuration, and the first successful authentication will be used.
+
+If no `georchestra.security.ldap.[name].enabled` is `true`, the log-in page won't
+even show the username/password form inputs, and HTTP Basic authentication won't be
+enabled.
+
+At application startup, the enabled configurations are validated. The application
+will fail to start if there's a validation error.
+
+Each LDAP authentication provider can be one of:
+
+* A **standard** LDAP provider, which provides provides basic authorization
+credentials in the form of a list of role names.
+* An **extended** LDAP provider, as traditionally used by geOrchestra's
+internal OpenLDAP database, which enriches the authentication principal
+object with additional user identity properties.
+* An **Active Directory** LDAP provider, which provides basicauthorization
+credentials in the form of a list of role names.
+
+=== Configuration properties
+
 LDAP Authentication is enabled and set up through the following
-configuration properties in `application.yml`:
+externalized configuration properties (usually from georchestra data
+directory's `gateway/security.yaml`):
+
+|===
+|Property name | Default value | Description
+|`georchestra.gateway.security.ldap.[name]`
+|
+|Name assigned to the configuration, under which to set up each specific LDAP provider.
+
+|`georchestra.gateway.security.ldap.[name].enabled`
+|`false`
+|Whether the LDAP authentication provider is enabled. If `false` (default) it won't be taken into account at startup. If `true` and the configuration is invalid, the application won't be able to
+start. The configuration can be invalid because a mandatory property is not set. Some properties
+are optional or mandatory depending on whether the authentication provider is "standard", "extended",
+or "Active Directory".
+
+|`georchestra.gateway.security.ldap.[name].extended`
+|`false`
+|If `true`, then geOrchestra's extended LDAP properties will be extracted as part of the authentication
+user principal, besides the authorization role names. These properties are usually configured to be sent back to backend services in `georchestra.gateway.default-headers.*` and/or
+`georchestra.gateway.services.[service].headers.*` This property and `activeDirectory` are mutually
+exclusive, both can't be `true`.
+
+|`georchestra.gateway.security.ldap.[name].activeDirectory`
+|`false`
+|If `true`, the authentication provider is configured as an Active Directory service . This property and `extended` are mutually exclusive, both can't be `true`.
+
+|`georchestra.gateway.security.ldap.[name].url`
+|
+|Mandatory. The LDAP URL, for example: `ldap://localhost:389`.
+
+|`georchestra.gateway.security.ldap.[name].domain`
+|
+|The Active Directory domain, maybe empty, though most of the time you'll need to set the configured domain. Only relevant if `activeDirectory` is `true`.
+
+|`georchestra.gateway.security.ldap.[name].baseDn`
+|
+|Base Distinguished Name of the LDAP directory.
+Also named root or suffix, see http://www.zytrax.com/books/ldap/apd/index.html#base
+For example, georchestra's default baseDn is `dc=georchestra,dc=org`
+
+|`georchestra.gateway.security.ldap.[name].users.rdn`
+|
+|Mandatory except if `activeDirectory` is `true`, in which case it's ignored. Users RDN Relative
+distinguished name of the "users" LDAP organization unit.E.g. if the complete name (or DN)
+is `ou=users,dc=georchestra,dc=org`, the RDN is `ou=users`.
+
+|`georchestra.gateway.security.ldap.[name].users.searchFilter`
+|No default value for basic and extended LDAP. Defaults to `(&(objectClass=user)(userPrincipalName={0}))` for Active Directory.
+|Optional if `activeDirectory` is `true`, mandatory otherwise. Users search filter,
+e.g. `(uid={0})`.
+
+|`georchestra.gateway.security.ldap.[name].roles.rdn`
+|
+|Ignored for Active Directory, mandatory otherwise. Relative Distinguished Name of the "roles" LDAP organization unit. E.g. if the complete name (or DN) is `ou=roles,dc=georchestra,dc=org`,
+the RDN shall be `ou=roles`.
+
+|`georchestra.gateway.security.ldap.[name].roles.searchFilter`
+|
+|Ignored for Active Directory, mandatory otherwise. Roles search filter. e.g. `(member={0})`.
+
+|`georchestra.gateway.security.ldap.[name].orgs.rdn`
+|
+| Mandatory if `[name].extended` is `true`, ignored otherwise. Organizations search base.
+For example: `ou=orgs`.
+|===
+
+=== Sample configuration
+
+The usual geOrchestra OpenLDAP configuration is embedded in the application's
+default configuration file, but disabled, to make it really easy to get started
+with default settings, by just setting `georchestra.gateway.security.ldap.default.enabled=true`.
+
+The following is a sample configuration encompassing three LDAP services, the `default` one,
+another extended config named `ldap2`, and an Active Directory service named `activeDirSample`:
 
 [source,yaml]
 ----
-georchestra.security.ldap:
-  enabled: true
-  url: ${ldapScheme}://${ldapHost}:${ldapPort}
-  baseDn: ${ldapBaseDn:dc=georchestra,dc=org}
-  usersRdn: ${ldapUsersRdn:ou=users}
-  userSearchFilter: ${ldapUserSearchFilter:(uid={0})}
-  rolesRdn: ${ldapRolesRdn:ou=roles}
-  rolesSearchFilter: ${ldapRolesSearchFilter:(member={0})}
+georchestra:
+  gateway:
+    security:
+      ldap:
+        default:
+          enabled: true
+        ldap2:
+          enabled: false
+          extended: true
+          url: ${ldapScheme}://${ldapHost}:${ldapPort}
+          baseDn: ${ldapBaseDn:dc=georchestra,dc=org}
+          users:
+            rdn: ${ldapUsersRdn:ou=users}
+            searchFilter: ${ldapUserSearchFilter:(uid={0})}
+          roles:
+            rdn: ${ldapRolesRdn:ou=roles}
+            searchFilter: ${ldapRolesSearchFilter:(member={0})}
+          orgs:
+            rdn: ${ldapOrgsRdn:ou=orgs}
+        activeDirSample:
+          enabled: false
+          url: ldap://test.activedirectory.com:389
+          domain: test.georchestra.org
+          baseDn: dc=georchestra,dc=org
+          users.searchFilter: (&(objectClass=user)(userPrincipalName={0}))
 ----
 
-If `georchestra.security.ldap.enabled` is `false`,the log-in page won't show the
-username/password form inputs.
-
-=== Externalized Configuration
 
 == OAuth2
 
-=== OAuth2 Externalized Configuration
+=== OAuth2 Configuration
 
 == OpenID Connect
 
-=== Externalized Configuration
+=== Configuration
 
 Both standard and non-standard claims can be used to set the `GeorchestraUser`'s
 `organization` short name and `roles` properties using JSONPath expressions with

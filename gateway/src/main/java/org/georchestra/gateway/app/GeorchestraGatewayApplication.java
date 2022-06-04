@@ -19,7 +19,6 @@
 package org.georchestra.gateway.app;
 
 import java.io.File;
-import java.net.URI;
 import java.util.LinkedHashMap;
 import java.util.Map;
 

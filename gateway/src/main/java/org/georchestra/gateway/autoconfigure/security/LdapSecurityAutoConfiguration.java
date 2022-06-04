@@ -20,15 +20,27 @@ package org.georchestra.gateway.autoconfigure.security;
 
 import javax.annotation.PostConstruct;
 
-import org.georchestra.gateway.security.ldap.MultipleLdapSecurityConfiguration;
+import org.georchestra.gateway.security.ldap.LdapSecurityConfiguration;
+import org.georchestra.gateway.security.ldap.activedirectory.ActiveDirectoryAuthenticationConfiguration;
+import org.georchestra.gateway.security.ldap.basic.BasicLdapAuthenticationConfiguration;
+import org.georchestra.gateway.security.ldap.extended.ExtendedLdapAuthenticationConfiguration;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * {@link EnableAutoConfiguration AutoConfiguration} to set up LDAP security
+ * 
+ * @see LdapSecurityConfiguration
+ * @see BasicLdapAuthenticationConfiguration
+ * @see ExtendedLdapAuthenticationConfiguration
+ * @see ActiveDirectoryAuthenticationConfiguration
+ */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnLdapEnabled
-@Import(MultipleLdapSecurityConfiguration.class)
+@Import(LdapSecurityConfiguration.class)
 @Slf4j(topic = "org.georchestra.gateway.autoconfigure.security")
 public class LdapSecurityAutoConfiguration {
 

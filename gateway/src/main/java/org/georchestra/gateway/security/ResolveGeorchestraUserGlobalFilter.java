@@ -18,7 +18,6 @@
  */
 package org.georchestra.gateway.security;
 
-import org.georchestra.gateway.filter.global.ResolveTargetGlobalFilter;
 import org.georchestra.gateway.model.GeorchestraTargetConfig;
 import org.georchestra.gateway.model.GeorchestraUsers;
 import org.georchestra.security.model.GeorchestraUser;
