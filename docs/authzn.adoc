@@ -135,6 +135,7 @@ georchestra:
             rdn: ${ldapOrgsRdn:ou=orgs}
         activeDirSample:
           enabled: false
+          activeDirectory: true
           url: ldap://test.activedirectory.com:389
           domain: test.georchestra.org
           baseDn: dc=georchestra,dc=org
