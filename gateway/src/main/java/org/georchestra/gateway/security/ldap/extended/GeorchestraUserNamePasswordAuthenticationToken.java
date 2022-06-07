@@ -17,7 +17,7 @@
  * geOrchestra.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.georchestra.gateway.security.ldap;
+package org.georchestra.gateway.security.ldap.extended;
 
 import java.util.Collection;
 
@@ -35,7 +35,7 @@ import lombok.RequiredArgsConstructor;
  * can be used to fetch additional user identity information.
  */
 @RequiredArgsConstructor
-public class GeorchestraUserNamePasswordAuthenticationToken implements Authentication {
+class GeorchestraUserNamePasswordAuthenticationToken implements Authentication {
 
     private static final long serialVersionUID = 1L;
 

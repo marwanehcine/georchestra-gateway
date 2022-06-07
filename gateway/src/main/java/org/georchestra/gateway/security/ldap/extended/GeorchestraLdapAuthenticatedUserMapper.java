@@ -17,7 +17,7 @@
  * geOrchestra.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.georchestra.gateway.security.ldap;
+package org.georchestra.gateway.security.ldap.extended;
 
 import java.util.Optional;
 
@@ -42,7 +42,7 @@ import lombok.RequiredArgsConstructor;
  * @see DemultiplexingUsersApi
  */
 @RequiredArgsConstructor
-public class GeorchestraLdapAuthenticatedUserMapper implements GeorchestraUserMapperExtension {
+class GeorchestraLdapAuthenticatedUserMapper implements GeorchestraUserMapperExtension {
 
     private final @NonNull DemultiplexingUsersApi users;
 

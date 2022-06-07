@@ -17,7 +17,7 @@
  * geOrchestra.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.georchestra.gateway.security.ldap;
+package org.georchestra.gateway.security.ldap.extended;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -46,7 +46,7 @@ import lombok.RequiredArgsConstructor;
  * {@literal username}.
  */
 @RequiredArgsConstructor
-public class DemultiplexingUsersApi {
+class DemultiplexingUsersApi {
 
     private final @NonNull Map<String, UsersApi> targets;
 

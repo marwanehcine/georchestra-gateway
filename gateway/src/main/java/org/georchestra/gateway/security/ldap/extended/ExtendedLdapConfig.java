@@ -16,23 +16,27 @@
  * You should have received a copy of the GNU General Public License along with
  * geOrchestra.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.georchestra.gateway.autoconfigure.security;
 
-import javax.annotation.PostConstruct;
+package org.georchestra.gateway.security.ldap.extended;
 
-import org.georchestra.gateway.security.ldap.GeorchestraLdapAccountManagementConfiguration;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import lombok.Builder;
+import lombok.Generated;
+import lombok.NonNull;
+import lombok.Value;
 
-import lombok.extern.slf4j.Slf4j;
+@Value
+@Builder
+@Generated
+public class ExtendedLdapConfig {
+    private @NonNull String name;
+    private boolean enabled;
+    private @NonNull String url;
+    private @NonNull String baseDn;
 
-@Configuration(proxyBeanMethods = false)
-@ConditionalOnLdapEnabled
-@Import(GeorchestraLdapAccountManagementConfiguration.class)
-@Slf4j(topic = "org.georchestra.gateway.autoconfigure.security")
-public class GeorchestraLdapAccountManagementAutoConfiguration {
+    private @NonNull String usersRdn;
+    private @NonNull String usersSearchFilter;
+    private @NonNull String rolesRdn;
+    private @NonNull String rolesSearchFilter;
 
-    public @PostConstruct void log() {
-        log.info("georchestra LDAP security extensions enabled");
-    }
+    private @NonNull String orgsRdn;
 }

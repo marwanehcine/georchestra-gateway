@@ -17,7 +17,7 @@
  * geOrchestra.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.georchestra.gateway.security.ldap;
+package org.georchestra.gateway.security.ldap.basic;
 
 import java.util.Collection;
 import java.util.List;
