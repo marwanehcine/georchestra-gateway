@@ -56,7 +56,6 @@ public class LdapAuthenticatorProviderBuilder {
         requireNonNull(rolesSearchBase, "rolesSearchBase is not set");
         requireNonNull(rolesSearchFilter, "rolesSearchFilter is not set");
 
-        log.info("Creating LDAP AuthenticationProvider for {}", url);
         final BaseLdapPathContextSource source = contextSource();
         final BindAuthenticator authenticator = ldapAuthenticator(source);
         final DefaultLdapAuthoritiesPopulator rolesPopulator = ldapAuthoritiesPopulator(source);
