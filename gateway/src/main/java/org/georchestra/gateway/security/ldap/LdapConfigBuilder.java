@@ -65,8 +65,8 @@ class LdapConfigBuilder {
                 .name(name)//
                 .enabled(config.isEnabled())//
                 .url(config.getUrl())//
-                .domain(toOptional(config.getDomain()))//
-                .rootDn(toOptional(config.getBaseDn()))//
+                .adminDn(ofNullable(config.getAdminDn())).adminPassword(ofNullable(config.getAdminPassword()))
+                .userBase(ofNullable(config.getSearchBase()))
                 .searchFilter(ofNullable(config.getUsers()).map(Users::getSearchFilter).flatMap(this::toOptional))//
                 .build();
     }

@@ -116,6 +116,12 @@ public class LdapConfigProperties implements Validator {
          * true
          */
         private Organizations orgs;
+
+        private String adminDn;
+
+        private String adminPassword;
+
+        private String searchBase;
     }
 
     @Generated

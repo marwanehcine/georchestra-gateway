@@ -33,7 +33,11 @@ public class ActiveDirectoryLdapServerConfig {
     private @NonNull String name;
     private boolean enabled;
     private @NonNull String url;
-    private @NonNull Optional<String> domain;
-    private @NonNull Optional<String> rootDn;
+
     private @NonNull Optional<String> searchFilter;
+    private @NonNull Optional<String> userBase;
+
+    private @NonNull Optional<String> adminDn;
+    private @NonNull Optional<String> adminPassword;
+
 }

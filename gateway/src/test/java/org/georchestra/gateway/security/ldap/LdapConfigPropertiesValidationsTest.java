@@ -139,19 +139,15 @@ class LdapConfigPropertiesValidationsTest {
         // first AD config
                 , "georchestra.gateway.security.ldap.ad1.enabled: true" //
                 , "georchestra.gateway.security.ldap.ad1.activeDirectory: true" //
-                , "georchestra.gateway.security.ldap.ad1.url: ldap://test.ldap:839" //
-                , "georchestra.gateway.security.ldap.ad1.domain: " //
+                , "georchestra.gateway.security.ldap.ad1.url: ldap://test.ad:839" //
                 // second AD config
                 , "georchestra.gateway.security.ldap.ad2.enabled: true" //
                 , "georchestra.gateway.security.ldap.ad2.activeDirectory: true" //
-                , "georchestra.gateway.security.ldap.ad2.url: ldap://test.ldap2:839" //
-                , "georchestra.gateway.security.ldap.ad2.domain: my.company.com" //
+                , "georchestra.gateway.security.ldap.ad2.url: ldap://test.ad:839" //
         ).run(context -> {
             LdapConfigProperties config = context.getBean(LdapConfigProperties.class);
             List<ActiveDirectoryLdapServerConfig> adConfigs = config.activeDirectoryEnabled();
             assertThat(adConfigs).hasSize(2);
-            assertThat(adConfigs.get(0)).hasFieldOrPropertyWithValue("domain", Optional.empty());
-            assertThat(adConfigs.get(1)).hasFieldOrPropertyWithValue("domain", Optional.of("my.company.com"));
         });
     }
 

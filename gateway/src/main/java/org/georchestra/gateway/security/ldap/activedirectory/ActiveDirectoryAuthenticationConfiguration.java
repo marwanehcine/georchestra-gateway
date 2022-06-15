@@ -27,13 +27,19 @@ import org.georchestra.gateway.security.ldap.basic.LdapAuthenticatedUserMapper;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.ldap.core.ContextSource;
+import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.ReactiveAuthenticationManagerAdapter;
+import org.springframework.security.ldap.authentication.BindAuthenticator;
+import org.springframework.security.ldap.authentication.LdapAuthenticationProvider;
 import org.springframework.security.ldap.authentication.ad.ActiveDirectoryLdapAuthenticationProvider;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.ldap.search.FilterBasedLdapUserSearch;
+import org.springframework.security.ldap.search.LdapUserSearch;
 
 /**
  */
@@ -72,32 +78,37 @@ public class ActiveDirectoryAuthenticationConfiguration {
     }
 
     @Bean
-    List<ActiveDirectoryLdapAuthenticationProvider> activeDirectoryLdapAuthenticationProviders(
+    List<LdapAuthenticationProvider> activeDirectoryLdapAuthenticationProviders(
             List<ActiveDirectoryLdapServerConfig> configs) {
         return configs.stream().map(this::activeDirectoryAuthenticationProvider).collect(Collectors.toList());
     }
 
-    private ActiveDirectoryLdapAuthenticationProvider activeDirectoryAuthenticationProvider(
-            ActiveDirectoryLdapServerConfig config) {
+    private LdapAuthenticationProvider activeDirectoryAuthenticationProvider(ActiveDirectoryLdapServerConfig config) {
 
         final String url = config.getUrl();
-        final String domain = config.getDomain().orElse(null);
-        final String rootDn = config.getRootDn().orElse(null);
 
-        // defaults to (&(objectClass=user)(userPrincipalName={0})) in
-        // ActiveDirectoryLdapAuthenticationProvider
-        final Optional<String> searchFilter = config.getSearchFilter();
+        final String userSearchBase = config.getUserBase().orElse(null);
+        final String adminDn = config.getAdminDn().orElse(null);
+        final String adminPassword = config.getAdminPassword().orElse(null);
 
-        ActiveDirectoryLdapAuthenticationProvider adAuth = new ActiveDirectoryLdapAuthenticationProvider(domain, url,
-                rootDn);
-        // throw AccountStatusException subclasses, prevents the ProviderManager to
-        // continue trying other providers if the account is found and
-        // expired/disabled/locked
-        adAuth.setConvertSubErrorCodesToExceptions(true);
-        searchFilter.ifPresent(filter -> {
-            log.info("Using custom search filter for Active Directory config {}: {}", config.getName(), filter);
-            adAuth.setSearchFilter(filter);
-        });
+        final String searchFilter = config.getSearchFilter().orElse(null);
+
+        LdapContextSource authenticatedContextsource = new LdapContextSource();
+        authenticatedContextsource.setUrl(url);
+        authenticatedContextsource.setUserDn(adminDn);
+        authenticatedContextsource.setPassword(adminPassword);
+
+        BindAuthenticator ba = new BindAuthenticator(authenticatedContextsource);
+
+        // taken from the former SP configuration
+        // searchBase =ou=Personal,ou=Account
+        // searchFilter = uid={0}
+        LdapUserSearch ls = new FilterBasedLdapUserSearch(userSearchBase, searchFilter, authenticatedContextsource);
+
+        ba.setUserSearch(ls);
+
+        LdapAuthenticationProvider adAuth = new LdapAuthenticationProvider(ba);
+
         return adAuth;
     }
 }

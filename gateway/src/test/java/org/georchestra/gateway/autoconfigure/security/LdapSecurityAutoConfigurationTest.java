@@ -105,6 +105,7 @@ class LdapSecurityAutoConfigurationTest {
     @Test
     void testConditionalOnLdapEnabled_triggers_with_activedirectory_ldap_config() {
         runner = runner.withPropertyValues(""//
+                , "georchestra.gateway.security.ldap.default.enabled: false"
                 , "georchestra.gateway.security.ldap.ad.enabled: true" //
                 , "georchestra.gateway.security.ldap.ad.activeDirectory: true" //
                 , "georchestra.gateway.security.ldap.ad.url: ldap://test.ldap2:839" //
