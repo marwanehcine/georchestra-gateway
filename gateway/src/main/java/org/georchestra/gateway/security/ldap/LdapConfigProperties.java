@@ -120,8 +120,6 @@ public class LdapConfigProperties implements Validator {
         private String adminDn;
 
         private String adminPassword;
-
-        private String searchBase;
     }
 
     @Generated

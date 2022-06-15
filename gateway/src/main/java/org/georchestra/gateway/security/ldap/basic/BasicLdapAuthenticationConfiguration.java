@@ -114,6 +114,8 @@ public class BasicLdapAuthenticationConfiguration {
                     .userSearchFilter(config.getUsersSearchFilter())//
                     .rolesSearchBase(config.getRolesRdn())//
                     .rolesSearchFilter(config.getRolesSearchFilter())//
+                    .adminDn(config.getAdminDn().orElse(null))//
+                    .adminPassword(config.getAdminPassword().orElse(null))//
                     .build();
         } catch (RuntimeException e) {
             throw new BeanCreationException(

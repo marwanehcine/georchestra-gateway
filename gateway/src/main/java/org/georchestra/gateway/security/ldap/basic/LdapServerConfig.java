@@ -19,6 +19,8 @@
 
 package org.georchestra.gateway.security.ldap.basic;
 
+import java.util.Optional;
+
 import lombok.Builder;
 import lombok.Generated;
 import lombok.NonNull;
@@ -37,4 +39,7 @@ public class LdapServerConfig {
     private @NonNull String usersSearchFilter;
     private @NonNull String rolesRdn;
     private @NonNull String rolesSearchFilter;
+
+    private @NonNull Optional<String> adminDn;
+    private @NonNull Optional<String> adminPassword;
 }

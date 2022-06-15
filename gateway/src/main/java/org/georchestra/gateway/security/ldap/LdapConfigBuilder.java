@@ -23,7 +23,6 @@ import static java.util.Optional.ofNullable;
 import java.util.Optional;
 
 import org.georchestra.gateway.security.ldap.LdapConfigProperties.Server;
-import org.georchestra.gateway.security.ldap.LdapConfigProperties.Users;
 import org.georchestra.gateway.security.ldap.activedirectory.ActiveDirectoryLdapServerConfig;
 import org.georchestra.gateway.security.ldap.basic.LdapServerConfig;
 import org.georchestra.gateway.security.ldap.extended.ExtendedLdapConfig;
@@ -43,7 +42,8 @@ class LdapConfigBuilder {
                 .usersSearchFilter(config.getUsers().getSearchFilter())//
                 .rolesRdn(config.getRoles().getRdn())//
                 .rolesSearchFilter(config.getRoles().getSearchFilter())//
-                .build();
+                .adminDn(toOptional(config.getAdminDn()))//
+                .adminPassword(toOptional(config.getAdminPassword())).build();
     }
 
     public ExtendedLdapConfig asExtendedLdapConfig(String name, Server config) {
@@ -65,10 +65,13 @@ class LdapConfigBuilder {
                 .name(name)//
                 .enabled(config.isEnabled())//
                 .url(config.getUrl())//
-                .adminDn(ofNullable(config.getAdminDn())).adminPassword(ofNullable(config.getAdminPassword()))
-                .userBase(ofNullable(config.getSearchBase()))
-                .searchFilter(ofNullable(config.getUsers()).map(Users::getSearchFilter).flatMap(this::toOptional))//
-                .build();
+                .baseDn(config.getBaseDn())//
+                .usersRdn(config.getUsers().getRdn())//
+                .usersSearchFilter(config.getUsers().getSearchFilter())//
+                .rolesRdn(config.getRoles().getRdn())//
+                .rolesSearchFilter(config.getRoles().getSearchFilter())//
+                .adminDn(toOptional(config.getAdminDn()))//
+                .adminPassword(toOptional(config.getAdminPassword())).build();
     }
 
     private Optional<String> toOptional(String value) {

@@ -17,7 +17,7 @@
  * geOrchestra.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.georchestra.gateway.security.ldap.extended;
+package org.georchestra.gateway.security.ldap.activedirectory;
 
 import org.georchestra.gateway.security.ldap.AuthenticationProviderDecorator;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -27,12 +27,12 @@ import org.springframework.security.core.AuthenticationException;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
-@Slf4j(topic = "org.georchestra.gateway.security.ldap.extended")
-class GeorchestraLdapAuthenticationProvider extends AuthenticationProviderDecorator {
+@Slf4j(topic = "org.georchestra.gateway.security.ldap.activedirectory")
+class ActiveDirectoryAuthenticationProvider extends AuthenticationProviderDecorator {
 
     private final @NonNull String configName;
 
-    public GeorchestraLdapAuthenticationProvider(@NonNull String configName, @NonNull AuthenticationProvider delegate) {
+    public ActiveDirectoryAuthenticationProvider(@NonNull String configName, @NonNull AuthenticationProvider delegate) {
         super(delegate);
         this.configName = configName;
     }
@@ -41,7 +41,7 @@ class GeorchestraLdapAuthenticationProvider extends AuthenticationProviderDecora
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         Authentication auth = super.authenticate(authentication);
         log.debug("Authenticated {} from {} with roles {}", auth.getName(), configName, auth.getAuthorities());
-        return new GeorchestraUserNamePasswordAuthenticationToken(configName, auth);
+        return auth;
     }
 
 }
