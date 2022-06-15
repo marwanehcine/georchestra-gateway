@@ -82,8 +82,10 @@ public class LdapAuthenticatorProviderBuilder {
         LdapContextSource context = new LdapContextSource();
         context.setUrl(url);
         context.setBase(baseDn);
-        context.setUserDn(adminDn);
-        context.setPassword(adminPassword);
+        if (adminDn != null) {
+            context.setUserDn(adminDn);
+            context.setPassword(adminPassword);
+        }
         context.afterPropertiesSet();
         return context;
     }
