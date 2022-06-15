@@ -28,7 +28,7 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j(topic = "org.georchestra.gateway.security.ldap")
-class BasicLdapAuthenticationProvider extends AuthenticationProviderDecorator {
+public class BasicLdapAuthenticationProvider extends AuthenticationProviderDecorator {
 
     private final @NonNull String configName;
 

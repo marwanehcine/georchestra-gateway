@@ -50,10 +50,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.ldap.core.support.LdapContextSource;
-import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.ProviderManager;
-import org.springframework.security.authentication.ReactiveAuthenticationManager;
-import org.springframework.security.authentication.ReactiveAuthenticationManagerAdapter;
 import org.springframework.security.ldap.authentication.LdapAuthenticationProvider;
 import org.springframework.security.ldap.userdetails.LdapUserDetails;
 
@@ -75,27 +71,6 @@ public class ExtendedLdapAuthenticationConfiguration {
     @Bean
     public GeorchestraLdapAuthenticatedUserMapper georchestraLdapAuthenticatedUserMapper(DemultiplexingUsersApi users) {
         return users.getTargetNames().isEmpty() ? null : new GeorchestraLdapAuthenticatedUserMapper(users);
-    }
-
-    /**
-     * @return a {@link ReactiveAuthenticationManager} that will probe
-     *         username/password authentication over all
-     *         {@link LdapConfigProperties#extended() extended} configured and
-     *         enabled LDAP databases in {@link LdapConfigProperties}, returning the
-     *         first successful authorization.
-     * 
-     * @see #extendedLdapAuthenticationProviders
-     */
-    @Bean
-    public ReactiveAuthenticationManager extendedLdapAuthenticationManager(
-            List<GeorchestraLdapAuthenticationProvider> georExtendedProviders) {
-        if (georExtendedProviders.isEmpty())
-            return null;
-
-        List<AuthenticationProvider> providers = georExtendedProviders.stream().map(AuthenticationProvider.class::cast)
-                .collect(Collectors.toList());
-
-        return new ReactiveAuthenticationManagerAdapter(new ProviderManager(providers));
     }
 
     @Bean

@@ -111,8 +111,16 @@ public class LdapConfigProperties implements Validator {
          */
         private Organizations orgs;
 
+        /**
+         * The user distinguished name (principal) to use for getting authenticated
+         * contexts (optional).
+         */
         private String adminDn;
 
+        /**
+         * The password (credentials) to use for getting authenticated contexts
+         * (optional).
+         */
         private String adminPassword;
     }
 

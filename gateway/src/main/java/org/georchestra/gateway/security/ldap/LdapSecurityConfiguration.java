@@ -19,17 +19,22 @@
 package org.georchestra.gateway.security.ldap;
 
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.georchestra.gateway.security.ServerHttpSecurityCustomizer;
 import org.georchestra.gateway.security.ldap.basic.BasicLdapAuthenticationConfiguration;
+import org.georchestra.gateway.security.ldap.basic.BasicLdapAuthenticationProvider;
 import org.georchestra.gateway.security.ldap.extended.ExtendedLdapAuthenticationConfiguration;
+import org.georchestra.gateway.security.ldap.extended.GeorchestraLdapAuthenticationProvider;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Primary;
-import org.springframework.security.authentication.DelegatingReactiveAuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
+import org.springframework.security.authentication.ReactiveAuthenticationManagerAdapter;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -98,9 +103,16 @@ public class LdapSecurityConfiguration {
         return ldapAuthFilter;
     }
 
-    @Primary
     @Bean
-    public ReactiveAuthenticationManager primaryAuthenticationManager(List<ReactiveAuthenticationManager> delegates) {
-        return new DelegatingReactiveAuthenticationManager(delegates);
+    public ReactiveAuthenticationManager ldapAuthenticationManager(List<BasicLdapAuthenticationProvider> basic,
+            List<GeorchestraLdapAuthenticationProvider> extended) {
+
+        List<AuthenticationProvider> flattened = Stream.concat(basic.stream(), extended.stream())
+                .map(AuthenticationProvider.class::cast).collect(Collectors.toList());
+
+        if (flattened.isEmpty())
+            return null;
+        ProviderManager providerManager = new ProviderManager(flattened);
+        return new ReactiveAuthenticationManagerAdapter(providerManager);
     }
 }

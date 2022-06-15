@@ -27,8 +27,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.context.annotation.UserConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.ApplicationContext;
-import org.springframework.security.authentication.ReactiveAuthenticationManagerAdapter;
-import org.springframework.security.ldap.authentication.LdapAuthenticationProvider;
 
 /**
  * Tests {@link ApplicationContext} contributions of
@@ -49,8 +47,6 @@ class BasicLdapAuthenticationConfigurationTest {
             assertThat(context.getBean("ldapAuthenticatedUserMapper").getClass().getName())
                     .isEqualTo("org.springframework.beans.factory.support.NullBean");
 
-            assertThat(context.getBean("ldapAuthenticationManager").getClass().getName())
-                    .isEqualTo("org.springframework.beans.factory.support.NullBean");
         });
     }
 
@@ -76,9 +72,6 @@ class BasicLdapAuthenticationConfigurationTest {
 
             assertThat(context.getBean("ldapAuthenticatedUserMapper"))
                     .isInstanceOf(BasicLdapAuthenticatedUserMapper.class);
-
-            assertThat(context.getBean("ldapAuthenticationManager"))
-                    .isInstanceOf(ReactiveAuthenticationManagerAdapter.class);
 
         });
     }
@@ -112,9 +105,6 @@ class BasicLdapAuthenticationConfigurationTest {
 
             assertThat(context.getBean("ldapAuthenticatedUserMapper"))
                     .isInstanceOf(BasicLdapAuthenticatedUserMapper.class);
-
-            assertThat(context.getBean("ldapAuthenticationManager"))
-                    .isInstanceOf(ReactiveAuthenticationManagerAdapter.class);
 
         });
     }

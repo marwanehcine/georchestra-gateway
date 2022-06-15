@@ -28,10 +28,6 @@ import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.ProviderManager;
-import org.springframework.security.authentication.ReactiveAuthenticationManager;
-import org.springframework.security.authentication.ReactiveAuthenticationManagerAdapter;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -71,23 +67,6 @@ import lombok.extern.slf4j.Slf4j;
 @EnableConfigurationProperties(LdapConfigProperties.class)
 @Slf4j(topic = "org.georchestra.gateway.security.ldap.basic")
 public class BasicLdapAuthenticationConfiguration {
-
-    /**
-     * @return a {@link ReactiveAuthenticationManager} that will probe
-     *         username/password authentication over all
-     *         {@link LdapConfigProperties#simple() simple} configured and enabled
-     *         LDAP databases in {@link LdapConfigProperties}, returning the first
-     *         successful authorization.
-     * 
-     * @see #ldapAuthenticationProviders
-     */
-    @Bean
-    public ReactiveAuthenticationManager ldapAuthenticationManager(
-            List<BasicLdapAuthenticationProvider> ldapProviders) {
-        return ldapProviders.isEmpty() ? null
-                : new ReactiveAuthenticationManagerAdapter(new ProviderManager(
-                        ldapProviders.stream().map(AuthenticationProvider.class::cast).collect(Collectors.toList())));
-    }
 
     @Bean
     public BasicLdapAuthenticatedUserMapper ldapAuthenticatedUserMapper(List<LdapServerConfig> enabledConfigs) {

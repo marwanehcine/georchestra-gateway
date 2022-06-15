@@ -27,8 +27,8 @@ import org.georchestra.gateway.security.ldap.LdapSecurityConfiguration.LDAPAuthe
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-import org.springframework.security.authentication.DelegatingReactiveAuthenticationManager;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
+import org.springframework.security.authentication.ReactiveAuthenticationManagerAdapter;
 import org.springframework.security.web.server.authentication.AuthenticationWebFilter;
 
 /**
@@ -108,9 +108,9 @@ class LdapSecurityAutoConfigurationTest {
             assertThat(context).hasSingleBean(LDAPAuthenticationCustomizer.class);
             assertThat(context).hasSingleBean(AuthenticationWebFilter.class);
 
-            assertThat(context).hasBean("primaryAuthenticationManager");
-            assertThat(context.getBean("primaryAuthenticationManager"))
-                    .isInstanceOf(DelegatingReactiveAuthenticationManager.class);
+            assertThat(context).hasBean("ldapAuthenticationManager");
+            assertThat(context.getBean("ldapAuthenticationManager"))
+                    .isInstanceOf(ReactiveAuthenticationManagerAdapter.class);
         });
     }
 }

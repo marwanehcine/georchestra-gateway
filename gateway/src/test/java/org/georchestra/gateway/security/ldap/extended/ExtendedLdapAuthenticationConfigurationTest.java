@@ -28,7 +28,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.context.annotation.UserConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.ApplicationContext;
-import org.springframework.security.authentication.ReactiveAuthenticationManagerAdapter;
 
 /**
  * Tests {@link ApplicationContext} contributions of
@@ -47,9 +46,6 @@ class ExtendedLdapAuthenticationConfigurationTest {
             assertThat(context.getBean("enabledExtendedLdapConfigs", List.class)).isEmpty();
 
             assertThat(context.getBean("georchestraLdapAuthenticatedUserMapper").getClass().getName())
-                    .isEqualTo("org.springframework.beans.factory.support.NullBean");
-
-            assertThat(context.getBean("extendedLdapAuthenticationManager").getClass().getName())
                     .isEqualTo("org.springframework.beans.factory.support.NullBean");
 
             assertThat(context.getBean(DemultiplexingUsersApi.class)).hasFieldOrPropertyWithValue("targetNames",
@@ -79,9 +75,6 @@ class ExtendedLdapAuthenticationConfigurationTest {
 
             assertThat(context.getBean("georchestraLdapAuthenticatedUserMapper"))
                     .isInstanceOf(GeorchestraLdapAuthenticatedUserMapper.class);
-
-            assertThat(context.getBean("extendedLdapAuthenticationManager"))
-                    .isInstanceOf(ReactiveAuthenticationManagerAdapter.class);
 
             assertThat(context.getBean(DemultiplexingUsersApi.class)).hasFieldOrPropertyWithValue("targetNames",
                     Set.of("ldap1"));
@@ -120,9 +113,6 @@ class ExtendedLdapAuthenticationConfigurationTest {
 
             assertThat(context.getBean("georchestraLdapAuthenticatedUserMapper"))
                     .isInstanceOf(GeorchestraLdapAuthenticatedUserMapper.class);
-
-            assertThat(context.getBean("extendedLdapAuthenticationManager"))
-                    .isInstanceOf(ReactiveAuthenticationManagerAdapter.class);
 
             assertThat(context.getBean(DemultiplexingUsersApi.class)).hasFieldOrPropertyWithValue("targetNames",
                     Set.of("ldap1", "ldap2"));
