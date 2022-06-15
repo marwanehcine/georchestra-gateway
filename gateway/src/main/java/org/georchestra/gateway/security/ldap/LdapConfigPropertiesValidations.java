@@ -74,9 +74,6 @@ class LdapConfigPropertiesValidations {
     }
 
     private void validateActiveDirectory(String name, Server config, Errors errors) {
-        if (!StringUtils.hasText(config.getDomain())) {
-            log.warn("ldap.{}.domain is null, it is recommended to set up a domain name (e.g. my.company.com)", name);
-        }
 
         if (!StringUtils.hasText(config.getBaseDn())) {
             log.debug("ldap.{}.baseDn is null, will derive Active Directory rootDn from domain", name);

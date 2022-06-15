@@ -87,11 +87,6 @@ public class LdapConfigProperties implements Validator {
         private boolean activeDirectory;
 
         /**
-         * The active directory domain, maybe null or empty.
-         */
-        private String domain;
-
-        /**
          * Base DN of the LDAP directory Base Distinguished Name of the LDAP directory.
          * Also named root or suffix, see
          * http://www.zytrax.com/books/ldap/apd/index.html#base
