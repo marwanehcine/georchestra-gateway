@@ -74,23 +74,6 @@ class LdapConfigPropertiesValidations {
     }
 
     private void validateActiveDirectory(String name, Server config, Errors errors) {
-
-        if (!StringUtils.hasText(config.getBaseDn())) {
-            log.debug("ldap.{}.baseDn is null, will derive Active Directory rootDn from domain", name);
-        }
-
-        Users users = config.getUsers();
-        String searchFilter = users == null ? null : users.getSearchFilter();
-        if (!StringUtils.hasText(searchFilter)) {
-            log.debug(
-                    "ldap.{}.users.searchFilter is null, will use default Active Directory value: (&(objectClass=user)(userPrincipalName={0}))",
-                    name);
-        }
-        if (users != null) {
-            String rdn = users.getRdn();
-            warnUnusedByActiveDirectory(name, "users.rdn", rdn);
-        }
-        warnUnusedByActiveDirectory(name, "roles", config.getRoles());
         warnUnusedByActiveDirectory(name, "orgs", config.getOrgs());
     }
 
