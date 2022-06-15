@@ -23,23 +23,27 @@ import static java.util.Optional.ofNullable;
 import java.util.Optional;
 
 import org.georchestra.gateway.security.ldap.LdapConfigProperties.Server;
-import org.georchestra.gateway.security.ldap.activedirectory.ActiveDirectoryLdapServerConfig;
 import org.georchestra.gateway.security.ldap.basic.LdapServerConfig;
 import org.georchestra.gateway.security.ldap.extended.ExtendedLdapConfig;
 import org.springframework.util.StringUtils;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  */
+@Slf4j
 class LdapConfigBuilder {
 
     public LdapServerConfig asBasicLdapConfig(String name, Server config) {
+        String searchFilter = usersSearchFilter(name, config);
         return LdapServerConfig.builder()//
                 .name(name)//
                 .enabled(config.isEnabled())//
+                .activeDirectory(config.isActiveDirectory())//
                 .url(config.getUrl())//
                 .baseDn(config.getBaseDn())//
                 .usersRdn(config.getUsers().getRdn())//
-                .usersSearchFilter(config.getUsers().getSearchFilter())//
+                .usersSearchFilter(searchFilter)//
                 .rolesRdn(config.getRoles().getRdn())//
                 .rolesSearchFilter(config.getRoles().getSearchFilter())//
                 .adminDn(toOptional(config.getAdminDn()))//
@@ -47,31 +51,29 @@ class LdapConfigBuilder {
     }
 
     public ExtendedLdapConfig asExtendedLdapConfig(String name, Server config) {
+        String searchFilter = usersSearchFilter(name, config);
         return ExtendedLdapConfig.builder()//
                 .name(name)//
                 .enabled(config.isEnabled())//
                 .url(config.getUrl())//
                 .baseDn(config.getBaseDn())//
                 .usersRdn(config.getUsers().getRdn())//
-                .usersSearchFilter(config.getUsers().getSearchFilter())//
+                .usersSearchFilter(searchFilter)//
                 .rolesRdn(config.getRoles().getRdn())//
                 .rolesSearchFilter(config.getRoles().getSearchFilter())//
                 .orgsRdn(config.getOrgs().getRdn())//
+                .adminDn(toOptional(config.getAdminDn()))//
+                .adminPassword(toOptional(config.getAdminPassword()))//
                 .build();
     }
 
-    public ActiveDirectoryLdapServerConfig asActiveDirectoryConfig(String name, Server config) {
-        return ActiveDirectoryLdapServerConfig.builder()//
-                .name(name)//
-                .enabled(config.isEnabled())//
-                .url(config.getUrl())//
-                .baseDn(config.getBaseDn())//
-                .usersRdn(config.getUsers().getRdn())//
-                .usersSearchFilter(config.getUsers().getSearchFilter())//
-                .rolesRdn(config.getRoles().getRdn())//
-                .rolesSearchFilter(config.getRoles().getSearchFilter())//
-                .adminDn(toOptional(config.getAdminDn()))//
-                .adminPassword(toOptional(config.getAdminPassword())).build();
+    private String usersSearchFilter(String name, Server config) {
+        String searchFilter = config.getUsers().getSearchFilter();
+        if (!StringUtils.hasText(searchFilter) && config.isActiveDirectory()) {
+            searchFilter = LdapServerConfig.DEFAULT_ACTIVE_DIRECTORY_USER_SEARCH_FILTER;
+            log.info("Using default search filter '{}' for AD config {}", searchFilter, name);
+        }
+        return searchFilter;
     }
 
     private Optional<String> toOptional(String value) {

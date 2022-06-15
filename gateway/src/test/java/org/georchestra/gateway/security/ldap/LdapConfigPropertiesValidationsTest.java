@@ -21,10 +21,6 @@ package org.georchestra.gateway.security.ldap;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.List;
-import java.util.Optional;
-
-import org.georchestra.gateway.security.ldap.activedirectory.ActiveDirectoryLdapServerConfig;
 import org.georchestra.gateway.security.ldap.basic.LdapServerConfig;
 import org.georchestra.gateway.security.ldap.extended.ExtendedLdapConfig;
 import org.junit.jupiter.api.Test;
@@ -68,20 +64,6 @@ class LdapConfigPropertiesValidationsTest {
             assertThat(config.getLdap()).hasSize(2);
             assertThat(config.simpleEnabled()).isEmpty();
             assertThat(config.extendedEnabled()).isEmpty();
-            assertThat(config.activeDirectoryEnabled()).isEmpty();
-        });
-    }
-
-    public @Test void validates_extended_and_activedirectory_are_mutually_exclusive() {
-        runner.withPropertyValues(""//
-                , "georchestra.gateway.security.ldap.ldap1.enabled: true" //
-                , "georchestra.gateway.security.ldap.ldap1.extended: true" //
-                , "georchestra.gateway.security.ldap.ldap1.activeDirectory: true" //
-        ).run(context -> {
-            assertThat(context).getFailure()//
-                    .hasStackTraceContaining("extended and activeDirectory are mutually exclusive")
-                    .hasStackTraceContaining("ldap.[ldap1].extended")//
-                    .hasStackTraceContaining("ldap.[ldap1].activeDirectory");
         });
     }
 
@@ -110,67 +92,6 @@ class LdapConfigPropertiesValidationsTest {
                 , "georchestra.gateway.security.ldap.basic1.url:" //
         ).run(context -> {
             assertThat(context).hasNotFailed();
-        });
-    }
-
-    public @Test void validates_activeDirectory_baseDn_is_optional() {
-        runner.withPropertyValues(""//
-        // first AD config
-                , "georchestra.gateway.security.ldap.ad1.enabled: true" //
-                , "georchestra.gateway.security.ldap.ad1.activeDirectory: true" //
-                , "georchestra.gateway.security.ldap.ad1.url: ldap://test.ldap:839" //
-                , "georchestra.gateway.security.ldap.ad1.baseDn: " //
-                // second AD config
-                , "georchestra.gateway.security.ldap.ad2.enabled: true" //
-                , "georchestra.gateway.security.ldap.ad2.activeDirectory: true" //
-                , "georchestra.gateway.security.ldap.ad2.url: ldap://test.ldap2:839" //
-                , "georchestra.gateway.security.ldap.ad2.baseDn: dc=my,dc=company,dc=com" //
-        ).run(context -> {
-            LdapConfigProperties config = context.getBean(LdapConfigProperties.class);
-            List<ActiveDirectoryLdapServerConfig> adConfigs = config.activeDirectoryEnabled();
-            assertThat(adConfigs).hasSize(2);
-            assertThat(adConfigs.get(0)).hasFieldOrPropertyWithValue("rootDn", Optional.empty());
-            assertThat(adConfigs.get(1)).hasFieldOrPropertyWithValue("rootDn", Optional.of("dc=my,dc=company,dc=com"));
-        });
-    }
-
-    public @Test void validates_activeDirectory_domain_is_optional() {
-        runner.withPropertyValues(""//
-        // first AD config
-                , "georchestra.gateway.security.ldap.ad1.enabled: true" //
-                , "georchestra.gateway.security.ldap.ad1.activeDirectory: true" //
-                , "georchestra.gateway.security.ldap.ad1.url: ldap://test.ad:839" //
-                // second AD config
-                , "georchestra.gateway.security.ldap.ad2.enabled: true" //
-                , "georchestra.gateway.security.ldap.ad2.activeDirectory: true" //
-                , "georchestra.gateway.security.ldap.ad2.url: ldap://test.ad:839" //
-        ).run(context -> {
-            LdapConfigProperties config = context.getBean(LdapConfigProperties.class);
-            List<ActiveDirectoryLdapServerConfig> adConfigs = config.activeDirectoryEnabled();
-            assertThat(adConfigs).hasSize(2);
-        });
-    }
-
-    public @Test void validates_activeDirectory_searchFilter_is_optional() {
-        runner.withPropertyValues(""//
-        // first AD config
-                , "georchestra.gateway.security.ldap.ad1.enabled: true" //
-                , "georchestra.gateway.security.ldap.ad1.activeDirectory: true" //
-                , "georchestra.gateway.security.ldap.ad1.url: ldap://test.ldap:839" //
-                , "georchestra.gateway.security.ldap.ad1.users.searchFilter: "//
-                // second AD config
-                , "georchestra.gateway.security.ldap.ad2.enabled: true" //
-                , "georchestra.gateway.security.ldap.ad2.activeDirectory: true" //
-                , "georchestra.gateway.security.ldap.ad2.url: ldap://test.ldap2:839" //
-                ,
-                "georchestra.gateway.security.ldap.ad2.users.searchFilter: (&(objectClass=user)(userPrincipalName={0}))" //
-        ).run(context -> {
-            LdapConfigProperties config = context.getBean(LdapConfigProperties.class);
-            List<ActiveDirectoryLdapServerConfig> adConfigs = config.activeDirectoryEnabled();
-            assertThat(adConfigs).hasSize(2);
-            assertThat(adConfigs.get(0)).hasFieldOrPropertyWithValue("searchFilter", Optional.empty());
-            assertThat(adConfigs.get(1)).hasFieldOrPropertyWithValue("searchFilter",
-                    Optional.of("(&(objectClass=user)(userPrincipalName={0}))"));
         });
     }
 
@@ -321,7 +242,6 @@ class LdapConfigPropertiesValidationsTest {
             LdapConfigProperties config = context.getBean(LdapConfigProperties.class);
             assertThat(config.simpleEnabled()).hasSize(1);
             assertThat(config.extendedEnabled()).isEmpty();
-            assertThat(config.activeDirectoryEnabled()).isEmpty();
 
             LdapServerConfig basic = config.simpleEnabled().get(0);
             assertThat(basic).hasFieldOrPropertyWithValue("name", "ldap1");
@@ -352,7 +272,6 @@ class LdapConfigPropertiesValidationsTest {
             LdapConfigProperties config = context.getBean(LdapConfigProperties.class);
             assertThat(config.simpleEnabled()).isEmpty();
             assertThat(config.extendedEnabled()).hasSize(1);
-            assertThat(config.activeDirectoryEnabled()).isEmpty();
 
             ExtendedLdapConfig extended = config.extendedEnabled().get(0);
             assertThat(extended).hasFieldOrPropertyWithValue("name", "ldap1");
@@ -364,53 +283,6 @@ class LdapConfigPropertiesValidationsTest {
             assertThat(extended).hasFieldOrPropertyWithValue("rolesRdn", "ou=roles");
             assertThat(extended).hasFieldOrPropertyWithValue("rolesSearchFilter", "(member={0})");
             assertThat(extended).hasFieldOrPropertyWithValue("orgsRdn", "ou=orgs");
-        });
-    }
-
-    public @Test void valid_single_config_activeDirectory_minimal() {
-        runner.withPropertyValues(""//
-                , "georchestra.gateway.security.ldap.ad.enabled: true" //
-                , "georchestra.gateway.security.ldap.ad.activeDirectory: true" //
-                , "georchestra.gateway.security.ldap.ad.url: ldap://test.ldap2:839" //
-        ).run(context -> {
-            LdapConfigProperties config = context.getBean(LdapConfigProperties.class);
-            assertThat(config.simpleEnabled()).isEmpty();
-            assertThat(config.extendedEnabled()).isEmpty();
-            assertThat(config.activeDirectoryEnabled()).hasSize(1);
-
-            ActiveDirectoryLdapServerConfig ad = config.activeDirectoryEnabled().get(0);
-            assertThat(ad).hasFieldOrPropertyWithValue("name", "ad");
-            assertThat(ad).hasFieldOrPropertyWithValue("enabled", true);
-            assertThat(ad).hasFieldOrPropertyWithValue("url", "ldap://test.ldap2:839");
-            assertThat(ad).hasFieldOrPropertyWithValue("domain", Optional.empty());
-            assertThat(ad).hasFieldOrPropertyWithValue("rootDn", Optional.empty());
-            assertThat(ad).hasFieldOrPropertyWithValue("searchFilter", Optional.empty());
-        });
-    }
-
-    public @Test void valid_single_config_activeDirectory_full() {
-        runner.withPropertyValues(""//
-                , "georchestra.gateway.security.ldap.ad.enabled: true" //
-                , "georchestra.gateway.security.ldap.ad.activeDirectory: true" //
-                , "georchestra.gateway.security.ldap.ad.url: ldap://test.ldap2:839" //
-                , "georchestra.gateway.security.ldap.ad.domain: my.domain.com" //
-                , "georchestra.gateway.security.ldap.ad.baseDn: dc=my,dc=domain,dc=com" //
-                ,
-                "georchestra.gateway.security.ldap.ad.users.searchFilter: (&(objectClass=user)(userPrincipalName={0}))" //
-        ).run(context -> {
-            LdapConfigProperties config = context.getBean(LdapConfigProperties.class);
-            assertThat(config.simpleEnabled()).isEmpty();
-            assertThat(config.extendedEnabled()).isEmpty();
-            assertThat(config.activeDirectoryEnabled()).hasSize(1);
-
-            ActiveDirectoryLdapServerConfig ad = config.activeDirectoryEnabled().get(0);
-            assertThat(ad).hasFieldOrPropertyWithValue("name", "ad");
-            assertThat(ad).hasFieldOrPropertyWithValue("enabled", true);
-            assertThat(ad).hasFieldOrPropertyWithValue("url", "ldap://test.ldap2:839");
-            assertThat(ad).hasFieldOrPropertyWithValue("domain", Optional.of("my.domain.com"));
-            assertThat(ad).hasFieldOrPropertyWithValue("rootDn", Optional.of("dc=my,dc=domain,dc=com"));
-            assertThat(ad).hasFieldOrPropertyWithValue("searchFilter",
-                    Optional.of("(&(objectClass=user)(userPrincipalName={0}))"));
         });
     }
 
@@ -434,25 +306,30 @@ class LdapConfigPropertiesValidationsTest {
                 , "georchestra.gateway.security.ldap.extended1.roles.rdn: ou=roles" //
                 , "georchestra.gateway.security.ldap.extended1.roles.searchFilter: (member={0})" //
                 , "georchestra.gateway.security.ldap.extended1.orgs.rdn: ou=orgs" //
-                // minimal AD config
+                // minimal AD config (no users.searchFilter)
                 , "georchestra.gateway.security.ldap.ad1.enabled: true" //
                 , "georchestra.gateway.security.ldap.ad1.activeDirectory: true" //
-                , "georchestra.gateway.security.ldap.ad1.url: ldap://test.ldap:839" //
+                , "georchestra.gateway.security.ldap.ad1.url: ldap://ad1.test.com:839" //
+                , "georchestra.gateway.security.ldap.ad1.baseDn: dc=test,dc=com" //
+                , "georchestra.gateway.security.ldap.ad1.users.rdn: ou=users,dc=tes,dc=com" //
+                , "georchestra.gateway.security.ldap.ad1.roles.rdn: ou=roles" //
+                , "georchestra.gateway.security.ldap.ad1.roles.searchFilter: (member={0})" //
                 // full AD config
                 , "georchestra.gateway.security.ldap.ad2.enabled: true" //
                 , "georchestra.gateway.security.ldap.ad2.activeDirectory: true" //
-                , "georchestra.gateway.security.ldap.ad2.url: ldap://test.ldap2:839" //
-                , "georchestra.gateway.security.ldap.ad2.domain: my.domain.com" //
-                , "georchestra.gateway.security.ldap.ad2.baseDn: dc=my,dc=domain,dc=com" //
+                , "georchestra.gateway.security.ldap.ad2.url: ldap://ad2.test.com:839" //
+                , "georchestra.gateway.security.ldap.ad2.baseDn: dc=test,dc=com" //
+                , "georchestra.gateway.security.ldap.ad2.users.rdn: ou=users,dc=tes,dc=com" //
                 ,
                 "georchestra.gateway.security.ldap.ad2.users.searchFilter: (&(objectClass=user)(userPrincipalName={0}))" //
+                , "georchestra.gateway.security.ldap.ad2.roles.rdn: ou=roles" //
+                , "georchestra.gateway.security.ldap.ad2.roles.searchFilter: (member={0})" //
         ).run(context -> {
             assertThat(context).hasNotFailed();
 
             LdapConfigProperties config = context.getBean(LdapConfigProperties.class);
-            assertThat(config.simpleEnabled()).hasSize(1);
+            assertThat(config.simpleEnabled()).hasSize(3);
             assertThat(config.extendedEnabled()).hasSize(1);
-            assertThat(config.activeDirectoryEnabled()).hasSize(2);
         });
     }
 }

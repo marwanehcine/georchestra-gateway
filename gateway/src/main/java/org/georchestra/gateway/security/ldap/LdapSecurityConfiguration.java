@@ -21,7 +21,6 @@ package org.georchestra.gateway.security.ldap;
 import java.util.List;
 
 import org.georchestra.gateway.security.ServerHttpSecurityCustomizer;
-import org.georchestra.gateway.security.ldap.activedirectory.ActiveDirectoryAuthenticationConfiguration;
 import org.georchestra.gateway.security.ldap.basic.BasicLdapAuthenticationConfiguration;
 import org.georchestra.gateway.security.ldap.extended.ExtendedLdapAuthenticationConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -73,8 +72,7 @@ import lombok.extern.slf4j.Slf4j;
 @EnableConfigurationProperties(LdapConfigProperties.class)
 @Import({ //
         BasicLdapAuthenticationConfiguration.class, //
-        ExtendedLdapAuthenticationConfiguration.class, //
-        ActiveDirectoryAuthenticationConfiguration.class //
+        ExtendedLdapAuthenticationConfiguration.class //
 })
 @Slf4j(topic = "org.georchestra.gateway.security.ldap")
 public class LdapSecurityConfiguration {

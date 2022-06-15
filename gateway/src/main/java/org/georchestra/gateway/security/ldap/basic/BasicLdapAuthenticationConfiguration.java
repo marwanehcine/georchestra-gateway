@@ -82,15 +82,16 @@ public class BasicLdapAuthenticationConfiguration {
      * @see #ldapAuthenticationProviders
      */
     @Bean
-    public ReactiveAuthenticationManager ldapAuthenticationManager(List<LdapAuthenticationProvider> ldapProviders) {
+    public ReactiveAuthenticationManager ldapAuthenticationManager(
+            List<BasicLdapAuthenticationProvider> ldapProviders) {
         return ldapProviders.isEmpty() ? null
                 : new ReactiveAuthenticationManagerAdapter(new ProviderManager(
                         ldapProviders.stream().map(AuthenticationProvider.class::cast).collect(Collectors.toList())));
     }
 
     @Bean
-    public LdapAuthenticatedUserMapper ldapAuthenticatedUserMapper(List<LdapServerConfig> enabledConfigs) {
-        return enabledConfigs.isEmpty() ? null : new LdapAuthenticatedUserMapper();
+    public BasicLdapAuthenticatedUserMapper ldapAuthenticatedUserMapper(List<LdapServerConfig> enabledConfigs) {
+        return enabledConfigs.isEmpty() ? null : new BasicLdapAuthenticatedUserMapper();
     }
 
     @Bean
@@ -99,15 +100,15 @@ public class BasicLdapAuthenticationConfiguration {
     }
 
     @Bean
-    List<LdapAuthenticationProvider> ldapAuthenticationProviders(List<LdapServerConfig> configs) {
+    List<BasicLdapAuthenticationProvider> ldapAuthenticationProviders(List<LdapServerConfig> configs) {
         return configs.stream().map(this::createLdapProvider).collect(Collectors.toList());
     }
 
-    private LdapAuthenticationProvider createLdapProvider(LdapServerConfig config) {
+    private BasicLdapAuthenticationProvider createLdapProvider(LdapServerConfig config) {
         log.info("Creating LDAP AuthenticationProvider {} with URL {}", config.getName(), config.getUrl());
 
         try {
-            return new LdapAuthenticatorProviderBuilder()//
+            LdapAuthenticationProvider provider = new LdapAuthenticatorProviderBuilder()//
                     .url(config.getUrl())//
                     .baseDn(config.getBaseDn())//
                     .userSearchBase(config.getUsersRdn())//
@@ -117,6 +118,7 @@ public class BasicLdapAuthenticationConfiguration {
                     .adminDn(config.getAdminDn().orElse(null))//
                     .adminPassword(config.getAdminPassword().orElse(null))//
                     .build();
+            return new BasicLdapAuthenticationProvider(config.getName(), provider);
         } catch (RuntimeException e) {
             throw new BeanCreationException(
                     "Error creating LDAP Authentication Provider for config " + config + ": " + e.getMessage(), e);

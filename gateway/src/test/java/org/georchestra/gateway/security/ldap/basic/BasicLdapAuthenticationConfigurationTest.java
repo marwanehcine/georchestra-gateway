@@ -72,9 +72,10 @@ class BasicLdapAuthenticationConfigurationTest {
             assertThat(context.getBean("enabledSimpleLdapConfigs", List.class)).hasSize(1);
             assertThat(context.getBean("ldapAuthenticationProviders", List.class)).hasSize(1);
             assertThat(context.getBean("ldapAuthenticationProviders", List.class)).singleElement()
-                    .isInstanceOf(LdapAuthenticationProvider.class);
+                    .isInstanceOf(BasicLdapAuthenticationProvider.class);
 
-            assertThat(context.getBean("ldapAuthenticatedUserMapper")).isInstanceOf(LdapAuthenticatedUserMapper.class);
+            assertThat(context.getBean("ldapAuthenticatedUserMapper"))
+                    .isInstanceOf(BasicLdapAuthenticatedUserMapper.class);
 
             assertThat(context.getBean("ldapAuthenticationManager"))
                     .isInstanceOf(ReactiveAuthenticationManagerAdapter.class);
@@ -107,9 +108,10 @@ class BasicLdapAuthenticationConfigurationTest {
             assertThat(context.getBean("enabledSimpleLdapConfigs", List.class)).hasSize(2);
             assertThat(context.getBean("ldapAuthenticationProviders", List.class)).hasSize(2);
             assertThat(context.getBean("ldapAuthenticationProviders", List.class)).hasSize(2)
-                    .allMatch(LdapAuthenticationProvider.class::isInstance);
+                    .allMatch(BasicLdapAuthenticationProvider.class::isInstance);
 
-            assertThat(context.getBean("ldapAuthenticatedUserMapper")).isInstanceOf(LdapAuthenticatedUserMapper.class);
+            assertThat(context.getBean("ldapAuthenticatedUserMapper"))
+                    .isInstanceOf(BasicLdapAuthenticatedUserMapper.class);
 
             assertThat(context.getBean("ldapAuthenticationManager"))
                     .isInstanceOf(ReactiveAuthenticationManagerAdapter.class);

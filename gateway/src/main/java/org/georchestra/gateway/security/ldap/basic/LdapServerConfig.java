@@ -30,8 +30,12 @@ import lombok.Value;
 @Builder
 @Generated
 public class LdapServerConfig {
+    public static final String DEFAULT_ACTIVE_DIRECTORY_USER_SEARCH_FILTER = "(&(objectClass=user)(userPrincipalName={0}))";
+
     private @NonNull String name;
     private boolean enabled;
+    private boolean activeDirectory;
+
     private @NonNull String url;
     private @NonNull String baseDn;
 

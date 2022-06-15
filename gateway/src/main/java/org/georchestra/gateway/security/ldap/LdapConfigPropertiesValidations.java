@@ -22,8 +22,6 @@ import static java.lang.String.format;
 import static org.springframework.validation.ValidationUtils.rejectIfEmptyOrWhitespace;
 
 import org.georchestra.gateway.security.ldap.LdapConfigProperties.Server;
-import org.georchestra.gateway.security.ldap.LdapConfigProperties.Users;
-import org.springframework.util.StringUtils;
 import org.springframework.validation.Errors;
 
 import lombok.extern.slf4j.Slf4j;
@@ -39,15 +37,14 @@ class LdapConfigPropertiesValidations {
         final String url = format("ldap.[%s].url", name);
         rejectIfEmptyOrWhitespace(errors, url, "", "LDAP url is required (e.g.: ldap://my.ldap.com:389)");
 
-        validateIsNotExtendedAndActiveDirectory(name, config, errors);
-
+        validateSimpleLdap(name, config, errors);
+        if (config.isExtended()) {
+            validateGeorchestraExtensions(name, config, errors);
+        }
         if (config.isActiveDirectory()) {
             validateActiveDirectory(name, config, errors);
         } else {
-            validateSimpleLdap(name, config, errors);
-            if (config.isExtended()) {
-                validateGeorchestraExtensions(name, config, errors);
-            }
+            validateUsersSearchFilterMandatory(name, errors);
         }
     }
 
@@ -58,14 +55,16 @@ class LdapConfigPropertiesValidations {
         rejectIfEmptyOrWhitespace(errors, format("ldap.[%s].users.rdn", name), "",
                 "LDAP users RDN (Relative Distinguished Name) is required. e.g.: ou=users,dc=georchestra,dc=org");
 
-        rejectIfEmptyOrWhitespace(errors, format("ldap.[%s].users.searchFilter", name), "",
-                "LDAP users searchFilter is required for regular LDAP configs. e.g.: (uid={0}), and optional for Active Directory. e.g.: (&(objectClass=user)(userPrincipalName={0}))");
-
         rejectIfEmptyOrWhitespace(errors, format("ldap.[%s].roles.rdn", name), "",
                 "Roles Relative distinguished name is required. e.g.: ou=roles");
 
         rejectIfEmptyOrWhitespace(errors, format("ldap.[%s].roles.searchFilter", name), "",
                 "Roles searchFilter is required. e.g.: (member={0})");
+    }
+
+    private void validateUsersSearchFilterMandatory(String name, Errors errors) {
+        rejectIfEmptyOrWhitespace(errors, format("ldap.[%s].users.searchFilter", name), "",
+                "LDAP users searchFilter is required for regular LDAP configs. e.g.: (uid={0}), and optional for Active Directory. e.g.: (&(objectClass=user)(userPrincipalName={0}))");
     }
 
     private void validateGeorchestraExtensions(String name, Server config, Errors errors) {
@@ -82,17 +81,6 @@ class LdapConfigPropertiesValidations {
             log.warn(
                     "Found config property org.georchestra.gateway.security.ldap.{}.{} but it's not used by Active Directory",
                     name, property);
-        }
-    }
-
-    private void validateIsNotExtendedAndActiveDirectory(String name, Server config, Errors errors) {
-        final boolean activeDirectory = config.isActiveDirectory();
-        final boolean extended = config.isExtended();
-        if (activeDirectory && extended) {
-            errors.rejectValue(format("ldap.[%s].extended", name), "",
-                    "extended and activeDirectory are mutually exclusive");
-            errors.rejectValue(format("ldap.[%s].activeDirectory", name), "",
-                    "extended and activeDirectory are mutually exclusive");
         }
     }
 }

@@ -39,9 +39,21 @@ class GeorchestraLdapAuthenticationProvider extends AuthenticationProviderDecora
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-        Authentication auth = super.authenticate(authentication);
-        log.debug("Authenticated {} from {} with roles {}", auth.getName(), configName, auth.getAuthorities());
-        return new GeorchestraUserNamePasswordAuthenticationToken(configName, auth);
+        log.debug("Attempting to authenticate user {} against {} extended LDAP", authentication.getName(), configName);
+        try {
+            Authentication auth = super.authenticate(authentication);
+            log.debug("Authenticated {} from {} with roles {}", auth.getName(), configName, auth.getAuthorities());
+            return new GeorchestraUserNamePasswordAuthenticationToken(configName, auth);
+        } catch (AuthenticationException e) {
+            if (log.isDebugEnabled()) {
+                log.info("Authentication of {} against {} extended LDAP failed", authentication.getName(), configName,
+                        e);
+            } else {
+                log.info("Authentication of {} against {} extended LDAP failed: {}", authentication.getName(),
+                        configName, e.getMessage());
+            }
+            throw e;
+        }
     }
 
 }
