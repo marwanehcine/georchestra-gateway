@@ -42,7 +42,7 @@ import lombok.RequiredArgsConstructor;
  * principal name as argument.
  */
 @RequiredArgsConstructor
-public class LdapAuthenticatedUserMapper implements GeorchestraUserMapperExtension {
+public class BasicLdapAuthenticatedUserMapper implements GeorchestraUserMapperExtension {
 
     @Override
     public Optional<GeorchestraUser> resolve(Authentication authToken) {

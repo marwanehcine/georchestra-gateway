@@ -21,7 +21,6 @@ package org.georchestra.gateway.autoconfigure.security;
 import javax.annotation.PostConstruct;
 
 import org.georchestra.gateway.security.ldap.LdapSecurityConfiguration;
-import org.georchestra.gateway.security.ldap.activedirectory.ActiveDirectoryAuthenticationConfiguration;
 import org.georchestra.gateway.security.ldap.basic.BasicLdapAuthenticationConfiguration;
 import org.georchestra.gateway.security.ldap.extended.ExtendedLdapAuthenticationConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;

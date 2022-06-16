@@ -27,8 +27,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.context.annotation.UserConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.ApplicationContext;
-import org.springframework.security.authentication.ReactiveAuthenticationManagerAdapter;
-import org.springframework.security.ldap.authentication.LdapAuthenticationProvider;
 
 /**
  * Tests {@link ApplicationContext} contributions of
@@ -49,8 +47,6 @@ class BasicLdapAuthenticationConfigurationTest {
             assertThat(context.getBean("ldapAuthenticatedUserMapper").getClass().getName())
                     .isEqualTo("org.springframework.beans.factory.support.NullBean");
 
-            assertThat(context.getBean("ldapAuthenticationManager").getClass().getName())
-                    .isEqualTo("org.springframework.beans.factory.support.NullBean");
         });
     }
 
@@ -72,12 +68,10 @@ class BasicLdapAuthenticationConfigurationTest {
             assertThat(context.getBean("enabledSimpleLdapConfigs", List.class)).hasSize(1);
             assertThat(context.getBean("ldapAuthenticationProviders", List.class)).hasSize(1);
             assertThat(context.getBean("ldapAuthenticationProviders", List.class)).singleElement()
-                    .isInstanceOf(LdapAuthenticationProvider.class);
+                    .isInstanceOf(BasicLdapAuthenticationProvider.class);
 
-            assertThat(context.getBean("ldapAuthenticatedUserMapper")).isInstanceOf(LdapAuthenticatedUserMapper.class);
-
-            assertThat(context.getBean("ldapAuthenticationManager"))
-                    .isInstanceOf(ReactiveAuthenticationManagerAdapter.class);
+            assertThat(context.getBean("ldapAuthenticatedUserMapper"))
+                    .isInstanceOf(BasicLdapAuthenticatedUserMapper.class);
 
         });
     }
@@ -107,12 +101,10 @@ class BasicLdapAuthenticationConfigurationTest {
             assertThat(context.getBean("enabledSimpleLdapConfigs", List.class)).hasSize(2);
             assertThat(context.getBean("ldapAuthenticationProviders", List.class)).hasSize(2);
             assertThat(context.getBean("ldapAuthenticationProviders", List.class)).hasSize(2)
-                    .allMatch(LdapAuthenticationProvider.class::isInstance);
+                    .allMatch(BasicLdapAuthenticationProvider.class::isInstance);
 
-            assertThat(context.getBean("ldapAuthenticatedUserMapper")).isInstanceOf(LdapAuthenticatedUserMapper.class);
-
-            assertThat(context.getBean("ldapAuthenticationManager"))
-                    .isInstanceOf(ReactiveAuthenticationManagerAdapter.class);
+            assertThat(context.getBean("ldapAuthenticatedUserMapper"))
+                    .isInstanceOf(BasicLdapAuthenticatedUserMapper.class);
 
         });
     }

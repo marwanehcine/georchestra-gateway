@@ -27,8 +27,8 @@ import org.georchestra.gateway.security.ldap.LdapSecurityConfiguration.LDAPAuthe
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-import org.springframework.security.authentication.DelegatingReactiveAuthenticationManager;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
+import org.springframework.security.authentication.ReactiveAuthenticationManagerAdapter;
 import org.springframework.security.web.server.authentication.AuthenticationWebFilter;
 
 /**
@@ -102,26 +102,15 @@ class LdapSecurityAutoConfigurationTest {
         testEnabled(runner);
     }
 
-    @Test
-    void testConditionalOnLdapEnabled_triggers_with_activedirectory_ldap_config() {
-        runner = runner.withPropertyValues(""//
-                , "georchestra.gateway.security.ldap.ad.enabled: true" //
-                , "georchestra.gateway.security.ldap.ad.activeDirectory: true" //
-                , "georchestra.gateway.security.ldap.ad.url: ldap://test.ldap2:839" //
-        );
-
-        testEnabled(runner);
-    }
-
     private void testEnabled(ApplicationContextRunner runner) {
         runner.run(context -> {
             assertThat(context).hasSingleBean(LdapConfigProperties.class);
             assertThat(context).hasSingleBean(LDAPAuthenticationCustomizer.class);
             assertThat(context).hasSingleBean(AuthenticationWebFilter.class);
 
-            assertThat(context).hasBean("primaryAuthenticationManager");
-            assertThat(context.getBean("primaryAuthenticationManager"))
-                    .isInstanceOf(DelegatingReactiveAuthenticationManager.class);
+            assertThat(context).hasBean("ldapAuthenticationManager");
+            assertThat(context.getBean("ldapAuthenticationManager"))
+                    .isInstanceOf(ReactiveAuthenticationManagerAdapter.class);
         });
     }
 }

@@ -31,11 +31,9 @@ import org.springframework.security.ldap.userdetails.DefaultLdapAuthoritiesPopul
 
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  */
-@Slf4j(topic = "org.georchestra.gateway.security.ldap.basic")
 @Accessors(chain = true, fluent = true)
 public class LdapAuthenticatorProviderBuilder {
 
@@ -47,6 +45,9 @@ public class LdapAuthenticatorProviderBuilder {
 
     private @Setter String rolesSearchBase;
     private @Setter String rolesSearchFilter;
+
+    private @Setter String adminDn;
+    private @Setter String adminPassword;
 
     public LdapAuthenticationProvider build() {
         requireNonNull(url, "url is not set");
@@ -81,6 +82,10 @@ public class LdapAuthenticatorProviderBuilder {
         LdapContextSource context = new LdapContextSource();
         context.setUrl(url);
         context.setBase(baseDn);
+        if (adminDn != null) {
+            context.setUserDn(adminDn);
+            context.setPassword(adminPassword);
+        }
         context.afterPropertiesSet();
         return context;
     }

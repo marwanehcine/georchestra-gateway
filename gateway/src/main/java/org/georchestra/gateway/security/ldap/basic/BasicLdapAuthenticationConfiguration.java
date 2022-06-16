@@ -28,10 +28,6 @@ import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.ProviderManager;
-import org.springframework.security.authentication.ReactiveAuthenticationManager;
-import org.springframework.security.authentication.ReactiveAuthenticationManagerAdapter;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -72,25 +68,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j(topic = "org.georchestra.gateway.security.ldap.basic")
 public class BasicLdapAuthenticationConfiguration {
 
-    /**
-     * @return a {@link ReactiveAuthenticationManager} that will probe
-     *         username/password authentication over all
-     *         {@link LdapConfigProperties#simple() simple} configured and enabled
-     *         LDAP databases in {@link LdapConfigProperties}, returning the first
-     *         successful authorization.
-     * 
-     * @see #ldapAuthenticationProviders
-     */
     @Bean
-    public ReactiveAuthenticationManager ldapAuthenticationManager(List<LdapAuthenticationProvider> ldapProviders) {
-        return ldapProviders.isEmpty() ? null
-                : new ReactiveAuthenticationManagerAdapter(new ProviderManager(
-                        ldapProviders.stream().map(AuthenticationProvider.class::cast).collect(Collectors.toList())));
-    }
-
-    @Bean
-    public LdapAuthenticatedUserMapper ldapAuthenticatedUserMapper(List<LdapServerConfig> enabledConfigs) {
-        return enabledConfigs.isEmpty() ? null : new LdapAuthenticatedUserMapper();
+    public BasicLdapAuthenticatedUserMapper ldapAuthenticatedUserMapper(List<LdapServerConfig> enabledConfigs) {
+        return enabledConfigs.isEmpty() ? null : new BasicLdapAuthenticatedUserMapper();
     }
 
     @Bean
@@ -99,22 +79,25 @@ public class BasicLdapAuthenticationConfiguration {
     }
 
     @Bean
-    List<LdapAuthenticationProvider> ldapAuthenticationProviders(List<LdapServerConfig> configs) {
+    List<BasicLdapAuthenticationProvider> ldapAuthenticationProviders(List<LdapServerConfig> configs) {
         return configs.stream().map(this::createLdapProvider).collect(Collectors.toList());
     }
 
-    private LdapAuthenticationProvider createLdapProvider(LdapServerConfig config) {
+    private BasicLdapAuthenticationProvider createLdapProvider(LdapServerConfig config) {
         log.info("Creating LDAP AuthenticationProvider {} with URL {}", config.getName(), config.getUrl());
 
         try {
-            return new LdapAuthenticatorProviderBuilder()//
+            LdapAuthenticationProvider provider = new LdapAuthenticatorProviderBuilder()//
                     .url(config.getUrl())//
                     .baseDn(config.getBaseDn())//
                     .userSearchBase(config.getUsersRdn())//
                     .userSearchFilter(config.getUsersSearchFilter())//
                     .rolesSearchBase(config.getRolesRdn())//
                     .rolesSearchFilter(config.getRolesSearchFilter())//
+                    .adminDn(config.getAdminDn().orElse(null))//
+                    .adminPassword(config.getAdminPassword().orElse(null))//
                     .build();
+            return new BasicLdapAuthenticationProvider(config.getName(), provider);
         } catch (RuntimeException e) {
             throw new BeanCreationException(
                     "Error creating LDAP Authentication Provider for config " + config + ": " + e.getMessage(), e);

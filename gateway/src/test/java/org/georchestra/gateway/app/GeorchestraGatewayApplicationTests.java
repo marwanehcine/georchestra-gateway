@@ -50,6 +50,7 @@ class GeorchestraGatewayApplicationTests {
                 env.getProperty("spring.config.import"));
 
         Boolean propertyFromTestDatadir = env.getProperty("georchestra.test-datadir", Boolean.class);
+        assertNotNull(propertyFromTestDatadir);
         assertTrue(propertyFromTestDatadir,
                 "Configuration property expected to load from classpath:/test-datadir/gateway/gateway.yaml not found");
     }

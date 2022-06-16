@@ -26,7 +26,6 @@ import java.util.stream.Stream;
 
 import javax.validation.Valid;
 
-import org.georchestra.gateway.security.ldap.activedirectory.ActiveDirectoryLdapServerConfig;
 import org.georchestra.gateway.security.ldap.basic.LdapServerConfig;
 import org.georchestra.gateway.security.ldap.extended.ExtendedLdapConfig;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -87,11 +86,6 @@ public class LdapConfigProperties implements Validator {
         private boolean activeDirectory;
 
         /**
-         * The active directory domain, maybe null or empty.
-         */
-        private String domain;
-
-        /**
          * Base DN of the LDAP directory Base Distinguished Name of the LDAP directory.
          * Also named root or suffix, see
          * http://www.zytrax.com/books/ldap/apd/index.html#base
@@ -116,6 +110,18 @@ public class LdapConfigProperties implements Validator {
          * true
          */
         private Organizations orgs;
+
+        /**
+         * The user distinguished name (principal) to use for getting authenticated
+         * contexts (optional).
+         */
+        private String adminDn;
+
+        /**
+         * The password (credentials) to use for getting authenticated contexts
+         * (optional).
+         */
+        private String adminPassword;
     }
 
     @Generated
@@ -178,7 +184,6 @@ public class LdapConfigProperties implements Validator {
         LdapConfigBuilder builder = new LdapConfigBuilder();
         return entries()//
                 .filter(e -> e.getValue().isEnabled())//
-                .filter(e -> !e.getValue().isActiveDirectory())//
                 .filter(e -> !e.getValue().isExtended())//
                 .map(e -> builder.asBasicLdapConfig(e.getKey(), e.getValue()))//
                 .collect(Collectors.toList());
@@ -191,15 +196,6 @@ public class LdapConfigProperties implements Validator {
                 .filter(e -> !e.getValue().isActiveDirectory())//
                 .filter(e -> e.getValue().isExtended())//
                 .map(e -> builder.asExtendedLdapConfig(e.getKey(), e.getValue()))//
-                .collect(Collectors.toList());
-    }
-
-    public List<ActiveDirectoryLdapServerConfig> activeDirectoryEnabled() {
-        LdapConfigBuilder builder = new LdapConfigBuilder();
-        return entries()//
-                .filter(e -> e.getValue().isEnabled())//
-                .filter(e -> e.getValue().isActiveDirectory())//
-                .map(e -> builder.asActiveDirectoryConfig(e.getKey(), e.getValue()))//
                 .collect(Collectors.toList());
     }
 
