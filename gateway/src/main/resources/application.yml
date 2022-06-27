@@ -97,7 +97,7 @@ management:
     env.enabled: true
     git:
       enabled: true
-      mode: full
+      mode: simple
   endpoints:
     enabled-by-default: true
     web.exposure.include: "*"

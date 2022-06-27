@@ -51,6 +51,121 @@ management:
 
 == Common management end points
 
+=== Info
+
+The `info` endpoint exposes application build information.
+
+http://localhost:8090/actuator/info
+
+```
+  "component": "Gateway Server",
+  "instance-id": "gateway-service:192.168.0.21:8080",
+  "git": {
+    "branch": "main",
+    "commit": {
+      "id": "4367145",
+      "time": "2022-06-27T13:08:31Z"
+    }
+  },
+  "build": {
+    "artifact": "georchestra-gateway",
+    "name": "gateway",
+    "time": "2022-06-27T13:16:16.741Z",
+    "version": "21.0-RC1",
+    "group": "org.georchestra"
+  },
+  "java": {
+    "vendor": "Eclipse Adoptium",
+    "version": "17.0.2",
+    "runtime": {
+      "name": "OpenJDK Runtime Environment",
+      "version": "17.0.2+8"
+    },
+    "jvm": {
+      "name": "OpenJDK 64-Bit Server VM",
+      "vendor": "Eclipse Adoptium",
+      "version": "17.0.2+8"
+    }
+  }
+}
+```
+
+Additional git information can be enabled. To do so, configure the following
+property: `management.info.git.mode=full` (the default is `simple`), either 
+in `gateway.yaml` or as an environment variable, following spring-boot's 
+standard externalized configuration conventions.
+
+This will result in extended git info like in the following example:
+
+```
+{
+  "component": "Gateway Server",
+  "instance-id": "gateway-service:192.168.0.21:8080",
+  "git": {
+    "local": {
+      "branch": {
+        "ahead": "2",
+        "behind": "0"
+      }
+    },
+    "commit": {
+      "id": {
+        "describe-short": "v21.0-RC1",
+        "abbrev": "4367145",
+        "full": "436714527af04cde2bcd09f51f73545ac86ee02d",
+        "describe": "v21.0-RC1"
+      },
+      "message": {
+        "short": "Set version to 21.0-RC1",
+        "full": "Set version to 21.0-RC1"
+      },
+      "user": {
+        "name": "Gabriel Roldan",
+        "email": "gabriel.roldan@test.com"
+      },
+      "author": {
+        "time": "2022-06-27T10:08:31-0300"
+      },
+      "committer": {
+        "time": "2022-06-27T10:08:31-0300"
+      },
+      "time": "2022-06-27T13:08:31Z"
+    },
+    "branch": "main",
+    "build": {
+      "time": "2022-06-27T13:11:12Z",
+      "version": "21.0-RC1",
+      "host": "lilith",
+      "user": {
+        "name": "Gabriel Roldan",
+        "email": "gabriel.roldan@test.com"
+      }
+    },
+    "tags": "v21.0-RC1",
+    "total": {
+      "commit": {
+        "count": "90"
+      }
+    },
+    "closest": {
+      "tag": {
+        "commit": {
+          "count": "0"
+        },
+        "name": "v21.0-RC1"
+      }
+    },
+    "remote": {
+      "origin": {
+        "url": "Unknown"
+      }
+    },
+    "dirty": "false"
+  },
+  ...
+}
+```
+
 === Health check
 
 http://localhost:8090/actuator/health
