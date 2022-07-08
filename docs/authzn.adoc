@@ -88,6 +88,11 @@ is `ou=users,dc=georchestra,dc=org`, the RDN is `ou=users`.
 |Optional if `activeDirectory` is `true`, mandatory otherwise. Users search filter,
 e.g. `(uid={0})`.
 
+|`georchestra.gateway.security.ldap.[name].users.returningAttributes`
+|null
+|Specifies the attributes that will be returned as part of the search. null indicates
+that all attributes will be returned. An empty array indicates no attributes are returned.
+
 |`georchestra.gateway.security.ldap.[name].roles.rdn`
 |
 |Ignored for Active Directory, mandatory otherwise. Relative Distinguished Name of the "roles" LDAP organization unit. E.g. if the complete name (or DN) is `ou=roles,dc=georchestra,dc=org`,
@@ -128,6 +133,7 @@ georchestra:
           users:
             rdn: ${ldapUsersRdn:ou=users}
             searchFilter: ${ldapUserSearchFilter:(uid={0})}
+            returningAttributes: custom_id,isMemberOf
           roles:
             rdn: ${ldapRolesRdn:ou=roles}
             searchFilter: ${ldapRolesSearchFilter:(member={0})}
