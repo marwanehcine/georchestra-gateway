@@ -163,26 +163,25 @@ Both standard and non-standard claims can be used to set the `GeorchestraUser`'s
 
 > `org.springframework.security.oauth2.core.oidc.user.OidcUser`
 
-Configuration properties after `georchestra.gateway.security.oidc.claims`:
 |===
 |Property name | Default value | Description
-|`organization.path`
+|`georchestra.gateway.security.oidc.claims.organization.path`
 |
 |JSONPath expression to extract the organization short name from the OIDC claims map
 
-|`roles.path`
+|`georchestra.gateway.security.oidc.claims.roles.json.path`
 | 
 |JSONPath expression to extract the user role names from the OIDC claims map
 
-|`roles.uppercase`
+|`georchestra.gateway.security.oidc.claims.roles.uppercase`
 | true
 |Whether to return mapped role names as upper-case.
 
-|`roles.normalize`
+|`georchestra.gateway.security.oidc.claims.roles.normalize`
 | true
 |Whether to remove special characters and replace spaces by underscores.
 
-|`roles.append`
+|`georchestra.gateway.security.oidc.claims.roles.append`
 | true
 |Whether to append (`true`) the resolved role names to the roles given by the OAuth2 authentication, or replace them (`false`).
 |===
@@ -217,7 +216,7 @@ and the organization's short name from the `PartyOrganisationID` claim:
 georchestra.gateway.security.oidc.claims:
   organization.path: "$.PartyOrganisationID"
   roles:
-    path: "$.groups..['name']"
+    json.path: "$.groups..['name']"
     uppercase: true
     normalize: true
     append: true
