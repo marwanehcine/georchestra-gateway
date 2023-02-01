@@ -26,14 +26,17 @@ import java.util.Optional;
 import org.georchestra.gateway.security.GeorchestraUserMapper;
 import org.georchestra.security.model.GeorchestraUser;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.util.unit.DataSize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -50,6 +53,10 @@ public class GeorchestraGatewayApplication {
 
     private @Autowired RouteLocator routeLocator;
     private @Autowired GeorchestraUserMapper userMapper;
+
+    private @Value("${georchestra.gateway.headerUrl:/header/}") String georchestraHeaderUrl;
+    private @Value("${georchestra.gateway.headerHeight:90}") String georchestraHeaderHeight;
+    private @Value("${georchestra.gateway.footerUrl:#{null}}") String georchestraFooterUrl;
 
     public static void main(String[] args) {
         SpringApplication.run(GeorchestraGatewayApplication.class, args);
@@ -71,14 +78,19 @@ public class GeorchestraGatewayApplication {
         // Mono.just(Map.of(principal.getClass().getCanonicalName(), principal));
     }
 
-    @GetMapping(path = "/login", produces = "text/html")
-    public Mono<Rendering.Builder<?>> login(Authentication principal, ServerWebExchange exchange) {
-        return Mono.just(Rendering.view("login"));
-    }
 
     @GetMapping(path = "/logout", produces = "text/html")
     public Mono<Rendering.Builder<?>> logout(Authentication principal, ServerWebExchange exchange) {
         return Mono.just(Rendering.view("logout"));
+    }
+
+    @GetMapping(path = "/login")
+    public String loginPage(Model mdl) {
+        mdl.addAttribute("header_url", georchestraHeaderUrl);
+        mdl.addAttribute("header_height", georchestraHeaderHeight);
+        mdl.addAttribute("footer_url", georchestraFooterUrl);
+
+        return "login";
     }
 
     @EventListener(ApplicationReadyEvent.class)
