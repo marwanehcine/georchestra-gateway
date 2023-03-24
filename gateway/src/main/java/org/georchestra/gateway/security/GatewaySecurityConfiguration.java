@@ -72,7 +72,8 @@ public class GatewaySecurityConfiguration {
         });
 
         log.info("Security filter chain initialized");
-        return http.build();
+
+        return http.formLogin().loginPage("/login").and().logout().logoutUrl("/logout").and().build();
     }
 
     private Stream<ServerHttpSecurityCustomizer> sortedCustomizers(List<ServerHttpSecurityCustomizer> customizers) {
