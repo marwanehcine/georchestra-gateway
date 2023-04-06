@@ -67,7 +67,7 @@ class AccessRulesCustomizerIT {
     /**
      * Configure the target service mappings to call the {@link #mockService} at its
      * dynamically allocated port
-     * 
+     *
      * @see #mockServiceTarget
      */
     @DynamicPropertySource
@@ -94,11 +94,11 @@ class AccessRulesCustomizerIT {
      * For example, if the Wiremock service is at port 7654, for the
      * {@literal header} service with {@literal /header} target URI, the config
      * property would be:
-     * 
+     *
      * <pre>
      * {@code georchestra.gateway.services.header.target=http://localhost:7654/header}
      * </pre>
-     * 
+     *
      * @param registry      the dynamic property source to contribute to the
      *                      application context's environment
      * @param serviceName   the name of the service for a
@@ -140,10 +140,10 @@ class AccessRulesCustomizerIT {
     /**
      * Revisit: not sure how to force a 403 (Forbidden) instead of a redirect to the
      * login page when not yet authenticated
-     * 
+     *
      * <pre>
      * {@code
-     * georchestra.gateway.services.mapfishapp: 
+     * georchestra.gateway.services.mapfishapp:
      *   access-rules:
      *   - intercept-url: /mapfishapp/ogcproxy/**
      *     forbidden: true
@@ -171,7 +171,7 @@ class AccessRulesCustomizerIT {
     /**
      * <pre>
      * {@code
-     * georchestra.gateway.services.mapfishapp: 
+     * georchestra.gateway.services.mapfishapp:
      *   access-rules:
      *   - intercept-url: /mapfishapp/ogcproxy/**
      *     forbidden: true
@@ -200,7 +200,7 @@ class AccessRulesCustomizerIT {
     /**
      * <pre>
      * {@code
-     * georchestra.gateway.services.import: 
+     * georchestra.gateway.services.import:
      *   access-rules:
      *   - intercept-url: /import/**
      *     anonymous: false
@@ -221,7 +221,7 @@ class AccessRulesCustomizerIT {
     /**
      * <pre>
      * {@code
-     * georchestra.gateway.services.import: 
+     * georchestra.gateway.services.import:
      *   access-rules:
      *   - intercept-url: /import/**
      *     anonymous: false
@@ -243,7 +243,7 @@ class AccessRulesCustomizerIT {
     /**
      * <pre>
      * {@code
-     * georchestra.gateway.services.analytics: 
+     * georchestra.gateway.services.analytics:
      *   access-rules:
      *   - intercept-url: /analytics/**
      *     allowed-roles: SUPERUSER,ORGADMIN
@@ -265,7 +265,7 @@ class AccessRulesCustomizerIT {
     /**
      * <pre>
      * {@code
-     * georchestra.gateway.services.analytics: 
+     * georchestra.gateway.services.analytics:
      *   access-rules:
      *   - intercept-url: /analytics/**
      *     allowed-roles: SUPERUSER,ORGADMIN
@@ -287,7 +287,7 @@ class AccessRulesCustomizerIT {
     /**
      * <pre>
      * {@code
-     * georchestra.gateway.services.analytics: 
+     * georchestra.gateway.services.analytics:
      *   access-rules:
      *   - intercept-url: /analytics/**
      *     allowed-roles: SUPERUSER,ORGADMIN
@@ -314,7 +314,7 @@ class AccessRulesCustomizerIT {
      * 	      - /**
      * 	      anonymous: true
      * 	    services:
-     * 	      atlas: 
+     * 	      atlas:
      * 	        target: http://atlas:8080/atlas/
      * }
      * </pre>
