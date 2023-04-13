@@ -80,7 +80,6 @@ public class GeorchestraGatewayApplication {
         // Mono.just(Map.of(principal.getClass().getCanonicalName(), principal));
     }
 
-
     @GetMapping(path = "/logout", produces = "text/html")
     public Mono<Rendering.Builder<?>> logout(Authentication principal, ServerWebExchange exchange) {
         return Mono.just(Rendering.view("logout"));

@@ -30,11 +30,12 @@ import org.springframework.security.config.web.server.ServerHttpSecurity.OAuth2L
 import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest;
 import org.springframework.security.oauth2.client.endpoint.ReactiveOAuth2AccessTokenResponseClient;
 import org.springframework.security.oauth2.client.endpoint.WebClientReactiveAuthorizationCodeTokenResponseClient;
+import org.springframework.security.oauth2.client.oidc.authentication.ReactiveOidcIdTokenDecoderFactory;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcReactiveOAuth2UserService;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistration.ProviderDetails;
 import org.springframework.security.oauth2.client.userinfo.DefaultReactiveOAuth2UserService;
-import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
+import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoderFactory;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -105,11 +106,13 @@ public class OAuth2Configuration {
         return (clientRegistration) -> {
             ProviderDetails providerDetails = clientRegistration.getProviderDetails();
             String jwkSetUri = providerDetails.getJwkSetUri();
-            return NimbusReactiveJwtDecoder//
-                    .withJwkSetUri(jwkSetUri)//
-                    .jwsAlgorithm(SignatureAlgorithm.RS256)//
-                    .webClient(oauth2WebClient)//
-                    .build();
+            if ((jwkSetUri != null) && (!jwkSetUri.isEmpty())) {
+                return NimbusReactiveJwtDecoder.withJwkSetUri(jwkSetUri).webClient(oauth2WebClient).build();
+            } else {
+                ReactiveOidcIdTokenDecoderFactory idTokenDecoderFactory = new ReactiveOidcIdTokenDecoderFactory();
+                idTokenDecoderFactory.setJwsAlgorithmResolver(clientRegistration2 -> MacAlgorithm.HS256);
+                return idTokenDecoderFactory.createDecoder(clientRegistration);
+            }
         };
     }
 
