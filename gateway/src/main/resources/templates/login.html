@@ -5,15 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="">
     <meta name="author" content="">
-    <title>Login</title>
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
-    <link href="https://getbootstrap.com/docs/4.0/examples/signin/signin.css" rel="stylesheet" crossorigin="anonymous"/>
+    <title>Please sign in</title>
+    <script src="https://cdn.jsdelivr.net/gh/georchestra/header@dist/header.js"></script>
+    <link href="login/bootstrap.min.css" rel="stylesheet">
+    <link href="login/signin.css" rel="stylesheet"/>
 </head>
 <body>
+<!--
 <header th:if="${header_url != null}">
     <iframe id="header" title="Header" th:src="${header_url}" th:style="'width:100%;height:'+${header_height}+'px;border:none;overflow:hidden;transition: all 0.3s ease 0s;'" scrolling="no"
             frameborder="0"></iframe>
-
+</header>
+-->
+<header>
+    <geor-header></geor-header>
 </header>
 <div class="container">
     <form class="form-signin" method="post" action="/login" th:if="${ldapEnabled}">
@@ -26,11 +31,16 @@
             <label for="password" class="sr-only">Password</label>
             <input type="password" id="password" name="password" class="form-control" placeholder="Password" required>
         </p>
-        <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+        <button class="btn btn-lg btn-primary btn-block mb-2" type="submit">Sign in</button>
+        <div class="d-flex flex-row flex-wrap justify-content-around">
+          <a href="/console/account/new">
+              <span>Sign up</span>
+          </a>
+          <a href="/console/account/passwordRecovery">
+            <span>Forgot password?</span>
+          </a>
+        </div>
     </form>
-    <!-- todo: this should be configurable like in:
-    https://github.com/spring-projects/spring-security/blob/main/web/src/main/java/org/springframework/security/web/server/ui/LoginPageGeneratingWebFilter.java#L114-L138
-    -->
     <div class="container"><h2 class="form-signin-heading">Login with OAuth 2.0</h2>
         <table class="table table-striped">
         <tr th:each="oauth2Client : ${oauth2LoginLinks}">
@@ -40,9 +50,11 @@
         </tr>
     </table></div>
 </div>
+<!--
 <footer th:if="${footer_url != null}">
     <iframe id="footer" th:src="${footer_url}" style="width:100%;border:none;overflow:hidden;" scrolling="no"
             frameborder="0"></iframe>
 </footer>
+-->
 </body>
 </html>
