@@ -331,4 +331,31 @@ class AccessRulesCustomizerIT {
                 .exchange()//
                 .expectStatus().isOk();
     }
+
+    @Test
+    void testQueryParamAuthentication_forbidden_when_anonymous() {
+        mockService.stubFor(get(urlMatching("/header(.*)?")).willReturn(ok()));
+
+        testClient.get().uri("/header?login")//
+                .exchange()//
+                .expectStatus().is3xxRedirection();
+
+        testClient.get().uri("/header")//
+                .exchange()//
+                .expectStatus().isOk();
+    }
+
+    @Test
+    @WithMockUser(authorities = { "ROLE_USER" })
+    void testQueryParamAuthentication_authorized_if_logged_in() {
+        mockService.stubFor(get(urlMatching("/header(.*)?")).willReturn(ok()));
+
+        testClient.get().uri("/header?login")//
+                .exchange()//
+                .expectStatus().isOk();
+
+        testClient.get().uri("/header")//
+                .exchange()//
+                .expectStatus().isOk();
+    }
 }
