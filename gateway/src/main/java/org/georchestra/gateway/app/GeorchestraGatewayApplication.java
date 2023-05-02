@@ -20,6 +20,7 @@ package org.georchestra.gateway.app;
 
 import lombok.extern.slf4j.Slf4j;
 import org.georchestra.gateway.security.GeorchestraUserMapper;
+import org.georchestra.gateway.security.ldap.LdapConfigProperties;
 import org.georchestra.security.model.GeorchestraUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,12 +28,11 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.client.registration.ClientRegistration;
-import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.unit.DataSize;
@@ -42,26 +42,34 @@ import org.springframework.web.reactive.result.view.Rendering;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import javax.annotation.PostConstruct;
 import java.io.File;
 import java.util.*;
 
 @Controller
 @Slf4j
 @SpringBootApplication
+@EnableConfigurationProperties(LdapConfigProperties.class)
 public class GeorchestraGatewayApplication {
 
     private @Autowired RouteLocator routeLocator;
     private @Autowired GeorchestraUserMapper userMapper;
+
+    private @Autowired LdapConfigProperties ldapConfigProperties;
+    private boolean ldapEnabled;
 
     private @Autowired(required = false) OAuth2ClientProperties oauth2ClientConfig;
     private @Value("${georchestra.gateway.headerUrl:/header/}") String georchestraHeaderUrl;
     private @Value("${georchestra.gateway.headerHeight:90}") String georchestraHeaderHeight;
     private @Value("${georchestra.gateway.footerUrl:#{null}}") String georchestraFooterUrl;
 
-    private @Value("${georchestra.gateway.security.ldap.default.enabled:false}") boolean ldapEnabled;
-
     public static void main(String[] args) {
         SpringApplication.run(GeorchestraGatewayApplication.class, args);
+    }
+
+    @PostConstruct
+    void initialize() {
+        ldapEnabled = ldapConfigProperties.getLdap().values().stream().anyMatch((server -> server.isEnabled()));
     }
 
     @GetMapping(path = "/whoami", produces = "application/json")
@@ -79,7 +87,6 @@ public class GeorchestraGatewayApplication {
         // return principal == null ? Mono.empty() :
         // Mono.just(Map.of(principal.getClass().getCanonicalName(), principal));
     }
-
 
     @GetMapping(path = "/logout", produces = "text/html")
     public Mono<Rendering.Builder<?>> logout(Authentication principal, ServerWebExchange exchange) {
