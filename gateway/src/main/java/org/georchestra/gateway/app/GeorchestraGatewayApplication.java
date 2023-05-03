@@ -55,8 +55,8 @@ public class GeorchestraGatewayApplication {
     private @Autowired RouteLocator routeLocator;
     private @Autowired GeorchestraUserMapper userMapper;
 
-    private @Autowired LdapConfigProperties ldapConfigProperties;
-    private boolean ldapEnabled;
+    private @Autowired(required = false) LdapConfigProperties ldapConfigProperties;
+    private boolean ldapEnabled = false;
 
     private @Autowired(required = false) OAuth2ClientProperties oauth2ClientConfig;
     private @Value("${georchestra.gateway.headerUrl:/header/}") String georchestraHeaderUrl;
@@ -69,7 +69,9 @@ public class GeorchestraGatewayApplication {
 
     @PostConstruct
     void initialize() {
-        ldapEnabled = ldapConfigProperties.getLdap().values().stream().anyMatch((server -> server.isEnabled()));
+        if(ldapConfigProperties != null) {
+            ldapEnabled = ldapConfigProperties.getLdap().values().stream().anyMatch((server -> server.isEnabled()));
+        }
     }
 
     @GetMapping(path = "/whoami", produces = "application/json")
