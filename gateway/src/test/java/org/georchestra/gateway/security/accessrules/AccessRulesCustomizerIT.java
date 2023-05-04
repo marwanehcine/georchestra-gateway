@@ -76,14 +76,14 @@ class AccessRulesCustomizerIT {
                 mockService.getRuntimeInfo().getHttpBaseUrl());
 
         mockServiceTarget(registry, "header", "/header");
-        mockServiceTarget(registry, "mapfishapp", "/mapfishapp");
         mockServiceTarget(registry, "geoserver", "/geoserver");
         mockServiceTarget(registry, "console", "/console");
         mockServiceTarget(registry, "analytics", "/analytics");
         mockServiceTarget(registry, "datafeeder", "/datafeeder");
         mockServiceTarget(registry, "import", "/import");
-        mockServiceTarget(registry, "atlas", "/atlas");
         mockServiceTarget(registry, "geowebcache", "/geowebcache");
+        mockServiceTarget(registry, "geonetwork", "/geonetwork");
+        mockServiceTarget(registry, "mapstore", "/mapstore");
     }
 
     /**
@@ -135,66 +135,6 @@ class AccessRulesCustomizerIT {
 
         testClient.get().uri("/header").exchange().expectStatus().isOk();
         testClient.get().uri("/header/img/logo.png").exchange().expectStatus().isOk();
-    }
-
-    /**
-     * Revisit: not sure how to force a 403 (Forbidden) instead of a redirect to the
-     * login page when not yet authenticated
-     *
-     * <pre>
-     * {@code
-     * georchestra.gateway.services.mapfishapp:
-     *   access-rules:
-     *   - intercept-url: /mapfishapp/ogcproxy/**
-     *     forbidden: true
-     *   - intercept-url: /**
-     *     anonymous: true
-     * }
-     */
-    public @Test void testMapfishApp_ogproxy_access_denied_to_anonymous() {
-        mockService.stubFor(get(urlMatching("/mapfishapp/ogcproxy(/.*)?")).willReturn(ok()));
-        mockService.stubFor(get(urlMatching("/mapfishapp(/.*)?")).willReturn(ok()));
-
-        testClient.get().uri("/mapfishapp/ogcproxy")//
-                .exchange()//
-                .expectStatus().isFound();
-
-        testClient.get().uri("/mapfishapp/ogcproxy/somethingprivate")//
-                .exchange()//
-                .expectStatus().isFound();
-
-        testClient.get().uri("/mapfishapp/somethingpublic")//
-                .exchange()//
-                .expectStatus().isOk();
-    }
-
-    /**
-     * <pre>
-     * {@code
-     * georchestra.gateway.services.mapfishapp:
-     *   access-rules:
-     *   - intercept-url: /mapfishapp/ogcproxy/**
-     *     forbidden: true
-     *   - intercept-url: /**
-     *     anonymous: true
-     * }
-     */
-    @WithMockUser(authorities = { "ROLE_USER" })
-    public @Test void testMapfishApp_ogproxy_access_denied_to_authenticated_user() {
-        mockService.stubFor(get(urlMatching("/mapfishapp/ogcproxy(/.*)?")).willReturn(ok()));
-        mockService.stubFor(get(urlMatching("/mapfishapp(/.*)?")).willReturn(ok()));
-
-        testClient.get().uri("/mapfishapp/ogcproxy")//
-                .exchange()//
-                .expectStatus().isForbidden();
-
-        testClient.get().uri("/mapfishapp/ogcproxy/test")//
-                .exchange()//
-                .expectStatus().isForbidden();
-
-        testClient.get().uri("/mapfishapp/should_be_ok")//
-                .exchange()//
-                .expectStatus().isOk();
     }
 
     /**
@@ -314,20 +254,20 @@ class AccessRulesCustomizerIT {
      * 	      - /**
      * 	      anonymous: true
      * 	    services:
-     * 	      atlas:
-     * 	        target: http://atlas:8080/atlas/
+     * 	      mapstore:
+     * 	        target: http://mapstore:8080/mapstore/
      * }
      * </pre>
      */
     @Test
     void testGlobalAccessRule() {
-        mockService.stubFor(get(urlMatching("/atlas(/.*)?")).willReturn(ok()));
+        mockService.stubFor(get(urlMatching("/mapstore(/.*)?")).willReturn(ok()));
 
-        testClient.get().uri("/atlas")//
+        testClient.get().uri("/mapstore")//
                 .exchange()//
                 .expectStatus().isOk();
 
-        testClient.get().uri("/atlas/any/thing")//
+        testClient.get().uri("/mapstore/any/thing")//
                 .exchange()//
                 .expectStatus().isOk();
     }

@@ -11,6 +11,6 @@ spring:
 logging:
   level:
     reactor.netty: info
-    org.springframework.cloud.gateway: info
+    org.springframework.cloud.gateway: info # set trace for route matching logs
     org.georchestra.gateway.config.security.accessrules: info
     org.georchestra.gateway.security: debug
