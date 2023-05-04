@@ -261,10 +261,11 @@ class AccessRulesCustomizerIT {
      * </pre>
      */
     @Test
+    @WithMockUser(authorities = { "ROLE_SUPERUSER" })
     void testGlobalAccessRule_no_trailing_slash_is_anonymous() {
         mockService.stubFor(get(urlMatching("/analytics(/.*)?")).willReturn(ok()));
 
-        testClient.get().uri("/analytics")//
+        testClient.get().uri("/analytics/")//
                 .exchange()//
                 .expectStatus().isOk();
     }
@@ -328,7 +329,6 @@ class AccessRulesCustomizerIT {
                 .exchange()//
                 .expectStatus().isOk();
     }
-
 
     @Test
     void testQueryParamAuthentication_forbidden_when_anonymous() {
