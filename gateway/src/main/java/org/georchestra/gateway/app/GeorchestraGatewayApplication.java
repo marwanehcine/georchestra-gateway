@@ -69,7 +69,7 @@ public class GeorchestraGatewayApplication {
 
     @PostConstruct
     void initialize() {
-        if(ldapConfigProperties != null) {
+        if (ldapConfigProperties != null) {
             ldapEnabled = ldapConfigProperties.getLdap().values().stream().anyMatch((server -> server.isEnabled()));
         }
     }
