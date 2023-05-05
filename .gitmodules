@@ -5,4 +5,4 @@
 [submodule "datadir"]
 	path = datadir
 	url = https://github.com/georchestra/datadir.git
-	branch = spring_gateway
+	branch = master
