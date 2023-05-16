@@ -37,6 +37,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.unit.DataSize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.reactive.result.view.Rendering;
 import org.springframework.web.server.ServerWebExchange;
@@ -56,6 +57,7 @@ public class GeorchestraGatewayApplication {
     private @Autowired GeorchestraUserMapper userMapper;
 
     private @Autowired(required = false) LdapConfigProperties ldapConfigProperties;
+
     private boolean ldapEnabled = false;
 
     private @Autowired(required = false) OAuth2ClientProperties oauth2ClientConfig;
@@ -96,7 +98,7 @@ public class GeorchestraGatewayApplication {
     }
 
     @GetMapping(path = "/login")
-    public String loginPage(Model mdl) {
+    public String loginPage(@RequestParam Map<String, String> allRequestParams, Model mdl) {
         Map<String, String> oauth2LoginLinks = new HashMap<String, String>();
         if (oauth2ClientConfig != null) {
             oauth2ClientConfig.getRegistration().forEach((k, v) -> {
@@ -108,7 +110,8 @@ public class GeorchestraGatewayApplication {
         mdl.addAttribute("footer_url", georchestraFooterUrl);
         mdl.addAttribute("ldapEnabled", ldapEnabled);
         mdl.addAttribute("oauth2LoginLinks", oauth2LoginLinks);
-
+        boolean expired = "expired_password".equals(allRequestParams.get("error"));
+        mdl.addAttribute("passwordExpired", expired);
         return "login";
     }
 

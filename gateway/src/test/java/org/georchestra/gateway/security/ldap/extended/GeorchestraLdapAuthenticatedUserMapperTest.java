@@ -44,6 +44,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.ldap.userdetails.LdapUserDetails;
+import org.springframework.security.ldap.userdetails.LdapUserDetailsImpl;
 
 /**
  * Test suite for {@link GeorchestraLdapAuthenticatedUserMapper}
@@ -99,7 +100,7 @@ class GeorchestraLdapAuthenticatedUserMapperTest {
     @Test
     void testLdapUserDetails() {
         GeorchestraUser expected = mock(GeorchestraUser.class);
-        LdapUserDetails principal = mock(LdapUserDetails.class);
+        LdapUserDetailsImpl principal = mock(LdapUserDetailsImpl.class);
         when(principal.getUsername()).thenReturn("ldapuser");
         when(mockUsers.findByUsername(eq("ldapuser"))).thenReturn(Optional.of(expected));
         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(principal, null);

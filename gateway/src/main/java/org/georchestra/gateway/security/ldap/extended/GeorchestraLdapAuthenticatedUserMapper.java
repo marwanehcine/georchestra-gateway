@@ -34,6 +34,7 @@ import org.springframework.security.ldap.userdetails.LdapUserDetails;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.ldap.userdetails.LdapUserDetailsImpl;
 
 /**
  * {@link GeorchestraUserMapperExtension} that maps LDAP-authenticated token to
@@ -72,6 +73,8 @@ class GeorchestraLdapAuthenticatedUserMapper implements GeorchestraUserMapperExt
     private GeorchestraUser fixPrefixedRoleNames(GeorchestraUser user,
             GeorchestraUserNamePasswordAuthenticationToken token) {
 
+        final LdapUserDetailsImpl principal = (LdapUserDetailsImpl) token.getPrincipal();
+
         // Fix role name mismatch between authority provider (adds ROLE_ prefix) and
         // users api
         Set<String> prefixedRoleNames = token.getAuthorities().stream().filter(SimpleGrantedAuthority.class::isInstance)
@@ -82,6 +85,13 @@ class GeorchestraLdapAuthenticatedUserMapper implements GeorchestraUserMapperExt
                 .map(r -> prefixedRoleNames.contains("ROLE_" + r) ? "ROLE_" + r : r).collect(Collectors.toList());
 
         user.setRoles(roles);
+        if (principal.getTimeBeforeExpiration() < Integer.MAX_VALUE) {
+            user.setLdapWarn(true);
+            user.setLdapRemainingDays(String.valueOf(principal.getTimeBeforeExpiration() / (60 * 60 * 24)));
+        } else {
+            user.setLdapWarn(false);
+        }
+
         return user;
     }
 }

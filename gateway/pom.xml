@@ -102,6 +102,14 @@
       <artifactId>spring-security-test</artifactId>
       <scope>test</scope>
     </dependency>
+    <!-- ldaptive-netscape dependecy is added to include netscape.ldap.ber.stream.BERTagDecoder
+      class required in org.springframework.security.ldap.ppolicy.PasswordPolicyResponseControl class.
+      Dependency required to handle password policy errors received from LDAP.-->
+    <dependency>
+      <groupId>org.ldaptive</groupId>
+      <artifactId>ldaptive-netscape</artifactId>
+      <version>1.0</version>
+    </dependency>
   </dependencies>
   <build>
     <pluginManagement>
