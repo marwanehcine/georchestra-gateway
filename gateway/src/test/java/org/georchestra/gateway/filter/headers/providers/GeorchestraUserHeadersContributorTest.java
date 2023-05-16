@@ -103,6 +103,8 @@ class GeorchestraUserHeadersContributorTest {
         user.setPostalAddress("123 happy street");
         user.setNotes(":)");
         user.setRoles(List.of("ROLE_ADMIN", "ROLE_USER"));
+        user.setLdapWarn(false);
+        user.setLdapRemainingDays("");
 
         GeorchestraUsers.store(exchange, user);
 

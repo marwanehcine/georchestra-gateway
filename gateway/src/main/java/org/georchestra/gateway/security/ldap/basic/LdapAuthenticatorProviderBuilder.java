@@ -20,8 +20,8 @@ package org.georchestra.gateway.security.ldap.basic;
 
 import static java.util.Objects.requireNonNull;
 
+import org.georchestra.gateway.security.ldap.extended.ExtendedPasswordPolicyAwareContextSource;
 import org.springframework.ldap.core.support.BaseLdapPathContextSource;
-import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
 import org.springframework.security.core.authority.mapping.SimpleAuthorityMapper;
 import org.springframework.security.ldap.authentication.BindAuthenticator;
@@ -31,6 +31,7 @@ import org.springframework.security.ldap.userdetails.DefaultLdapAuthoritiesPopul
 
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import org.springframework.security.ldap.userdetails.LdapUserDetailsMapper;
 
 /**
  */
@@ -60,7 +61,7 @@ public class LdapAuthenticatorProviderBuilder {
         requireNonNull(rolesSearchBase, "rolesSearchBase is not set");
         requireNonNull(rolesSearchFilter, "rolesSearchFilter is not set");
 
-        final BaseLdapPathContextSource source = contextSource();
+        final ExtendedPasswordPolicyAwareContextSource source = contextSource();
         final BindAuthenticator authenticator = ldapAuthenticator(source);
         final DefaultLdapAuthoritiesPopulator rolesPopulator = ldapAuthoritiesPopulator(source);
 
@@ -68,6 +69,7 @@ public class LdapAuthenticatorProviderBuilder {
 
         final GrantedAuthoritiesMapper rolesMapper = ldapAuthoritiesMapper();
         provider.setAuthoritiesMapper(rolesMapper);
+        provider.setUserDetailsContextMapper(new LdapUserDetailsMapper());
         return provider;
     }
 
@@ -83,9 +85,8 @@ public class LdapAuthenticatorProviderBuilder {
         return authenticator;
     }
 
-    private BaseLdapPathContextSource contextSource() {
-        LdapContextSource context = new LdapContextSource();
-        context.setUrl(url);
+    private ExtendedPasswordPolicyAwareContextSource contextSource() {
+        ExtendedPasswordPolicyAwareContextSource context = new ExtendedPasswordPolicyAwareContextSource(url);
         context.setBase(baseDn);
         if (adminDn != null) {
             context.setUserDn(adminDn);
