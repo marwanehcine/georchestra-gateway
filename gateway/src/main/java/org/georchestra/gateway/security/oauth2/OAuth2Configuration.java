@@ -18,6 +18,8 @@
  */
 package org.georchestra.gateway.security.oauth2;
 
+import com.nimbusds.jwt.JWT;
+import com.nimbusds.jwt.JWTParser;
 import org.georchestra.gateway.security.ServerHttpSecurityCustomizer;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -36,6 +38,7 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.client.registration.ClientRegistration.ProviderDetails;
 import org.springframework.security.oauth2.client.userinfo.DefaultReactiveOAuth2UserService;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
+import org.springframework.security.oauth2.jwt.BadJwtException;
 import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoderFactory;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -43,6 +46,11 @@ import org.springframework.web.reactive.function.client.WebClient;
 import lombok.extern.slf4j.Slf4j;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.transport.ProxyProvider;
+
+import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
+import java.util.Arrays;
 
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties({ OAuth2ProxyConfigProperties.class, OpenIdConnectCustomClaimsConfigProperties.class })
@@ -103,15 +111,26 @@ public class OAuth2Configuration {
     @Bean
     public ReactiveJwtDecoderFactory<ClientRegistration> idTokenDecoderFactory(
             @Qualifier("oauth2WebClient") WebClient oauth2WebClient) {
-        return (clientRegistration) -> {
-            ProviderDetails providerDetails = clientRegistration.getProviderDetails();
-            String jwkSetUri = providerDetails.getJwkSetUri();
-            if ((jwkSetUri != null) && (!jwkSetUri.isEmpty())) {
-                return NimbusReactiveJwtDecoder.withJwkSetUri(jwkSetUri).webClient(oauth2WebClient).build();
-            } else {
-                ReactiveOidcIdTokenDecoderFactory idTokenDecoderFactory = new ReactiveOidcIdTokenDecoderFactory();
-                idTokenDecoderFactory.setJwsAlgorithmResolver(clientRegistration2 -> MacAlgorithm.HS256);
-                return idTokenDecoderFactory.createDecoder(clientRegistration);
+        return (clientRegistration) -> (token) -> {
+            try {
+                JWT jwt = JWTParser.parse(token);
+                MacAlgorithm macAlgorithm = MacAlgorithm.from(jwt.getHeader().getAlgorithm().getName());
+                if (macAlgorithm != null) {
+                    var secretKey = clientRegistration.getClientSecret().getBytes(StandardCharsets.UTF_8);
+                    if (secretKey.length < 64) {
+                        secretKey = Arrays.copyOf(secretKey, 64);
+                    }
+                    SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey, macAlgorithm.getName());
+                    return NimbusReactiveJwtDecoder.withSecretKey(secretKeySpec).macAlgorithm(macAlgorithm).build()
+                            .decode(token);
+                }
+                return NimbusReactiveJwtDecoder
+                        .withJwkSetUri(clientRegistration.getProviderDetails().getJwkSetUri())
+                        .webClient(oauth2WebClient).build().decode(token);
+            } catch (ParseException exception) {
+                throw new BadJwtException(
+                        "An error occurred while attempting to decode the Jwt: " + exception.getMessage(),
+                        exception);
             }
         };
     }
