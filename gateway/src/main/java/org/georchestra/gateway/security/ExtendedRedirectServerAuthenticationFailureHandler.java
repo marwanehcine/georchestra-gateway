@@ -13,7 +13,8 @@ import java.net.URI;
 public class ExtendedRedirectServerAuthenticationFailureHandler extends RedirectServerAuthenticationFailureHandler {
 
     private URI location;
-    
+
+    private static String INVALID_CREDENTIALS = "invalid_credentials";
     private static String EXPIRED_PASSWORD = "expired_password";
     private static String EXPIRED_MESSAGE = "Your password has expired";
     private ServerRedirectStrategy redirectStrategy = new DefaultServerRedirectStrategy();
@@ -27,7 +28,9 @@ public class ExtendedRedirectServerAuthenticationFailureHandler extends Redirect
     @Override
     public Mono<Void> onAuthenticationFailure(WebFilterExchange webFilterExchange, AuthenticationException exception) {
         this.location = URI.create("login?error");
-        if (exception instanceof org.springframework.security.authentication.LockedException
+        if (exception instanceof org.springframework.security.authentication.BadCredentialsException) {
+            this.location = URI.create("login?error=" + INVALID_CREDENTIALS);
+        } else if (exception instanceof org.springframework.security.authentication.LockedException
                 && exception.getMessage().equals(EXPIRED_MESSAGE)) {
             this.location = URI.create("login?error=" + EXPIRED_PASSWORD);
         }
