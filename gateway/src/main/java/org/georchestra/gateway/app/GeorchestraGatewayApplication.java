@@ -112,6 +112,8 @@ public class GeorchestraGatewayApplication {
         mdl.addAttribute("oauth2LoginLinks", oauth2LoginLinks);
         boolean expired = "expired_password".equals(allRequestParams.get("error"));
         mdl.addAttribute("passwordExpired", expired);
+        boolean invalidCredentials = "invalid_credentials".equals(allRequestParams.get("error"));
+        mdl.addAttribute("invalidCredentials", invalidCredentials);
         return "login";
     }
 
