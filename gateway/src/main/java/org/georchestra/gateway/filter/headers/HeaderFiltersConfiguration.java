@@ -49,6 +49,10 @@ public class HeaderFiltersConfiguration {
         return new AddSecHeadersGatewayFilterFactory(providers);
     }
 
+    public @Bean CookieAffinityGatewayFilterFactory cookieAffinityGatewayFilterFactory() {
+        return new CookieAffinityGatewayFilterFactory();
+    }
+
     public @Bean GeorchestraUserHeadersContributor userSecurityHeadersProvider() {
         return new GeorchestraUserHeadersContributor();
     }
