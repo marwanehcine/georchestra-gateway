@@ -16,26 +16,30 @@
   </header>
 <div class="container">
     <form class="form-signin" method="post" action="/login" th:if="${ldapEnabled}">
-        <h2 class="form-signin-heading">Please sign in</h2>
+        <h2 class="form-signin-heading"><span th:text="#{login_message_title}"></span></h2>
         <p>
-            <label for="username" class="sr-only">Username</label>
-            <input type="text" id="username" name="username" class="form-control" placeholder="Username" required autofocus>
+            <label for="username" class="sr-only">span th:text="#{username}"></span></label>
+            <input type="text" id="username" name="username" class="form-control" th:placeholder="#{username}" required autofocus>
         </p>
         <p>
-            <label for="password" class="sr-only">Password</label>
-            <input type="password" id="password" name="password" class="form-control" placeholder="Password" required>
+            <label for="password" class="sr-only">span th:text="#{password}"></span></label>
+            <input type="password" id="password" name="password" class="form-control" th:placeholder="#{password}" required>
         </p>
-        <button class="btn btn-lg btn-primary btn-block mb-2" type="submit">Sign in</button>
+        <button class="btn btn-lg btn-primary btn-block mb-2" type="submit"><span th:text="#{login}"></span></button>
         <div class="d-flex flex-row flex-wrap justify-content-around">
           <a href="/console/account/new">
-              <span>Sign up</span>
+              <span th:text="#{register}"></span>
           </a>
           <a href="/console/account/passwordRecovery">
-            <span>Forgot password?</span>
+              <span th:text="#{forget_password}"></span>
           </a>
         </div>
-        <div style="text-align: center; font-size: 18px; margin-top: 100px; color: #ff0033;" th:if="${invalidCredentials}"> Invalid username or password </div>
-        <div style="text-align: center; font-size: 18px; margin-top: 100px; color: #ff0033;" th:if="${passwordExpired}"> Your password has expired and <a href="/console/account/passwordRecovery" > should be changed </a> </div>
+        <div style="margin-top: 60px;">
+            <div style="text-align: center; font-size: 18px; color: #ff0033;" th:if="${invalidCredentials}"> <span th:text="#{invalid_credentials}"></span> </div>
+            <div style="text-align: center; font-size: 18px; color: #ff0033;" th:if="${passwordExpired}">  <span th:text="#{expired_password}" ></span>
+                <a href="/console/account/passwordRecovery" > <span th:text="#{expired_password_link}" ></span> </a>
+            </div>
+        </div>
     </form>
     <div th:if="${oauth2LoginLinks.size() != 0}" class="container"><h2 class="form-signin-heading">Login with OAuth 2.0</h2>
         <table class="table table-striped">
