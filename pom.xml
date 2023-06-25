@@ -40,7 +40,7 @@
       <dependency>
         <groupId>org.georchestra</groupId>
         <artifactId>georchestra-ldap-account-management</artifactId>
-        <version>22.1-SNAPSHOT</version>
+        <version>23.1-SNAPSHOT</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
