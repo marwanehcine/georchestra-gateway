@@ -124,13 +124,11 @@ public class OAuth2Configuration {
                     return NimbusReactiveJwtDecoder.withSecretKey(secretKeySpec).macAlgorithm(macAlgorithm).build()
                             .decode(token);
                 }
-                return NimbusReactiveJwtDecoder
-                        .withJwkSetUri(clientRegistration.getProviderDetails().getJwkSetUri())
+                return NimbusReactiveJwtDecoder.withJwkSetUri(clientRegistration.getProviderDetails().getJwkSetUri())
                         .webClient(oauth2WebClient).build().decode(token);
             } catch (ParseException exception) {
                 throw new BadJwtException(
-                        "An error occurred while attempting to decode the Jwt: " + exception.getMessage(),
-                        exception);
+                        "An error occurred while attempting to decode the Jwt: " + exception.getMessage(), exception);
             }
         };
     }
