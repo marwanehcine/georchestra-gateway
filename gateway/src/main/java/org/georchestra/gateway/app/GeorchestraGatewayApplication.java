@@ -102,7 +102,8 @@ public class GeorchestraGatewayApplication {
         Map<String, String> oauth2LoginLinks = new HashMap<String, String>();
         if (oauth2ClientConfig != null) {
             oauth2ClientConfig.getRegistration().forEach((k, v) -> {
-                oauth2LoginLinks.put("/oauth2/authorization/" + k, v.getClientName());
+                String clientName = Optional.ofNullable(v.getClientName()).orElse(k);
+                oauth2LoginLinks.put("/oauth2/authorization/" + k, clientName);
             });
         }
         mdl.addAttribute("header_url", georchestraHeaderUrl);
