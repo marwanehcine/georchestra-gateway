@@ -61,8 +61,7 @@ public class GeorchestraGatewayApplication {
     private boolean ldapEnabled = false;
 
     private @Autowired(required = false) OAuth2ClientProperties oauth2ClientConfig;
-    private @Value("${georchestra.gateway.headerUrl:/header/}") String georchestraHeaderUrl;
-    private @Value("${georchestra.gateway.headerHeight:90}") String georchestraHeaderHeight;
+    private @Value("${georchestra.gateway.headerEnabled:true}") boolean headerEnabled;
     private @Value("${georchestra.gateway.footerUrl:#{null}}") String georchestraFooterUrl;
 
     public static void main(String[] args) {
@@ -92,9 +91,10 @@ public class GeorchestraGatewayApplication {
         // Mono.just(Map.of(principal.getClass().getCanonicalName(), principal));
     }
 
-    @GetMapping(path = "/logout", produces = "text/html")
-    public Mono<Rendering.Builder<?>> logout(Authentication principal, ServerWebExchange exchange) {
-        return Mono.just(Rendering.view("logout"));
+    @GetMapping(path = "/logout")
+    public String logout(Model mdl) {
+        mdl.addAttribute("header_enabled", headerEnabled);
+        return "logout";
     }
 
     @GetMapping(path = "/login")
@@ -106,8 +106,7 @@ public class GeorchestraGatewayApplication {
                 oauth2LoginLinks.put("/oauth2/authorization/" + k, clientName);
             });
         }
-        mdl.addAttribute("header_url", georchestraHeaderUrl);
-        mdl.addAttribute("header_height", georchestraHeaderHeight);
+        mdl.addAttribute("header_enabled", headerEnabled);
         mdl.addAttribute("footer_url", georchestraFooterUrl);
         mdl.addAttribute("ldapEnabled", ldapEnabled);
         mdl.addAttribute("oauth2LoginLinks", oauth2LoginLinks);

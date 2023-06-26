@@ -10,7 +10,9 @@
     <link href="login/bootstrap.min.css" rel="stylesheet">
     <link href="login/signin.css" rel="stylesheet"/>
   </head>
-  <geor-header></geor-header>
+  <header th:if="${header_enabled}">
+    <geor-header></geor-header>
+  </header>
   <body>
      <div class="container mt-5">
       <form class="form-signin" method="post" action="/logout">
