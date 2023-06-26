@@ -19,16 +19,27 @@
 
 package org.georchestra.gateway.security.oauth2;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.georchestra.ds.DataServiceException;
+import org.georchestra.ds.roles.Role;
+import org.georchestra.ds.roles.RoleDao;
+import org.georchestra.ds.security.UserMapperImpl;
+import org.georchestra.ds.security.UsersApiImpl;
+import org.georchestra.ds.users.*;
+import org.georchestra.gateway.security.ldap.LdapConfigProperties;
 import org.georchestra.security.model.GeorchestraUser;
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.core.Ordered;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.oidc.AddressStandardClaim;
@@ -129,8 +140,18 @@ import lombok.extern.slf4j.Slf4j;
  * </ul>
  */
 @RequiredArgsConstructor
+@EnableConfigurationProperties({ LdapConfigProperties.class })
 @Slf4j(topic = "org.georchestra.gateway.security.oauth2")
 public class OpenIdConnectUserMapper extends OAuth2UserMapper {
+
+    @Autowired
+    LdapConfigProperties config;
+
+    @Autowired(required = false)
+    private AccountDao accountDao;
+
+    @Autowired(required = false)
+    private RoleDao roleDao;
 
     private final @NonNull OpenIdConnectCustomClaimsConfigProperties nonStandardClaimsConfig;
 
@@ -144,18 +165,56 @@ public class OpenIdConnectUserMapper extends OAuth2UserMapper {
     }
 
     protected @Override Optional<GeorchestraUser> map(OAuth2AuthenticationToken token) {
+        if (config.isCreateNonExistingUsersInLDAP()) {
+            String oAuth2ProviderId = String.format("%s;%s", token.getAuthorizedClientRegistrationId(),
+                    token.getName());
 
-        GeorchestraUser user = super.map(token).orElseGet(GeorchestraUser::new);
+            UserMapperImpl mapper = new UserMapperImpl();
+            mapper.setRoleDao(roleDao);
+            List<String> protectedUsers = Collections.emptyList();
+            UserRule rule = new UserRule();
+            rule.setListOfprotectedUsers(protectedUsers.toArray(String[]::new));
+            UsersApiImpl usersApi = new UsersApiImpl();
+            usersApi.setAccountsDao(accountDao);
+            usersApi.setMapper(mapper);
+            usersApi.setUserRule(rule);
 
-        OidcUser oidcUser = (OidcUser) token.getPrincipal();
-        try {
-            applyStandardClaims((StandardClaimAccessor) oidcUser, user);
-            applyNonStandardClaims(oidcUser.getClaims(), user);
-        } catch (Exception e) {
-            log.error("Error mapping non-standard OIDC claims for authenticated user", e);
-            throw new IllegalStateException(e);
+            Optional<GeorchestraUser> userOpt = usersApi.findByOAuth2ProviderId(oAuth2ProviderId);
+
+            if (userOpt.isEmpty()) {
+                try {
+                    OidcUser oidcUser = (OidcUser) token.getPrincipal();
+                    Account newAccount = AccountFactory.createBrief(oidcUser.getEmail(), null, oidcUser.getGivenName(),
+                            oidcUser.getFamilyName(), oidcUser.getEmail(), "", "", "", oAuth2ProviderId);
+                    newAccount.setPending(false);
+                    accountDao.insert(newAccount);
+                    roleDao.addUser(Role.USER, newAccount);
+                    userOpt = usersApi.findByOAuth2ProviderId(oAuth2ProviderId);
+                } catch (DuplicatedUidException e) {
+                    throw new IllegalStateException(e);
+                } catch (DuplicatedEmailException e) {
+                    throw new IllegalStateException(e);
+                } catch (DataServiceException e) {
+                    throw new IllegalStateException(e);
+                }
+            }
+
+            List<String> roles = userOpt.get().getRoles().stream().map(r -> r.contains("ROLE_") ? r : "ROLE_" + r)
+                    .collect(Collectors.toList());
+            userOpt.get().setRoles(roles);
+            return userOpt;
+        } else {
+            GeorchestraUser user = super.map(token).orElseGet(GeorchestraUser::new);
+            OidcUser oidcUser = (OidcUser) token.getPrincipal();
+            try {
+                applyStandardClaims(oidcUser, user);
+                applyNonStandardClaims(oidcUser.getClaims(), user);
+            } catch (Exception e) {
+                log.error("Error mapping non-standard OIDC claims for authenticated user", e);
+                throw new IllegalStateException(e);
+            }
+            return Optional.of(user);
         }
-        return Optional.of(user);
     }
 
     /**

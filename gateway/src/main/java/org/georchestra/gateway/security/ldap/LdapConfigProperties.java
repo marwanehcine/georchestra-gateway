@@ -63,6 +63,8 @@ import lombok.experimental.Accessors;
 @ConfigurationProperties(prefix = "georchestra.gateway.security")
 public class LdapConfigProperties implements Validator {
 
+    private boolean createNonExistingUsersInLDAP = true;
+
     @Valid
     private Map<String, Server> ldap = Map.of();
 
