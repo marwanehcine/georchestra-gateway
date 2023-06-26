@@ -11,15 +11,9 @@
     <link href="login/signin.css" rel="stylesheet"/>
 </head>
 <body>
-<!--
-<header th:if="${header_url != null}">
-    <iframe id="header" title="Header" th:src="${header_url}" th:style="'width:100%;height:'+${header_height}+'px;border:none;overflow:hidden;transition: all 0.3s ease 0s;'" scrolling="no"
-            frameborder="0"></iframe>
-</header>
--->
-<header>
+  <header th:if="${header_enabled}">
     <geor-header></geor-header>
-</header>
+  </header>
 <div class="container">
     <form class="form-signin" method="post" action="/login" th:if="${ldapEnabled}">
         <h2 class="form-signin-heading">Please sign in</h2>
