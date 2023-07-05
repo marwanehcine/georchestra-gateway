@@ -53,6 +53,10 @@ public class HeaderFiltersConfiguration {
         return new CookieAffinityGatewayFilterFactory();
     }
 
+    public @Bean ProxyGatewayFilterFactory proxyGatewayFilterFactory() {
+        return new ProxyGatewayFilterFactory();
+    }
+
     public @Bean GeorchestraUserHeadersContributor userSecurityHeadersProvider() {
         return new GeorchestraUserHeadersContributor();
     }
