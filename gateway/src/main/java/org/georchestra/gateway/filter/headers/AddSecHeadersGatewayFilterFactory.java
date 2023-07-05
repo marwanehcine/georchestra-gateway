@@ -36,6 +36,8 @@ import reactor.core.publisher.Mono;
 public class AddSecHeadersGatewayFilterFactory
         extends AbstractGatewayFilterFactory<AbstractGatewayFilterFactory.NameConfig> {
 
+    public static String DISABLE_SECURITY_HEADERS = AddSecHeadersGatewayFilterFactory.class.getName()
+            + ".DISABLE_SECURITY_HEADERS";
     private final List<HeaderContributor> providers;
 
     public AddSecHeadersGatewayFilterFactory(List<HeaderContributor> providers) {
@@ -57,15 +59,18 @@ public class AddSecHeadersGatewayFilterFactory
         private final @NonNull List<HeaderContributor> providers;
 
         public @Override Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-            ServerHttpRequest.Builder requestBuilder = exchange.getRequest().mutate();
+            if (exchange.getAttribute(DISABLE_SECURITY_HEADERS) == null) {
+                ServerHttpRequest.Builder requestBuilder = exchange.getRequest().mutate();
 
-            providers.stream()//
-                    .map(provider -> provider.prepare(exchange))//
-                    .forEach(requestBuilder::headers);
+                providers.stream()//
+                        .map(provider -> provider.prepare(exchange))//
+                        .forEach(requestBuilder::headers);
 
-            ServerHttpRequest request = requestBuilder.build();
-            ServerWebExchange updatedExchange = exchange.mutate().request(request).build();
-            return chain.filter(updatedExchange);
+                ServerHttpRequest request = requestBuilder.build();
+                ServerWebExchange updatedExchange = exchange.mutate().request(request).build();
+                return chain.filter(updatedExchange);
+            }
+            return chain.filter(exchange);
         }
 
         @Override
