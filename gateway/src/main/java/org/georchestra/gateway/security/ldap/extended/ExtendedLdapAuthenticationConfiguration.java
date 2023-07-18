@@ -86,18 +86,26 @@ public class ExtendedLdapAuthenticationConfiguration {
     private GeorchestraLdapAuthenticationProvider createLdapProvider(ExtendedLdapConfig config) {
         log.info("Creating extended LDAP AuthenticationProvider {} at {}", config.getName(), config.getUrl());
 
-        LdapAuthenticationProvider delegate = new LdapAuthenticatorProviderBuilder()//
-                .url(config.getUrl())//
-                .baseDn(config.getBaseDn())//
-                .userSearchBase(config.getUsersRdn())//
-                .userSearchFilter(config.getUsersSearchFilter())//
-                .rolesSearchBase(config.getRolesRdn())//
-                .rolesSearchFilter(config.getRolesSearchFilter())//
-                .adminDn(config.getAdminDn().orElse(null))//
-                .adminPassword(config.getAdminPassword().orElse(null))//
-                .returningAttributes(config.getReturningAttributes()).build();
+        final LdapTemplate ldapTemplate;
+        try {
+            ldapTemplate = ldapTemplate(config);
+            final AccountDao accountsDao = accountsDao(ldapTemplate, config);
+            ExtendedLdapAuthenticationProvider delegate = new LdapAuthenticatorProviderBuilder()//
+                    .url(config.getUrl())//
+                    .baseDn(config.getBaseDn())//
+                    .userSearchBase(config.getUsersRdn())//
+                    .userSearchFilter(config.getUsersSearchFilter())//
+                    .rolesSearchBase(config.getRolesRdn())//
+                    .rolesSearchFilter(config.getRolesSearchFilter())//
+                    .adminDn(config.getAdminDn().orElse(null))//
+                    .adminPassword(config.getAdminPassword().orElse(null))//
+                    .returningAttributes(config.getReturningAttributes()).accountDao(accountsDao).build();
+            return new GeorchestraLdapAuthenticationProvider(config.getName(), delegate);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
 
-        return new GeorchestraLdapAuthenticationProvider(config.getName(), delegate);
+        }
+
     }
 
     @Bean

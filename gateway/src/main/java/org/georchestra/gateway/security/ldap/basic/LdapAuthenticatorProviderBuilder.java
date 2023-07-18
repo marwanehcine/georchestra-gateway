@@ -20,12 +20,14 @@ package org.georchestra.gateway.security.ldap.basic;
 
 import static java.util.Objects.requireNonNull;
 
+import org.georchestra.ds.users.AccountDao;
+import org.georchestra.gateway.security.ldap.extended.ExtendedLdapAuthenticationProvider;
 import org.georchestra.gateway.security.ldap.extended.ExtendedPasswordPolicyAwareContextSource;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.ldap.core.support.BaseLdapPathContextSource;
 import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
 import org.springframework.security.core.authority.mapping.SimpleAuthorityMapper;
 import org.springframework.security.ldap.authentication.BindAuthenticator;
-import org.springframework.security.ldap.authentication.LdapAuthenticationProvider;
 import org.springframework.security.ldap.search.FilterBasedLdapUserSearch;
 import org.springframework.security.ldap.userdetails.DefaultLdapAuthoritiesPopulator;
 
@@ -35,6 +37,7 @@ import org.springframework.security.ldap.userdetails.LdapUserDetailsMapper;
 
 /**
  */
+@Configuration
 @Accessors(chain = true, fluent = true)
 public class LdapAuthenticatorProviderBuilder {
 
@@ -50,10 +53,12 @@ public class LdapAuthenticatorProviderBuilder {
     private @Setter String adminDn;
     private @Setter String adminPassword;
 
+    private @Setter AccountDao accountDao;
+
     // null = all atts, empty == none
     private @Setter String[] returningAttributes = null;
 
-    public LdapAuthenticationProvider build() {
+    public ExtendedLdapAuthenticationProvider build() {
         requireNonNull(url, "url is not set");
         requireNonNull(baseDn, "baseDn is not set");
         requireNonNull(userSearchBase, "userSearchBase is not set");
@@ -64,12 +69,13 @@ public class LdapAuthenticatorProviderBuilder {
         final ExtendedPasswordPolicyAwareContextSource source = contextSource();
         final BindAuthenticator authenticator = ldapAuthenticator(source);
         final DefaultLdapAuthoritiesPopulator rolesPopulator = ldapAuthoritiesPopulator(source);
-
-        LdapAuthenticationProvider provider = new LdapAuthenticationProvider(authenticator, rolesPopulator);
+        ExtendedLdapAuthenticationProvider provider = new ExtendedLdapAuthenticationProvider(authenticator,
+                rolesPopulator);
 
         final GrantedAuthoritiesMapper rolesMapper = ldapAuthoritiesMapper();
         provider.setAuthoritiesMapper(rolesMapper);
         provider.setUserDetailsContextMapper(new LdapUserDetailsMapper());
+        provider.setAccountDao(accountDao);
         return provider;
     }
 
