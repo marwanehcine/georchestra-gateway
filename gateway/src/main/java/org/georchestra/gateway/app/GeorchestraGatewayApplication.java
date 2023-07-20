@@ -30,7 +30,10 @@ import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2Clien
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.gateway.route.RouteLocator;
+import org.springframework.context.MessageSource;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.event.EventListener;
+import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.core.env.Environment;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -45,6 +48,7 @@ import reactor.core.publisher.Mono;
 
 import javax.annotation.PostConstruct;
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @Controller
@@ -63,6 +67,7 @@ public class GeorchestraGatewayApplication {
     private @Autowired(required = false) OAuth2ClientProperties oauth2ClientConfig;
     private @Value("${georchestra.gateway.headerEnabled:true}") boolean headerEnabled;
     private @Value("${georchestra.gateway.footerUrl:#{null}}") String georchestraFooterUrl;
+    private @Value("${spring.messages.basename:}") String messagesBasename;
 
     public static void main(String[] args) {
         SpringApplication.run(GeorchestraGatewayApplication.class, args);
@@ -143,4 +148,13 @@ public class GeorchestraGatewayApplication {
                 routeCount, instanceId, cpus, maxMem);
     }
 
+    @Bean
+    public MessageSource messageSource() {
+        ReloadableResourceBundleMessageSource messageSource = new ReloadableResourceBundleMessageSource();
+        messageSource.setBasenames(("classpath:messages/login," + messagesBasename).split(","));
+        messageSource.setCacheSeconds(600);
+        messageSource.setUseCodeAsDefaultMessage(true);
+        messageSource.setDefaultEncoding(StandardCharsets.UTF_8.name());
+        return messageSource;
+    }
 }

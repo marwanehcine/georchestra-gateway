@@ -19,9 +19,6 @@ server:
 spring:
   config:
     import: optional:file:${georchestra.datadir}/default.properties,optional:file:${georchestra.datadir}/gateway/gateway.yaml
-  messages:
-    basename: messages/login
-    encoding: utf-8
   main:
     banner-mode: off
     web-application-type: reactive
