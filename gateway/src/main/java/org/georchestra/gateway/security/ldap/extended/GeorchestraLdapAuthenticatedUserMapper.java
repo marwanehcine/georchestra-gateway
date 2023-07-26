@@ -69,9 +69,9 @@ class GeorchestraLdapAuthenticatedUserMapper implements GeorchestraUserMapperExt
         Optional<GeorchestraUser> user = users.findByUsername(ldapConfigName, username);
         if (user.isEmpty()) {
             user = users.findByEmail(ldapConfigName, username);
-            if (user.isPresent() && user.get().getUsername().contains(user.get().getEmail())) {
-                user.get().setIsOAuth2User(true);
-            }
+        }
+        if (user.isPresent() && user.get().getOAuth2Provider() != null) {
+            user.get().setIsOAuth2User(true);
         }
 
         return user.map(u -> fixPrefixedRoleNames(u, token));
