@@ -103,9 +103,7 @@ public class ExtendedLdapAuthenticationConfiguration {
             return new GeorchestraLdapAuthenticationProvider(config.getName(), delegate);
         } catch (Exception e) {
             throw new RuntimeException(e);
-
         }
-
     }
 
     @Bean

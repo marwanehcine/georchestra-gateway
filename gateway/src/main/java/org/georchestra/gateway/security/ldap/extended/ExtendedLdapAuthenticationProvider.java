@@ -3,7 +3,6 @@ package org.georchestra.gateway.security.ldap.extended;
 import org.georchestra.ds.DataServiceException;
 import org.georchestra.ds.users.Account;
 import org.georchestra.ds.users.AccountDao;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ldap.NameNotFoundException;
 import org.springframework.ldap.core.DirContextOperations;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -40,9 +39,7 @@ public class ExtendedLdapAuthenticationProvider extends LdapAuthenticationProvid
         try {
             account = accountDao.findByEmail(userToken.getName());
         } catch (DataServiceException e) {
-
         } catch (NameNotFoundException e) {
-
         }
         if (account != null) {
             userToken = new UsernamePasswordAuthenticationToken(account.getUid(), userToken.getCredentials());
@@ -66,5 +63,4 @@ public class ExtendedLdapAuthenticationProvider extends LdapAuthenticationProvid
 
         return createSuccessfulAuthentication(userToken, user);
     }
-
 }
