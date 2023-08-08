@@ -69,4 +69,10 @@ class DemultiplexingUsersApi {
         Objects.requireNonNull(target, () -> "No UsersApi found for config named " + serviceName);
         return target.findByUsername(username);
     }
+
+    public Optional<GeorchestraUser> findByEmail(@NonNull String serviceName, @NonNull String email) {
+        UsersApi target = targets.get(serviceName);
+        Objects.requireNonNull(target, () -> "No UsersApi found for config named " + serviceName);
+        return target.findByEmail(email);
+    }
 }
