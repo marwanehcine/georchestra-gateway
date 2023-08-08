@@ -20,16 +20,22 @@
 package org.georchestra.gateway.autoconfigure.security;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
+import java.util.HashMap;
 import java.util.List;
 
+import org.georchestra.ds.users.AccountDaoImpl;
 import org.georchestra.gateway.security.oauth2.OAuth2Configuration.OAuth2AuthenticationCustomizer;
 import org.georchestra.gateway.security.oauth2.OAuth2ProxyConfigProperties;
 import org.georchestra.gateway.security.oauth2.OpenIdConnectCustomClaimsConfigProperties;
 import org.georchestra.gateway.security.oauth2.OpenIdConnectCustomClaimsConfigProperties.RolesMapping;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.ldap.core.LdapTemplate;
+import org.springframework.security.ldap.DefaultSpringSecurityContextSource;
 import org.springframework.security.oauth2.client.endpoint.ReactiveOAuth2AccessTokenResponseClient;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcReactiveOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.DefaultReactiveOAuth2UserService;
@@ -42,6 +48,27 @@ import org.springframework.security.oauth2.client.userinfo.ReactiveOAuth2UserSer
 class OAuth2SecurityAutoConfigurationTest {
     private ApplicationContextRunner runner = new ApplicationContextRunner()
             .withConfiguration(AutoConfigurations.of(OAuth2SecurityAutoConfiguration.class));
+
+    @BeforeEach
+    void setUp() throws Exception {
+        assumeTrue(System.getProperty("console.test.openldap.ldapurl") != null
+                && System.getProperty("console.test.openldap.basedn") != null);
+
+        String ldapUrl = System.getProperty("console.test.openldap.ldapurl");
+        String baseDn = System.getProperty("console.test.openldap.basedn");
+
+        DefaultSpringSecurityContextSource contextSource = new DefaultSpringSecurityContextSource(ldapUrl + baseDn);
+        contextSource.setBase(baseDn);
+        contextSource.setUrl(ldapUrl);
+        contextSource.setBaseEnvironmentProperties(new HashMap<String, Object>());
+        contextSource.setAnonymousReadOnly(true);
+        contextSource.setCacheEnvironmentProperties(false);
+
+        LdapTemplate ldapTemplate = new LdapTemplate(contextSource);
+
+        AccountDaoImpl accountDaoImpl = new AccountDaoImpl(ldapTemplate);
+        accountDaoImpl.setUserSearchBaseDN("ou=users");
+    }
 
     @Test
     void testDisabledByDefault() {

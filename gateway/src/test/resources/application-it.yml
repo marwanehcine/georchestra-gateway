@@ -1,6 +1,8 @@
 # if in need of debugging what's going on with the proxied requests and the wiremock server,
 # set wiretap to true and logging levels to trace
 spring:
+  config:
+    import: optional:file:src/test/resources/test-datadir/gateway/security.yaml
   cloud:
     gateway:
       httpclient:

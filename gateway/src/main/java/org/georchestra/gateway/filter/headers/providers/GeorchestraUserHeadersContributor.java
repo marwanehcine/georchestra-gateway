@@ -61,7 +61,8 @@ public class GeorchestraUserHeadersContributor extends HeaderContributor {
                         add(headers, "sec-address", mappings.getAddress(), user.map(GeorchestraUser::getPostalAddress));
                         add(headers, "sec-title", mappings.getTitle(), user.map(GeorchestraUser::getTitle));
                         add(headers, "sec-notes", mappings.getNotes(), user.map(GeorchestraUser::getNotes));
-                        add(headers, "sec-ldap-remaining-days", user.map(GeorchestraUser::getLdapWarn),
+                        add(headers, "sec-ldap-remaining-days", Optional
+                                .of(user.isPresent() && user.get().getLdapWarn() != null && user.get().getLdapWarn()),
                                 user.map(GeorchestraUser::getLdapRemainingDays));
                     });
         };

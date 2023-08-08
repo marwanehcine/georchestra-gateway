@@ -20,16 +20,14 @@ package org.georchestra.gateway.security;
 
 import lombok.extern.slf4j.Slf4j;
 import org.georchestra.gateway.model.GatewayConfigProperties;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
-import org.springframework.security.web.server.authentication.RedirectServerAuthenticationFailureHandler;
-import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatcher;
-import org.springframework.web.server.ServerWebExchange;
-import reactor.core.publisher.Mono;
+import org.springframework.security.web.server.authentication.logout.ServerLogoutSuccessHandler;
 
 import java.util.List;
 import java.util.Map;
@@ -50,7 +48,7 @@ import java.util.stream.Stream;
  */
 @Configuration(proxyBeanMethods = false)
 @EnableWebFluxSecurity
-@EnableConfigurationProperties(GatewayConfigProperties.class)
+@EnableConfigurationProperties({ GatewayConfigProperties.class })
 @Slf4j(topic = "org.georchestra.gateway.security")
 public class GatewaySecurityConfiguration {
 
@@ -59,6 +57,10 @@ public class GatewaySecurityConfiguration {
      * configure the different aspects of the {@link ServerHttpSecurity} used to
      * {@link ServerHttpSecurity#build build} the {@link SecurityWebFilterChain}.
      */
+
+    @Autowired
+    ServerLogoutSuccessHandler oidcLogoutSuccessHandler;
+
     @Bean
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http,
             List<ServerHttpSecurityCustomizer> customizers) throws Exception {
@@ -80,7 +82,8 @@ public class GatewaySecurityConfiguration {
 
         log.info("Security filter chain initialized");
 
-        return http.formLogin().loginPage("/login").and().logout().logoutUrl("/logout").and().build();
+        return http.formLogin().loginPage("/login").and().logout().logoutUrl("/logout")
+                .logoutSuccessHandler(oidcLogoutSuccessHandler).and().build();
     }
 
     private Stream<ServerHttpSecurityCustomizer> sortedCustomizers(List<ServerHttpSecurityCustomizer> customizers) {
