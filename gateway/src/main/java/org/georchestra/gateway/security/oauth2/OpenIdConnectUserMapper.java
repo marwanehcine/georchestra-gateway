@@ -39,8 +39,10 @@ import org.georchestra.gateway.security.ldap.LdapConfigProperties;
 import org.georchestra.security.model.GeorchestraUser;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.core.Ordered;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.oidc.AddressStandardClaim;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
@@ -53,6 +55,7 @@ import com.google.common.annotations.VisibleForTesting;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.client.RestTemplate;
 
 /**
  * Maps an OpenID authenticated {@link OidcUser user} to a
@@ -144,6 +147,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j(topic = "org.georchestra.gateway.security.oauth2")
 public class OpenIdConnectUserMapper extends OAuth2UserMapper {
 
+    @Value("https://${domainName}")
+    private String publicUrl;
+
     @Autowired
     LdapConfigProperties config;
 
@@ -190,6 +196,13 @@ public class OpenIdConnectUserMapper extends OAuth2UserMapper {
                     accountDao.insert(newAccount);
                     roleDao.addUser(Role.USER, newAccount);
                     userOpt = usersApi.findByOAuth2ProviderId(oAuth2ProviderId);
+                    try {
+                        RestTemplate restTemplate = new RestTemplate();
+                        ResponseEntity<String> response = restTemplate.getForEntity(
+                                publicUrl + "/console/account/log/" + userOpt.get().getEmail(), String.class);
+                    } catch (Exception e) {
+                        log.error("Cannot add OAuth2 account creation notification to console", e);
+                    }
                 } catch (DuplicatedUidException e) {
                     throw new IllegalStateException(e);
                 } catch (DuplicatedEmailException e) {
