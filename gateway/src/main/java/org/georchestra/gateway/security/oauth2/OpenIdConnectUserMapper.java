@@ -35,6 +35,7 @@ import org.georchestra.ds.roles.RoleDao;
 import org.georchestra.ds.security.UserMapperImpl;
 import org.georchestra.ds.security.UsersApiImpl;
 import org.georchestra.ds.users.*;
+import org.georchestra.gateway.events.RabbitmqEventsSender;
 import org.georchestra.gateway.security.ldap.LdapConfigProperties;
 import org.georchestra.security.model.GeorchestraUser;
 import org.slf4j.Logger;
@@ -153,6 +154,9 @@ public class OpenIdConnectUserMapper extends OAuth2UserMapper {
     @Autowired(required = false)
     private RoleDao roleDao;
 
+    @Autowired(required = false)
+    private RabbitmqEventsSender eventsSender;
+
     private final @NonNull OpenIdConnectCustomClaimsConfigProperties nonStandardClaimsConfig;
 
     protected @Override Predicate<OAuth2AuthenticationToken> tokenFilter() {
@@ -165,6 +169,7 @@ public class OpenIdConnectUserMapper extends OAuth2UserMapper {
     }
 
     protected @Override Optional<GeorchestraUser> map(OAuth2AuthenticationToken token) {
+
         if (config.isCreateNonExistingUsersInLDAP()) {
             String oAuth2ProviderId = String.format("%s;%s", token.getAuthorizedClientRegistrationId(),
                     token.getName());
@@ -190,12 +195,19 @@ public class OpenIdConnectUserMapper extends OAuth2UserMapper {
                     accountDao.insert(newAccount);
                     roleDao.addUser(Role.USER, newAccount);
                     userOpt = usersApi.findByOAuth2ProviderId(oAuth2ProviderId);
+                    if (config.isEnableRabbitmqEvents() && eventsSender != null) {
+                        eventsSender.sendNewOAuthAccountMessage(
+                                oidcUser.getGivenName() + " " + oidcUser.getFamilyName(), oidcUser.getEmail(),
+                                token.getAuthorizedClientRegistrationId());
+                    }
                 } catch (DuplicatedUidException e) {
                     throw new IllegalStateException(e);
                 } catch (DuplicatedEmailException e) {
                     throw new IllegalStateException(e);
                 } catch (DataServiceException e) {
                     throw new IllegalStateException(e);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
                 }
             }
 

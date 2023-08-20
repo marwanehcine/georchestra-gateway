@@ -67,6 +67,14 @@
       <optional>true</optional>
     </dependency>
     <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-amqp</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.amqp</groupId>
+      <artifactId>spring-rabbit</artifactId>
+    </dependency>
+    <dependency>
       <!-- Annotation processor that generates metadata about classes annotated with @ConfigurationProperties. -->
       <!-- This metadata is used by IDEs to provide auto-completion and documentation for the properties when editing application.properties 
         and application.yaml -->
@@ -109,6 +117,13 @@
       <groupId>org.ldaptive</groupId>
       <artifactId>ldaptive-netscape</artifactId>
       <version>1.0</version>
+    </dependency>
+    <!-- org.json dependency added to send and receive data
+    over rabbitmq event as json object stringified.-->
+    <dependency>
+      <groupId>org.json</groupId>
+      <artifactId>json</artifactId>
+      <version>20230618</version>
     </dependency>
   </dependencies>
   <build>
