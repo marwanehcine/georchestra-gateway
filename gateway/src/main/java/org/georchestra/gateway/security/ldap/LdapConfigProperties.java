@@ -65,6 +65,8 @@ public class LdapConfigProperties implements Validator {
 
     private boolean createNonExistingUsersInLDAP = true;
 
+    private boolean enableRabbitmqEvents = true;
+
     @Valid
     private Map<String, Server> ldap = Map.of();
 

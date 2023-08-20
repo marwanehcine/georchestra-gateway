@@ -133,6 +133,7 @@ logging:
     '[org.georchestra.gateway.config.security.accessrules]': debug
     '[org.georchestra.gateway.security.ldap]': debug
     '[org.georchestra.gateway.security.oauth2]': debug
+    '[org.georchestra.gateway.events]': debug
 
 ---
 spring.config.activate.on-profile: dev
