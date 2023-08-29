@@ -58,7 +58,7 @@ public class GatewaySecurityConfiguration {
      * {@link ServerHttpSecurity#build build} the {@link SecurityWebFilterChain}.
      */
 
-    @Autowired
+    @Autowired(required = false)
     ServerLogoutSuccessHandler oidcLogoutSuccessHandler;
 
     @Bean
@@ -82,8 +82,12 @@ public class GatewaySecurityConfiguration {
 
         log.info("Security filter chain initialized");
 
-        return http.formLogin().loginPage("/login").and().logout().logoutUrl("/logout")
-                .logoutSuccessHandler(oidcLogoutSuccessHandler).and().build();
+        if (oidcLogoutSuccessHandler != null) {
+            return http.formLogin().loginPage("/login").and().logout().logoutUrl("/logout")
+                    .logoutSuccessHandler(oidcLogoutSuccessHandler).and().build();
+        } else {
+            return http.formLogin().loginPage("/login").and().logout().logoutUrl("/logout").and().build();
+        }
     }
 
     private Stream<ServerHttpSecurityCustomizer> sortedCustomizers(List<ServerHttpSecurityCustomizer> customizers) {
