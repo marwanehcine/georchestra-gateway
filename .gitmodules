@@ -1,7 +1,8 @@
 [submodule "georchestra"]
 	path = georchestra
 	url = https://github.com/georchestra/georchestra.git
-	shallow = true
+    shallow = true
+    branch = master
 [submodule "datadir"]
 	path = datadir
 	url = https://github.com/georchestra/datadir.git
