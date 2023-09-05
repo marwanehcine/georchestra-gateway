@@ -10,12 +10,12 @@ server:
   port: 8080
   compression.enabled: true
   # HTTP/2 is only supported over TLS (HTTPS)
-  # So we need to configure SSL if we want to support HTTP/2 
+  # So we need to configure SSL if we want to support HTTP/2
   http2.enabled: ${server.ssl.enabled}
   ssl:
     enabled: false
     #TODO: configure SSL with a self-signed certificate
-    
+
 spring:
   config:
     import: optional:file:${georchestra.datadir}/default.properties,optional:file:${georchestra.datadir}/gateway/gateway.yaml,optional:file:${georchestra.datadir}/gateway/security.yaml
@@ -54,6 +54,8 @@ spring:
 
 georchestra:
   gateway:
+    csrfEnabled: false
+    corsEnabled: false
     security:
       oauth2:
         enabled: false

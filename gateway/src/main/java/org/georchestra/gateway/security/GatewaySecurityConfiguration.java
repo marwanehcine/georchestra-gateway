@@ -30,6 +30,7 @@ import org.springframework.security.config.annotation.web.reactive.EnableWebFlux
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authentication.logout.ServerLogoutSuccessHandler;
+import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
@@ -82,8 +83,13 @@ public class GatewaySecurityConfiguration {
             log.info("CORS disabled. Revisit how they interfer with Websockets proxying.");
             http.cors().disable();
         } else {
-            // TODO configure ?!
-            http.cors().configurationSource(new UrlBasedCorsConfigurationSource());
+            CorsConfiguration config = new CorsConfiguration();
+            config.addAllowedOrigin(CorsConfiguration.ALL);
+            config.addAllowedHeader("*");
+            config.addAllowedMethod("*");
+            UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+            source.registerCorsConfiguration("/**", config);
+            http.cors().configurationSource(source);
         }
         http.formLogin()
                 .authenticationFailureHandler(new ExtendedRedirectServerAuthenticationFailureHandler("login?error"))
