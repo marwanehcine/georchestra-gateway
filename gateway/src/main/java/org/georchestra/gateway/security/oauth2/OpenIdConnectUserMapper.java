@@ -207,7 +207,6 @@ public class OpenIdConnectUserMapper extends OAuth2UserMapper {
                 } catch (DataServiceException e) {
                     throw new IllegalStateException(e);
                 } catch (Exception e) {
-                    throw new RuntimeException(e);
                 }
             }
 
