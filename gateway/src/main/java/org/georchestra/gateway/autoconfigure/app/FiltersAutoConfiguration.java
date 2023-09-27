@@ -25,7 +25,10 @@ import org.georchestra.gateway.model.GeorchestraTargetConfig;
 import org.geoserver.cloud.gateway.filter.RouteProfileGatewayFilterFactory;
 import org.geoserver.cloud.gateway.filter.StripBasePathGatewayFilterFactory;
 import org.geoserver.cloud.gateway.predicate.RegExpQueryRoutePredicateFactory;
+import org.springframework.boot.actuate.health.Health;
+import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.gateway.config.GatewayAutoConfiguration;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
@@ -65,4 +68,8 @@ public class FiltersAutoConfiguration {
         return new StripBasePathGatewayFilterFactory();
     }
 
+    @ConditionalOnProperty(name = "enableRabbitmqEvents", havingValue = "true", matchIfMissing = false)
+    public @Bean HealthIndicator rabbitHealthIndicator() {
+        return () -> Health.up().withDetail("version", "mock").build();
+    }
 }

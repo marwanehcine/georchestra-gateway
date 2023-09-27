@@ -7,6 +7,7 @@ import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.amqp.core.Queue;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.gateway.config.GatewayAutoConfiguration;
 import org.springframework.context.annotation.*;
 
@@ -14,7 +15,7 @@ import org.springframework.context.annotation.*;
 @Configuration(proxyBeanMethods = false)
 @AutoConfigureAfter(GatewayAutoConfiguration.class)
 @ImportResource({ "classpath:rabbit-listener-context.xml", "classpath:rabbit-sender-context.xml" })
-@ConditionalOnExpression("${georchestra.gateway.security.enableRabbitmqEvents:true}")
+@ConditionalOnProperty(name = "enableRabbitmqEvents", havingValue = "true", matchIfMissing = false)
 public class RabbitmqEventsAutoConfiguration {
 
     @Bean
