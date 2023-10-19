@@ -21,8 +21,6 @@ package org.georchestra.gateway.security;
 import lombok.extern.slf4j.Slf4j;
 import org.georchestra.gateway.model.GatewayConfigProperties;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,9 +28,6 @@ import org.springframework.security.config.annotation.web.reactive.EnableWebFlux
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authentication.logout.ServerLogoutSuccessHandler;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.reactive.CorsConfigurationSource;
-import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 import java.util.Map;
@@ -66,31 +61,12 @@ public class GatewaySecurityConfiguration {
     @Autowired(required = false)
     ServerLogoutSuccessHandler oidcLogoutSuccessHandler;
 
-    private @Value("${georchestra.gateway.csrfEnabled:false}") boolean csrfEnabled;
-    private @Value("${georchestra.gateway.corsEnabled:false}") boolean corsEnabled;
-
     @Bean
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http,
             List<ServerHttpSecurityCustomizer> customizers) throws Exception {
 
         log.info("Initializing security filter chain...");
 
-        if (!csrfEnabled) {
-            log.info("CSRF disabled. Revisit how they interfer with Websockets proxying.");
-            http.csrf().disable();
-        }
-        if (!corsEnabled) {
-            log.info("CORS disabled. Revisit how they interfer with Websockets proxying.");
-            http.cors().disable();
-        } else {
-            CorsConfiguration config = new CorsConfiguration();
-            config.addAllowedOrigin(CorsConfiguration.ALL);
-            config.addAllowedHeader("*");
-            config.addAllowedMethod("*");
-            UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-            source.registerCorsConfiguration("/**", config);
-            http.cors().configurationSource(source);
-        }
         http.formLogin()
                 .authenticationFailureHandler(new ExtendedRedirectServerAuthenticationFailureHandler("login?error"))
                 .loginPage("/login");

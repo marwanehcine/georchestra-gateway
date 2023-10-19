@@ -32,6 +32,17 @@ spring:
       enabled: true
       global-filter.websocket-routing.enabled: true
       metrics.enabled: true
+      # Uncomment the following to allow cross-origin requests from any methods
+      # coming from anywhere.
+      # See https://docs.spring.io/spring-cloud-gateway/reference/spring-cloud-gateway/cors-configuration.html
+      # for more infos.
+      #globalcors:
+      #  cors-configurations:
+      #    '[/**]':
+      #      allowedOrigins: "*"
+      #      allowedHeaders: "*"
+      #      allowedMethods: "*"
+
       default-filters:
       - SecureHeaders
       - TokenRelay
@@ -54,8 +65,6 @@ spring:
 
 georchestra:
   gateway:
-    csrfEnabled: false
-    corsEnabled: false
     security:
       oauth2:
         enabled: false
