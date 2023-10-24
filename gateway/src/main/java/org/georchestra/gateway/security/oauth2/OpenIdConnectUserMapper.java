@@ -40,6 +40,7 @@ import org.georchestra.gateway.security.ldap.LdapConfigProperties;
 import org.georchestra.security.model.GeorchestraUser;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.core.Ordered;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
@@ -145,6 +146,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j(topic = "org.georchestra.gateway.security.oauth2")
 public class OpenIdConnectUserMapper extends OAuth2UserMapper {
 
+    private @Value("${enableRabbitmqEvents:false}") boolean enableRabbitmq;
+
     @Autowired
     LdapConfigProperties config;
 
@@ -195,7 +198,7 @@ public class OpenIdConnectUserMapper extends OAuth2UserMapper {
                     accountDao.insert(newAccount);
                     roleDao.addUser(Role.USER, newAccount);
                     userOpt = usersApi.findByOAuth2ProviderId(oAuth2ProviderId);
-                    if (config.isEnableRabbitmqEvents() && eventsSender != null) {
+                    if (enableRabbitmq && eventsSender != null) {
                         eventsSender.sendNewOAuthAccountMessage(
                                 oidcUser.getGivenName() + " " + oidcUser.getFamilyName(), oidcUser.getEmail(),
                                 token.getAuthorizedClientRegistrationId());
