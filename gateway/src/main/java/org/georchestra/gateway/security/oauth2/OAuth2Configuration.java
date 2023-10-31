@@ -51,6 +51,7 @@ import org.springframework.security.oauth2.client.registration.InMemoryReactiveC
 import org.springframework.security.oauth2.client.userinfo.DefaultReactiveOAuth2UserService;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.BadJwtException;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoderFactory;
 import org.springframework.security.web.server.authentication.logout.ServerLogoutSuccessHandler;
@@ -66,6 +67,8 @@ import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static java.util.Objects.requireNonNull;
 
@@ -243,24 +246,35 @@ public class OAuth2Configuration {
             @Qualifier("oauth2WebClient") WebClient oauth2WebClient) {
         return (clientRegistration) -> (token) -> {
             try {
-                JWT jwt = JWTParser.parse(token);
-                MacAlgorithm macAlgorithm = MacAlgorithm.from(jwt.getHeader().getAlgorithm().getName());
+                JWT parsedJwt = JWTParser.parse(token);
+                MacAlgorithm macAlgorithm = MacAlgorithm.from(parsedJwt.getHeader().getAlgorithm().getName());
+                NimbusReactiveJwtDecoder jwtDecoder;
                 if (macAlgorithm != null) {
                     var secretKey = clientRegistration.getClientSecret().getBytes(StandardCharsets.UTF_8);
                     if (secretKey.length < 64) {
                         secretKey = Arrays.copyOf(secretKey, 64);
                     }
                     SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey, macAlgorithm.getName());
-                    return NimbusReactiveJwtDecoder.withSecretKey(secretKeySpec).macAlgorithm(macAlgorithm).build()
-                            .decode(token);
+                    jwtDecoder = NimbusReactiveJwtDecoder.withSecretKey(secretKeySpec).macAlgorithm(macAlgorithm)
+                            .build();
+                } else {
+                    jwtDecoder = NimbusReactiveJwtDecoder
+                            .withJwkSetUri(clientRegistration.getProviderDetails().getJwkSetUri())
+                            .webClient(oauth2WebClient).build();
                 }
-                return NimbusReactiveJwtDecoder.withJwkSetUri(clientRegistration.getProviderDetails().getJwkSetUri())
-                        .webClient(oauth2WebClient).build().decode(token);
+                return jwtDecoder.decode(token).map(jwt -> new Jwt(jwt.getTokenValue(), jwt.getIssuedAt(),
+                        jwt.getExpiresAt(), jwt.getHeaders(), removeNullClaims(jwt.getClaims())));
             } catch (ParseException exception) {
                 throw new BadJwtException(
                         "An error occurred while attempting to decode the Jwt: " + exception.getMessage(), exception);
             }
         };
+    }
+
+    // Some IDPs return claims with null value but Spring does not handle them
+    private Map<String, Object> removeNullClaims(Map<String, Object> claims) {
+        return claims.entrySet().stream().filter(entry -> entry.getValue() != null)
+                .collect(Collectors.toMap((entry) -> entry.getKey(), (entry) -> entry.getValue()));
     }
 
     @Bean
