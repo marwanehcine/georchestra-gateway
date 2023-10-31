@@ -68,7 +68,7 @@ public class FiltersAutoConfiguration {
         return new StripBasePathGatewayFilterFactory();
     }
 
-    @ConditionalOnProperty(name = "enableRabbitmqEvents", havingValue = "true", matchIfMissing = false)
+    @ConditionalOnProperty(name = "enableRabbitmqEvents", havingValue = "false", matchIfMissing = true)
     public @Bean HealthIndicator rabbitHealthIndicator() {
         return () -> Health.up().withDetail("version", "mock").build();
     }
