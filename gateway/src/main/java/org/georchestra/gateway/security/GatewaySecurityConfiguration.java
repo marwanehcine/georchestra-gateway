@@ -66,10 +66,6 @@ public class GatewaySecurityConfiguration {
             List<ServerHttpSecurityCustomizer> customizers) throws Exception {
 
         log.info("Initializing security filter chain...");
-        // disable csrf and cors or the websocket connection gets a 403 Forbidden.
-        // Revisit.
-        log.info("CSRF and CORS disabled. Revisit how they interfer with Websockets proxying.");
-        http.csrf().disable().cors().disable();
 
         http.formLogin()
                 .authenticationFailureHandler(new ExtendedRedirectServerAuthenticationFailureHandler("login?error"))
