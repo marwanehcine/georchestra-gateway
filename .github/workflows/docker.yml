@@ -24,9 +24,6 @@ jobs:
         java-version: '11'
         cache: 'maven'
 
-    - name: "Build georchestra dependencies"
-      run: make deps
-
     - name: "Build gateway"
       run: make install test
 
