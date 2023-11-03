@@ -1,7 +1,4 @@
-all: deps install test docker
-
-deps:
-	./mvnw -f georchestra/ clean install -pl :georchestra-ldap-account-management -am -DskipTests -P-all -ntp
+all: install test docker
 
 install:
 	./mvnw clean install -pl :georchestra-gateway -ntp -DskipTests
