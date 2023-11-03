@@ -74,7 +74,6 @@ public class RemoveHeadersGatewayFilterFactory extends AbstractGatewayFilterFact
 
     @Override
     public GatewayFilter apply(RegExConfig regexConfig) {
-
         return (exchange, chain) -> {
             final RegExConfig config = regexConfig;// == null ? DEFAULT_SECURITY_HEADERS_CONFIG : regexConfig;
             HttpHeaders incoming = exchange.getRequest().getHeaders();

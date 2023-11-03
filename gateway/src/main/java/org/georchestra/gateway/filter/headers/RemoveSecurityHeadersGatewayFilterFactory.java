@@ -49,12 +49,13 @@ public class RemoveSecurityHeadersGatewayFilterFactory extends AbstractGatewayFi
 
     private static final String DEFAULT_SEC_HEADERS_PATTERN = "(?i)(sec-.*|Authorization)";
 
-    private final RemoveHeadersGatewayFilterFactory delegate = new RemoveHeadersGatewayFilterFactory();
+    private final RemoveHeadersGatewayFilterFactory delegate;
     private final RemoveHeadersGatewayFilterFactory.RegExConfig config = new RemoveHeadersGatewayFilterFactory.RegExConfig(
             DEFAULT_SEC_HEADERS_PATTERN);
 
     public RemoveSecurityHeadersGatewayFilterFactory() {
         super(Object.class);
+        delegate = new RemoveHeadersGatewayFilterFactory();
     }
 
     @Override

@@ -20,11 +20,11 @@ package org.georchestra.gateway.autoconfigure.security;
 
 import org.georchestra.gateway.security.GatewaySecurityConfiguration;
 import org.georchestra.gateway.security.accessrules.AccessRulesConfiguration;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.security.ConditionalOnDefaultWebSecurity;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
-@Configuration(proxyBeanMethods = false)
+@AutoConfiguration
 @ConditionalOnDefaultWebSecurity
 @Import({ GatewaySecurityConfiguration.class, AccessRulesConfiguration.class })
 public class WebSecurityAutoConfiguration {

@@ -23,10 +23,12 @@ spring:
     banner-mode: off
     web-application-type: reactive
   application.name: gateway-service
-  thymeleaf.cache: false
+  thymeleaf:
+    cache: false
   autoconfigure:
     exclude:
     - org.springframework.boot.autoconfigure.ldap.LdapAutoConfiguration
+    - org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
   cloud:
     gateway:
       enabled: true
@@ -66,6 +68,15 @@ spring:
 georchestra:
   gateway:
     security:
+      create-non-existing-users-in-l-d-a-p: false
+      events:
+        rabbitmq:
+          # Note usually enableRabbitmqEvents, rabbitmqHost, etc. come from georchestra's default.properties
+          enabled: ${enableRabbitmqEvents:false}
+          host: ${rabbitmqHost}
+          port: ${rabbitmqPort}
+          user: ${rabbitmqUser}
+          password: ${rabbitmqPassword}
       oauth2:
         enabled: false
         proxy:
@@ -78,7 +89,7 @@ georchestra:
         # Multiple LDAP data sources are supported. The first key defines a simple
         # name for them. The `default` one here, disabled by default, is pre-configured
         # to use Georchestra's default OpenLDAP database.
-        # You should usually just enable it in the georchestra dataidr's gateway.yml
+        # You should usually just enable it in the georchestra datadir's gateway.yml
         # with georchestra.gateway.security.ldap.default.enabled: true
         default:
           enabled: false
