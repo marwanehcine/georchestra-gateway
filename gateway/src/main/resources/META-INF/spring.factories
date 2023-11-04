@@ -5,5 +5,6 @@ org.georchestra.gateway.autoconfigure.app.RoutePredicateFactoriesAutoConfigurati
 org.georchestra.gateway.autoconfigure.security.WebSecurityAutoConfiguration,\
 org.georchestra.gateway.autoconfigure.security.LdapSecurityAutoConfiguration,\
 org.georchestra.gateway.autoconfigure.security.OAuth2SecurityAutoConfiguration,\
+org.georchestra.gateway.autoconfigure.security.HeaderPreAuthenticationAutoConfiguration,\
 org.georchestra.gateway.autoconfigure.accounts.GeorchestraLdapAccountsCreationAutoConfiguration,\
 org.georchestra.gateway.autoconfigure.accounts.RabbitmqEventsAutoConfiguration

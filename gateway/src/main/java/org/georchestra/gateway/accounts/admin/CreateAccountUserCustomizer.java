@@ -25,6 +25,7 @@ import org.georchestra.security.model.GeorchestraUser;
 import org.springframework.core.Ordered;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -51,15 +52,21 @@ public class CreateAccountUserCustomizer implements GeorchestraUserCustomizerExt
     /**
      * @return the stored version (either existing or created as result of calling
      *         this method) of the user account, if the {@code Authentication}
-     *         object is either an {@link OAuth2AuthenticationToken}
+     *         object is either an {@link OAuth2AuthenticationToken} or
+     *         {@link PreAuthenticatedAuthenticationToken}; {@code mappedUser}
+     *         otherwise.
      */
     @Override
     public @NonNull GeorchestraUser apply(@NonNull Authentication auth, @NonNull GeorchestraUser mappedUser) {
         final boolean isOauth2 = auth instanceof OAuth2AuthenticationToken;
+        final boolean isPreAuth = auth instanceof PreAuthenticatedAuthenticationToken;
         if (isOauth2) {
             Objects.requireNonNull(mappedUser.getOAuth2ProviderId(), "GeorchestraUser.oAuth2ProviderId is null");
         }
-        if (isOauth2) {
+        if (isPreAuth) {
+            Objects.requireNonNull(mappedUser.getUsername(), "GeorchestraUser.username is null");
+        }
+        if (isOauth2 || isPreAuth) {
             return accounts.getOrCreate(mappedUser);
         }
         return mappedUser;

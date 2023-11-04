@@ -100,3 +100,15 @@ georchestra:
 #            #user-info-uri:
 #            userNameAttribute: preferred_username
 
+---
+spring.config.activate.on-profile: preauth
+georchestra:
+  gateway:
+    security:
+      createNonExistingUsersInLDAP: true
+      header-authentication:
+        enabled: true
+      ldap:
+        default:
+          adminDn: cn=admin,dc=georchestra,dc=org
+          adminPassword: secret
