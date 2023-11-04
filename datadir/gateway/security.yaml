@@ -4,6 +4,15 @@
 georchestra:
   gateway:
     security:
+      createNonExistingUsersInLDAP: false
+      events:
+        rabbitmq:
+          # Note usually enableRabbitmqEvents, rabbitmqHost, etc. come from georchestra's default.properties
+          enabled: ${enableRabbitmqEvents:false}
+          host: ${rabbitmqHost}
+          port: ${rabbitmqPort}
+          user: ${rabbitmqUser}
+          password: ${rabbitmqPassword}
       oauth2:
         # if enabled, make sure to have at least one OAuth2 client
         # set up at spring.security.oauth2.client below 
@@ -19,7 +28,7 @@ georchestra:
         # Multiple LDAP data sources are supported. The first key defines a simple
         # name for them. The `default` one here, disabled by default, is pre-configured
         # to use Georchestra's default OpenLDAP database.
-        # You should usually just enable it in the georchestra dataidr's gateway.yml
+        # You should usually just enable it in the georchestra datadir's gateway.yml
         # with georchestra.gateway.security.ldap.default.enabled: true
         default:
           enabled: true

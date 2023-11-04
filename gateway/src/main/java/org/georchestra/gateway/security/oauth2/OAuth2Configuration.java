@@ -18,26 +18,22 @@
  */
 package org.georchestra.gateway.security.oauth2;
 
-import com.nimbusds.jwt.JWT;
-import com.nimbusds.jwt.JWTParser;
-import org.georchestra.ds.roles.RoleDao;
-import org.georchestra.ds.roles.RoleDaoImpl;
-import org.georchestra.ds.roles.RoleProtected;
-import org.georchestra.ds.users.AccountDao;
-import org.georchestra.ds.users.AccountDaoImpl;
+import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
+import java.util.Arrays;
+import java.util.Collections;
+
+import javax.crypto.spec.SecretKeySpec;
+
 import org.georchestra.gateway.security.ServerHttpSecurityCustomizer;
 import org.georchestra.gateway.security.ldap.LdapConfigProperties;
-import org.georchestra.gateway.security.ldap.extended.ExtendedLdapConfig;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
-import org.springframework.ldap.core.LdapTemplate;
-import org.springframework.ldap.core.support.LdapContextSource;
-import org.springframework.ldap.pool.factory.PoolingContextSource;
-import org.springframework.ldap.pool.validation.DefaultDirContextValidator;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity.OAuth2LoginSpec;
@@ -57,20 +53,15 @@ import org.springframework.security.oauth2.jwt.ReactiveJwtDecoderFactory;
 import org.springframework.security.web.server.authentication.logout.ServerLogoutSuccessHandler;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import com.nimbusds.jwt.JWT;
+import com.nimbusds.jwt.JWTParser;
+
 import lombok.extern.slf4j.Slf4j;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.transport.ProxyProvider;
 
-import javax.crypto.spec.SecretKeySpec;
-import java.lang.reflect.Field;
-import java.nio.charset.StandardCharsets;
-import java.text.ParseException;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import static java.util.Objects.requireNonNull;
 
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties({ OAuth2ProxyConfigProperties.class, OpenIdConnectCustomClaimsConfigProperties.class,
@@ -87,11 +78,10 @@ public class OAuth2Configuration {
     }
 
     @Bean
-    private ServerLogoutSuccessHandler oidcLogoutSuccessHandler(
+    @Profile("!test")
+    ServerLogoutSuccessHandler oidcLogoutSuccessHandler(
             InMemoryReactiveClientRegistrationRepository clientRegistrationRepository,
             ExtendedOAuth2ClientProperties properties) {
-        OidcClientInitiatedServerLogoutSuccessHandler oidcLogoutSuccessHandler = new OidcClientInitiatedServerLogoutSuccessHandler(
-                clientRegistrationRepository);
         clientRegistrationRepository.forEach(client -> {
             if (client.getProviderDetails().getConfigurationMetadata().isEmpty()
                     && properties.getProvider().get(client.getRegistrationId()) != null
@@ -106,96 +96,11 @@ public class OAuth2Configuration {
                 }
             }
         });
+
+        OidcClientInitiatedServerLogoutSuccessHandler oidcLogoutSuccessHandler = new OidcClientInitiatedServerLogoutSuccessHandler(
+                clientRegistrationRepository);
         oidcLogoutSuccessHandler.setPostLogoutRedirectUri("{baseUrl}/login?logout");
-
         return oidcLogoutSuccessHandler;
-    }
-
-    @Bean
-    @ConditionalOnExpression("${georchestra.gateway.security.createNonExistingUsersInLDAP:true}")
-    public LdapContextSource singleContextSource(LdapConfigProperties config) {
-        ExtendedLdapConfig ldapConfig = config.extendedEnabled().get(0);
-        LdapContextSource singleContextSource = new LdapContextSource();
-        singleContextSource.setUrl(ldapConfig.getUrl());
-        singleContextSource.setBase(ldapConfig.getBaseDn());
-        singleContextSource.setUserDn(ldapConfig.getAdminDn().get());
-        singleContextSource.setPassword(ldapConfig.getAdminPassword().get());
-        return singleContextSource;
-    }
-
-    @Bean
-    @ConditionalOnExpression("${georchestra.gateway.security.createNonExistingUsersInLDAP:true}")
-    public PoolingContextSource contextSource(LdapConfigProperties config, LdapContextSource singleContextSource) {
-        ExtendedLdapConfig ldapConfig = config.extendedEnabled().get(0);
-        PoolingContextSource contextSource = new PoolingContextSource();
-        contextSource.setContextSource(singleContextSource);
-        contextSource.setDirContextValidator(new DefaultDirContextValidator());
-        contextSource.setTestOnBorrow(true);
-        contextSource.setMaxActive(8);
-        contextSource.setMinIdle(1);
-        contextSource.setMaxIdle(8);
-        contextSource.setMaxTotal(-1);
-        contextSource.setMaxWait(-1);
-        return contextSource;
-    }
-
-    @Bean
-    @ConditionalOnExpression("${georchestra.gateway.security.createNonExistingUsersInLDAP:true}")
-    public LdapTemplate ldapTemplate(PoolingContextSource contextSource) throws Exception {
-        LdapTemplate ldapTemplate = new LdapTemplate(contextSource);
-        return ldapTemplate;
-    }
-
-    @Bean
-    @ConditionalOnExpression("${georchestra.gateway.security.createNonExistingUsersInLDAP:true}")
-    public RoleDao roleDao(LdapTemplate ldapTemplate, LdapConfigProperties config) {
-        RoleDaoImpl impl = new RoleDaoImpl();
-        impl.setLdapTemplate(ldapTemplate);
-        impl.setRoleSearchBaseDN(config.extendedEnabled().get(0).getRolesRdn());
-        return impl;
-    }
-
-    @Bean
-    @ConditionalOnExpression("${georchestra.gateway.security.createNonExistingUsersInLDAP:true}")
-    public AccountDao accountDao(LdapTemplate ldapTemplate, LdapConfigProperties config) throws Exception {
-        ExtendedLdapConfig ldapConfig = config.extendedEnabled().get(0);
-        String baseDn = ldapConfig.getBaseDn();
-        String userSearchBaseDN = ldapConfig.getUsersRdn();
-        String roleSearchBaseDN = ldapConfig.getRolesRdn();
-
-        // we don't need a configuration property for this,
-        // we don't allow pending users to log in. The LdapAuthenticationProvider won't
-        // even look them up.
-        final String pendingUsersSearchBaseDN = "ou=pendingusers";
-
-        AccountDaoImpl impl = new AccountDaoImpl(ldapTemplate);
-        impl.setBasePath(baseDn);
-        impl.setUserSearchBaseDN(userSearchBaseDN);
-        impl.setRoleSearchBaseDN(roleSearchBaseDN);
-        if (pendingUsersSearchBaseDN != null) {
-            impl.setPendingUserSearchBaseDN(pendingUsersSearchBaseDN);
-        }
-
-        String orgSearchBaseDN = ldapConfig.getOrgsRdn();
-        requireNonNull(orgSearchBaseDN);
-        impl.setOrgSearchBaseDN(orgSearchBaseDN);
-
-        // not needed here, only console cares, we shouldn't allow to authenticate
-        // pending users, should we?
-        final String pendingOrgSearchBaseDN = "ou=pendingorgs";
-        impl.setPendingOrgSearchBaseDN(pendingOrgSearchBaseDN);
-
-        impl.init();
-        return impl;
-    }
-
-    @Bean
-    @ConditionalOnExpression("${georchestra.gateway.security.createNonExistingUsersInLDAP:true}")
-    public RoleProtected roleProtected() {
-        RoleProtected roleProtected = new RoleProtected();
-        roleProtected.setListOfprotectedRoles(
-                new String[] { "ADMINISTRATOR", "GN_.*", "ORGADMIN", "REFERENT", "USER", "SUPERUSER" });
-        return roleProtected;
     }
 
     @Bean

@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.georchestra.gateway.security.GeorchestraUserMapperExtension;
 import org.georchestra.security.api.UsersApi;
@@ -31,10 +32,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.ldap.userdetails.LdapUserDetails;
+import org.springframework.security.ldap.userdetails.LdapUserDetailsImpl;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.ldap.userdetails.LdapUserDetailsImpl;
 
 /**
  * {@link GeorchestraUserMapperExtension} that maps LDAP-authenticated token to
@@ -81,12 +82,13 @@ class GeorchestraLdapAuthenticatedUserMapper implements GeorchestraUserMapperExt
 
         // Fix role name mismatch between authority provider (adds ROLE_ prefix) and
         // users api
-        Set<String> prefixedRoleNames = token.getAuthorities().stream().filter(SimpleGrantedAuthority.class::isInstance)
-                .map(GrantedAuthority::getAuthority).filter(role -> role.startsWith("ROLE_"))
-                .collect(Collectors.toSet());
+        Stream<String> authorityRoleNames = token.getAuthorities().stream()
+                .filter(SimpleGrantedAuthority.class::isInstance).map(GrantedAuthority::getAuthority)
+                .map(this::normalize);
 
-        List<String> roles = user.getRoles().stream()
-                .map(r -> prefixedRoleNames.contains("ROLE_" + r) ? "ROLE_" + r : r).collect(Collectors.toList());
+        Stream<String> userRoles = user.getRoles().stream().map(this::normalize);
+
+        List<String> roles = Stream.concat(authorityRoleNames, userRoles).distinct().collect(Collectors.toList());
 
         user.setRoles(roles);
         if (principal.getTimeBeforeExpiration() < Integer.MAX_VALUE) {
@@ -97,5 +99,9 @@ class GeorchestraLdapAuthenticatedUserMapper implements GeorchestraUserMapperExt
         }
 
         return user;
+    }
+
+    private String normalize(String role) {
+        return role.startsWith("ROLE_") ? role : "ROLE_" + role;
     }
 }

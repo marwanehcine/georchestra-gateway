@@ -21,20 +21,15 @@ package org.georchestra.gateway.security.oauth2;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.georchestra.ds.users.AccountDaoImpl;
 import org.georchestra.security.model.GeorchestraUser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.ldap.core.LdapTemplate;
-import org.springframework.security.ldap.DefaultSpringSecurityContextSource;
 import org.springframework.security.oauth2.core.oidc.AddressStandardClaim;
 import org.springframework.security.oauth2.core.oidc.StandardClaimAccessor;
 
@@ -42,7 +37,7 @@ import com.nimbusds.oauth2.sdk.ParseException;
 import com.nimbusds.oauth2.sdk.util.JSONUtils;
 
 /**
- *
+ * 
  */
 class OpenIdConnectUserMapperTest {
 
@@ -54,24 +49,6 @@ class OpenIdConnectUserMapperTest {
      */
     @BeforeEach
     void setUp() throws Exception {
-        assumeTrue(System.getProperty("console.test.openldap.ldapurl") != null
-                && System.getProperty("console.test.openldap.basedn") != null);
-
-        String ldapUrl = System.getProperty("console.test.openldap.ldapurl");
-        String baseDn = System.getProperty("console.test.openldap.basedn");
-
-        DefaultSpringSecurityContextSource contextSource = new DefaultSpringSecurityContextSource(ldapUrl + baseDn);
-        contextSource.setBase(baseDn);
-        contextSource.setUrl(ldapUrl);
-        contextSource.setBaseEnvironmentProperties(new HashMap<String, Object>());
-        contextSource.setAnonymousReadOnly(true);
-        contextSource.setCacheEnvironmentProperties(false);
-
-        LdapTemplate ldapTemplate = new LdapTemplate(contextSource);
-
-        AccountDaoImpl accountDaoImpl = new AccountDaoImpl(ldapTemplate);
-        accountDaoImpl.setUserSearchBaseDN("ou=users");
-
         nonStandardClaimsConfig = new OpenIdConnectCustomClaimsConfigProperties();
         mapper = new OpenIdConnectUserMapper(nonStandardClaimsConfig);
     }
