@@ -28,7 +28,6 @@ spring:
   autoconfigure:
     exclude:
     - org.springframework.boot.autoconfigure.ldap.LdapAutoConfiguration
-    - org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
   cloud:
     gateway:
       enabled: true

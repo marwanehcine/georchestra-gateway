@@ -33,7 +33,9 @@ import org.georchestra.security.model.GeorchestraUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -59,6 +61,7 @@ import reactor.core.publisher.Mono;
 @Slf4j
 @SpringBootApplication
 @EnableConfigurationProperties(LdapConfigProperties.class)
+@EnableAutoConfiguration(exclude = RabbitAutoConfiguration.class)
 public class GeorchestraGatewayApplication {
 
     private @Autowired RouteLocator routeLocator;
