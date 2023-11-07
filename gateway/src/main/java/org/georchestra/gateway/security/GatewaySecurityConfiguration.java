@@ -74,6 +74,10 @@ public class GatewaySecurityConfiguration {
 
         log.info("Initializing security filter chain...");
 
+        // disable CSRF protection, considering it will be managed
+        // by proxified webapps, not the gateway.
+        http.csrf().disable();
+
         http.formLogin()
                 .authenticationFailureHandler(new ExtendedRedirectServerAuthenticationFailureHandler("login?error"))
                 .loginPage("/login");
