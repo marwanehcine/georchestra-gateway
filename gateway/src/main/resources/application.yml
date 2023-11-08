@@ -18,7 +18,8 @@ server:
 
 spring:
   config:
-    import: optional:file:${georchestra.datadir}/default.properties,optional:file:${georchestra.datadir}/gateway/gateway.yaml,optional:file:${georchestra.datadir}/gateway/security.yaml
+    # See https://github.com/georchestra/datadir/tree/master/gateway for a configuration override example
+    import: optional:file:${georchestra.datadir}/default.properties,optional:file:${georchestra.datadir}/gateway/gateway.yaml
   main:
     banner-mode: off
     web-application-type: reactive
