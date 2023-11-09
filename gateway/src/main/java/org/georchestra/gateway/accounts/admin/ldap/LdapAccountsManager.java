@@ -95,7 +95,9 @@ class LdapAccountsManager extends AbstractAccountsManager {
             throw new IllegalStateException(accountError);
         }
 
-        ensureOrgExists(newAccount);
+        if (newAccount.getOAuth2ProviderId() == null)  {
+            ensureOrgExists(newAccount);
+        }
 
         ensureRolesExist(mapped, newAccount);
     }
