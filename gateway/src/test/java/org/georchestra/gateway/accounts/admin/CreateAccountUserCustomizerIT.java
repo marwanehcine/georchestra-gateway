@@ -77,6 +77,14 @@ public class CreateAccountUserCustomizerIT {
             "preauth-lastname", "Test", //
             "preauth-org", "GEORCHESTRA");
 
+    private static final Map<String, String> NON_EXISTING_USER_WITH_ORG_EMPTY_HEADERS = Map.of( //
+            "sec-georchestra-preauthenticated", "true", //
+            "preauth-username", "jmflup", //
+            "preauth-email", "jmflup@georchestra.org", //
+            "preauth-firstname", "Jean-Marc", //
+            "preauth-lastname", "Flup", //
+            "preauth-org", "");
+
     private WebTestClient.RequestHeadersUriSpec<?> prepareWebTestClientHeaders(
             WebTestClient.RequestHeadersUriSpec<?> spec, Map<String, String> headers) {
         headers.forEach((k, v) -> {
@@ -145,5 +153,15 @@ public class CreateAccountUserCustomizerIT {
                         "ROLE_USER", //
                         "ROLE_MAPSTORE_ADMIN", //
                         "ROLE_EMAILPROXY"));
+    }
+
+    public @Test void testPreauthenticatedHeadersWithOrgNotNullButEmpty() throws Exception {
+        prepareWebTestClientHeaders(testClient.get(), NON_EXISTING_USER_WITH_ORG_EMPTY_HEADERS).uri("/whoami")//
+                .exchange()//
+                .expectStatus()//
+                .is2xxSuccessful()//
+                .expectBody()//
+                .jsonPath("$.GeorchestraUser").isNotEmpty()
+                .jsonPath("$.GeorchestraUser.organization").isEqualTo(null);
     }
 }
