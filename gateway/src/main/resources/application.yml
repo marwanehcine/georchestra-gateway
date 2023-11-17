@@ -50,7 +50,7 @@ spring:
       - SecureHeaders
       - TokenRelay
       - RemoveSecurityHeaders
-      # AddSecHeaders appends sec-* headers to proxied requests based on the
+      # AddSecHeaders appends sec-* headers to proxied requests based on the currently authenticated user
       - AddSecHeaders
       global-filter:
         websocket-routing:
