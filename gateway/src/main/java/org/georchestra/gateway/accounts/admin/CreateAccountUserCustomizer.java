@@ -18,13 +18,20 @@
  */
 package org.georchestra.gateway.accounts.admin;
 
+import java.lang.reflect.Field;
+import java.util.Collections;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.georchestra.gateway.security.GeorchestraUserCustomizerExtension;
 import org.georchestra.security.model.GeorchestraUser;
 import org.springframework.core.Ordered;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
 import lombok.NonNull;
@@ -62,6 +69,18 @@ public class CreateAccountUserCustomizer implements GeorchestraUserCustomizerExt
         final boolean isPreAuth = auth instanceof PreAuthenticatedAuthenticationToken;
         if (isOauth2) {
             Objects.requireNonNull(mappedUser.getOAuth2ProviderId(), "GeorchestraUser.oAuth2ProviderId is null");
+            GeorchestraUser user = accounts.getOrCreate(mappedUser);
+
+            try {
+//                ((OAuth2AuthenticationToken) auth).setDetails();
+                Field field = AbstractAuthenticationToken.class.getDeclaredField("authorities");
+                field.setAccessible(true);
+                field.set(auth,
+                        user.getRoles().stream().map(r -> new SimpleGrantedAuthority(r)).collect(Collectors.toList()));
+            } catch (NoSuchFieldException e) {
+            } catch (IllegalAccessException e) {
+            }
+
         }
         if (isPreAuth) {
             Objects.requireNonNull(mappedUser.getUsername(), "GeorchestraUser.username is null");
