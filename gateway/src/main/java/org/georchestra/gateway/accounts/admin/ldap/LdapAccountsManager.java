@@ -42,6 +42,7 @@ import org.georchestra.gateway.accounts.admin.AccountCreated;
 import org.georchestra.gateway.accounts.admin.AccountManager;
 import org.georchestra.security.api.UsersApi;
 import org.georchestra.security.model.GeorchestraUser;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.ldap.NameNotFoundException;
 
 import lombok.NonNull;
@@ -55,6 +56,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j(topic = "org.georchestra.gateway.accounts.admin.ldap")
 class LdapAccountsManager extends AbstractAccountsManager {
 
+    private @Value("${georchestra.gateway.security.defaultOrganization:}") String defaultOrganization;
     private final @NonNull AccountDao accountDao;
     private final @NonNull RoleDao roleDao;
 
@@ -148,7 +150,11 @@ class LdapAccountsManager extends AbstractAccountsManager {
         Account newAccount = AccountFactory.createBrief(username, password, firstName, lastName, email, phone, title,
                 description, oAuth2ProviderId);
         newAccount.setPending(false);
-        newAccount.setOrg(org);
+        if (StringUtils.isEmpty(org) && !StringUtils.isBlank(defaultOrganization)) {
+            newAccount.setOrg(defaultOrganization);
+        } else {
+            newAccount.setOrg(org);
+        }
         return newAccount;
     }
 
@@ -165,6 +171,8 @@ class LdapAccountsManager extends AbstractAccountsManager {
                 List<String> currentMembers = org.getMembers();
                 currentMembers.add(newAccount.getUid());
                 org.setMembers(currentMembers);
+                org.setId(orgId);
+
                 orgsDao.update(org);
             } catch (NameNotFoundException e) {
                 log.info("Org {} does not exist, trying to create it", orgId);
@@ -172,6 +180,9 @@ class LdapAccountsManager extends AbstractAccountsManager {
                 org = new Org();
                 org.setId(orgId);
                 org.setName(orgId);
+                org.setShortName(orgId);
+                org.setPending(false);
+                org.setOrgType("default");
                 org.setMembers(Arrays.asList(newAccount.getUid()));
                 orgsDao.insert(org);
             }
