@@ -54,4 +54,16 @@ public class HeaderPreAuthenticationConfigurationIT {
                 .isNotEmpty();
     }
 
+    public @Test void test_preauthenticatedHeadersAccess_isAuthenticated() {
+        assertNotNull(context.getBean(PreauthGatewaySecurityCustomizer.class));
+        assertNotNull(context.getBean(PreauthenticatedUserMapperExtension.class));
+
+        ResponseSpec exchange = prepareWebTestClientHeaders(testClient.get(), ADMIN_HEADERS).uri("/whoami").exchange();
+        BodyContentSpec body = exchange.expectStatus().is2xxSuccessful().expectBody();
+        body.jsonPath("$.['GeorchestraUser']").isNotEmpty();
+        body.jsonPath(
+                "$.['org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken'].authenticated")
+                .isEqualTo(true);
+    }
+
 }
