@@ -59,7 +59,7 @@ class PreauthAuthenticationManager implements ReactiveAuthenticationManager, Ser
                 throw new IllegalStateException("Pre-authenticated user headers not provided");
             }
             PreAuthenticatedAuthenticationToken authentication = new PreAuthenticatedAuthenticationToken(username,
-                    credentials);
+                    credentials, List.of());
             return Mono.just(authentication);
         }
         return Mono.empty();
