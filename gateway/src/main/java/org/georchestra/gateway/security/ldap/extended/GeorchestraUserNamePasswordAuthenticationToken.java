@@ -35,7 +35,7 @@ import lombok.RequiredArgsConstructor;
  * can be used to fetch additional user identity information.
  */
 @RequiredArgsConstructor
-class GeorchestraUserNamePasswordAuthenticationToken implements Authentication {
+public class GeorchestraUserNamePasswordAuthenticationToken implements Authentication {
 
     private static final long serialVersionUID = 1L;
 
@@ -54,7 +54,7 @@ class GeorchestraUserNamePasswordAuthenticationToken implements Authentication {
 
     @Override
     public Object getCredentials() {
-        return orig.getCredentials();
+        return null;
     }
 
     @Override
