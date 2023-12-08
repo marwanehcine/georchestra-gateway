@@ -18,22 +18,25 @@
  */
 package org.georchestra.gateway.app;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import java.net.URI;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.georchestra.gateway.security.ldap.extended.GeorchestraUserNamePasswordAuthenticationToken;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.core.env.Environment;
+import org.springframework.security.core.Authentication;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.web.server.ServerWebExchange;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(properties = "georchestra.datadir=src/test/resources/test-datadir")
 @ActiveProfiles({ "test" })
@@ -41,6 +44,8 @@ class GeorchestraGatewayApplicationTests {
 
     private @Autowired Environment env;
     private @Autowired RouteLocator routeLocator;
+
+    private @Autowired GeorchestraGatewayApplication application;
 
     public @Test void contextLoadsFromDatadir() {
         assertEquals("src/test/resources/test-datadir", env.getProperty("georchestra.datadir"));
@@ -62,5 +67,18 @@ class GeorchestraGatewayApplicationTests {
         Route testRoute = routesById.get("testRoute");
         assertNotNull(testRoute);
         assertEquals(URI.create("http://test.com:80"), testRoute.getUri());
+    }
+
+    public @Test void makeSureWhoamiDoesNotProvideAnySensitiveInfo() {
+        Authentication orig = Mockito.mock(Authentication.class);
+        Mockito.when(orig.getCredentials()).thenReturn("123456");
+        Authentication auth = new GeorchestraUserNamePasswordAuthenticationToken("test", orig);
+        ServerWebExchange exch = Mockito.mock(ServerWebExchange.class);
+
+        Map ret = application.whoami(auth, exch).block();
+
+        GeorchestraUserNamePasswordAuthenticationToken toTest = (GeorchestraUserNamePasswordAuthenticationToken) ret
+                .get("org.georchestra.gateway.security.ldap.extended.GeorchestraUserNamePasswordAuthenticationToken");
+        assertNull(toTest.getCredentials());
     }
 }
