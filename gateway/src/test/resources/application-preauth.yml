@@ -56,4 +56,3 @@ spring:
         - AddSecHeaders
       httpclient.wiretap: true
       httpserver.wiretap: false
-

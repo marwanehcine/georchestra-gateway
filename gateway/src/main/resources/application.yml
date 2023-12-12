@@ -70,6 +70,8 @@ georchestra:
   gateway:
     security:
       create-non-existing-users-in-l-d-a-p: false
+      header-authentication:
+        enabled: false
       events:
         rabbitmq:
           # Note usually enableRabbitmqEvents, rabbitmqHost, etc. come from georchestra's default.properties

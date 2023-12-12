@@ -45,5 +45,4 @@ public class HeaderPreauthConfigProperties {
      * preauth-lastname, preauth-org, preauth-email, preauth-roles
      */
     private boolean enabled = false;
-
 }
