@@ -24,7 +24,10 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import lombok.RequiredArgsConstructor;
+import org.georchestra.commons.security.SecurityHeaders;
 import org.georchestra.security.model.GeorchestraUser;
+import org.ldaptive.io.Base64;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.core.Authentication;
@@ -83,12 +86,12 @@ class PreauthAuthenticationManager implements ReactiveAuthenticationManager, Ser
     }
 
     public static GeorchestraUser map(Map<String, String> requestHeaders) {
-        String username = requestHeaders.get(PREAUTH_USERNAME);
-        String email = requestHeaders.get(PREAUTH_EMAIL);
-        String firstName = requestHeaders.get(PREAUTH_FIRSTNAME);
-        String lastName = requestHeaders.get(PREAUTH_LASTNAME);
-        String org = requestHeaders.get(PREAUTH_ORG);
-        String rolesValue = requestHeaders.get(PREAUTH_ROLES);
+        String username = SecurityHeaders.decode(requestHeaders.get(PREAUTH_USERNAME));
+        String email = SecurityHeaders.decode(requestHeaders.get(PREAUTH_EMAIL));
+        String firstName = SecurityHeaders.decode(requestHeaders.get(PREAUTH_FIRSTNAME));
+        String lastName = SecurityHeaders.decode(requestHeaders.get(PREAUTH_LASTNAME));
+        String org = SecurityHeaders.decode(requestHeaders.get(PREAUTH_ORG));
+        String rolesValue = SecurityHeaders.decode(requestHeaders.get(PREAUTH_ROLES));
         List<String> roleNames = Optional.ofNullable(rolesValue)
                 .map(roles -> Stream
                         .concat(Stream.of("ROLE_USER"), Stream.of(roles.split(";")).filter(StringUtils::hasText))

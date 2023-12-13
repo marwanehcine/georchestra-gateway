@@ -1,8 +1,10 @@
 package org.georchestra.gateway.accounts.admin;
 
 import org.georchestra.ds.orgs.OrgsDao;
+import org.georchestra.ds.users.Account;
 import org.georchestra.ds.users.AccountDao;
 import org.georchestra.gateway.app.GeorchestraGatewayApplication;
+import org.georchestra.gateway.security.preauth.HeaderPreauthConfigProperties;
 import org.georchestra.testcontainers.ldap.GeorchestraLdapContainer;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterAll;
@@ -18,8 +20,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Integration tests for {@link CreateAccountUserCustomizer}.
@@ -31,7 +32,6 @@ public class CreateAccountUserCustomizerIT {
     private @Autowired WebTestClient testClient;
 
     private @Autowired ApplicationContext context;
-
     private @Autowired AccountDao accountDao;
 
     private @Autowired OrgsDao orgsDao;

@@ -31,6 +31,15 @@ The following headers are expected to be received by the Gateway:
 * `preauth-lastname`: the surname of the user (e.g. "Mauduit")
 * `preauth-org`: the organisation identifier (e.g. "geOrchestra")
 
+== Charset considerations & encoded headers
+
+As the framework will consider the received headers as pure `us-ascii`, this can lead to issues when values contain
+accented characters. To circumvent this, it is possible to
+configure the gateway to receive base64-encoded http headers.
+
+If the headers values are prefixed with `{base64}`, then the `gateway` will
+base64-decode the HTTP headers' values  - apart from the `sec-georchestra-preauthenticated` which should still be set to `true` as plaintext - before using them.
+
 == Account creation
 
 In order to be able to administer users who are using the pre-authentication mechanism,
@@ -168,6 +177,9 @@ The following Apache configuration has been used in a setup to interact with the
         RequestHeader set preauth-firstname %{MELLON_GIVEN_NAME}e "expr=-n env('MELLON_GIVEN_NAME')"
         RequestHeader set preauth-lastname %{MELLON_SN}e "expr=-n env('MELLON_SN')"
         RequestHeader set preauth-org %{MELLON_O}e "expr=-n env('MELLON_O')"
+        # If needed to base64-encode the headers because of them containing accented characters, you can
+        # use the following syntax and adapt the other headers above:
+        # RequestHeader set preauth-lastname "expr={base64}%{base64:%{env:MELLON_SN}}"   "expr=-n env('MELLON_SN')"
 
         ProxyPass "http://georchestra-gateway-svc:8080/"
         ProxyPassReverse "http://georchestra-gateway-svc:8080/"
