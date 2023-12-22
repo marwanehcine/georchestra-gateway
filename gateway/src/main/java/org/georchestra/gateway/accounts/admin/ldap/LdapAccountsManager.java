@@ -171,8 +171,6 @@ class LdapAccountsManager extends AbstractAccountsManager {
                 List<String> currentMembers = org.getMembers();
                 currentMembers.add(newAccount.getUid());
                 org.setMembers(currentMembers);
-                org.setId(orgId);
-
                 orgsDao.update(org);
             } catch (NameNotFoundException e) {
                 log.info("Org {} does not exist, trying to create it", orgId);
@@ -181,8 +179,7 @@ class LdapAccountsManager extends AbstractAccountsManager {
                 org.setId(orgId);
                 org.setName(orgId);
                 org.setShortName(orgId);
-                org.setPending(false);
-                org.setOrgType("default");
+                org.setOrgType("Other");
                 org.setMembers(Arrays.asList(newAccount.getUid()));
                 orgsDao.insert(org);
             }
