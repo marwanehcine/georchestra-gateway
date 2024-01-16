@@ -18,19 +18,24 @@
  */
 package org.georchestra.gateway.security;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
 import org.georchestra.gateway.model.GatewayConfigProperties;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity.LogoutSpec;
+import org.springframework.security.oauth2.client.oidc.web.server.logout.OidcClientInitiatedServerLogoutSuccessHandler;
+import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.security.web.server.authentication.logout.RedirectServerLogoutSuccessHandler;
 import org.springframework.security.web.server.authentication.logout.ServerLogoutSuccessHandler;
 
 import lombok.extern.slf4j.Slf4j;
@@ -56,6 +61,8 @@ public class GatewaySecurityConfiguration {
 
     @Autowired(required = false)
     ServerLogoutSuccessHandler oidcLogoutSuccessHandler;
+
+    private @Value("${georchestra.gateway.logoutUrl:/?logout}") String georchestraLogoutUrl;
 
 //	@Primary
 //	@Bean
@@ -89,10 +96,11 @@ public class GatewaySecurityConfiguration {
 
         log.info("Security filter chain initialized");
 
-        LogoutSpec logoutUrl = http.formLogin().loginPage("/login").and().logout().logoutUrl("/logout");
-        if (oidcLogoutSuccessHandler != null) {
-            logoutUrl = logoutUrl.logoutSuccessHandler(oidcLogoutSuccessHandler);
-        }
+        RedirectServerLogoutSuccessHandler defaultRedirect = new RedirectServerLogoutSuccessHandler();
+        defaultRedirect.setLogoutSuccessUrl(URI.create(georchestraLogoutUrl));
+
+        LogoutSpec logoutUrl = http.formLogin().loginPage("/login").and().logout().logoutUrl("/logout")
+                .logoutSuccessHandler(oidcLogoutSuccessHandler != null ? oidcLogoutSuccessHandler : defaultRedirect);
 
         return logoutUrl.and().build();
     }
