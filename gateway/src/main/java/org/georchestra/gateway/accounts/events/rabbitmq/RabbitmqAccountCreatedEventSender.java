@@ -47,20 +47,32 @@ public class RabbitmqAccountCreatedEventSender {
         final String oAuth2ProviderId = user.getOAuth2ProviderId();
         if (null != oAuth2ProviderId) {
             String fullName = user.getFirstName() + " " + user.getLastName();
+            String localUid = user.getUsername();
             String email = user.getEmail();
-            String provider = oAuth2ProviderId;
-            sendNewOAuthAccountMessage(fullName, email, provider);
+            String organization = user.getOrganization();
+            String[] providerFields = oAuth2ProviderId.split(";");
+            String providerName = "";
+            String providerUid = "";
+            if(providerFields.length == 2)
+            {
+                providerName = providerFields[0];
+                providerUid = providerFields[1];
+            }
+            sendNewOAuthAccountMessage(fullName, localUid, email, organization, providerName, providerUid);
         }
     }
 
-    public void sendNewOAuthAccountMessage(String fullName, String email, String provider) {
-        // beans getting a reference to the sender
+    public void sendNewOAuthAccountMessage(String fullName, String localUid, String email, String organization,
+            String providerName, String providerUid) {
         JSONObject jsonObj = new JSONObject();
         jsonObj.put("uid", UUID.randomUUID());
         jsonObj.put("subject", OAUTH2_ACCOUNT_CREATION);
-        jsonObj.put("username", fullName); // bean
-        jsonObj.put("email", email); // bean
-        jsonObj.put("provider", provider); // bean
+        jsonObj.put("fullName", fullName);
+        jsonObj.put("localUid", localUid);
+        jsonObj.put("email", email);
+        jsonObj.put("organization", organization);
+        jsonObj.put("providerName", providerName);
+        jsonObj.put("providerUid", providerUid);
         eventTemplate.convertAndSend("routing-gateway", jsonObj.toString());// send
     }
 }
