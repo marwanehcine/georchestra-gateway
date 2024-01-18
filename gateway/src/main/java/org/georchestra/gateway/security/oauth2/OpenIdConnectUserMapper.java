@@ -152,6 +152,8 @@ public class OpenIdConnectUserMapper extends OAuth2UserMapper {
         try {
             applyStandardClaims(oidcUser, user);
             applyNonStandardClaims(oidcUser.getClaims(), user);
+            user.setUsername((token.getAuthorizedClientRegistrationId() + "_" + user.getUsername())
+                    .replaceAll("[^a-zA-Z0-9-_]", "_").toLowerCase());
         } catch (Exception e) {
             log.error("Error mapping non-standard OIDC claims for authenticated user", e);
             throw new IllegalStateException(e);
@@ -193,7 +195,7 @@ public class OpenIdConnectUserMapper extends OAuth2UserMapper {
         String formattedAddress = address == null ? null : address.getFormatted();
 
         apply(target::setId, subjectId);
-        apply(target::setUsername, preferredUsername, email);
+        apply(target::setUsername, preferredUsername, subjectId);
         apply(target::setFirstName, givenName);
         apply(target::setLastName, familyName);
         apply(target::setEmail, email);

@@ -44,21 +44,14 @@ public class RabbitmqAccountCreatedEventSender {
     @EventListener(AccountCreated.class)
     public void on(AccountCreated event) {
         GeorchestraUser user = event.getUser();
-        final String oAuth2ProviderId = user.getOAuth2ProviderId();
-        if (null != oAuth2ProviderId) {
+        final String oAuth2Provider = user.getOAuth2Provider();
+        if (null != oAuth2Provider) {
             String fullName = user.getFirstName() + " " + user.getLastName();
             String localUid = user.getUsername();
             String email = user.getEmail();
             String organization = user.getOrganization();
-            String[] providerFields = oAuth2ProviderId.split(";");
-            String providerName = "";
-            String providerUid = "";
-            if(providerFields.length == 2)
-            {
-                providerName = providerFields[0];
-                providerUid = providerFields[1];
-            }
-            sendNewOAuthAccountMessage(fullName, localUid, email, organization, providerName, providerUid);
+            String oAuth2Uid = user.getOAuth2Uid();
+            sendNewOAuthAccountMessage(fullName, localUid, email, organization, oAuth2Provider, oAuth2Uid);
         }
     }
 
